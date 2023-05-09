@@ -8,6 +8,47 @@ RefDef :: struct {
     clientHeight : u32 = 768;
 };
 
+AllocString :: (count : u32) -> string {
+    s : string;
+    s.count = count;
+    s.data = alloc(count);
+
+    return s;
+}
+
+ToCString :: (s : string) -> *u8 {
+    result := cast(*u8)alloc(s.count + 1); // +1 for null-byte
+    memcpy(result, s.data, s.count);
+    result[s.count] = 0;    
+
+    return result;
+}
+
+CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint, bool {
+    shaderCode := read_entire_file(shaderFile);    
+    shader := glCreateShader(shaderType);
+    
+    code : [1] *u8 ;
+    code[0] = shaderCode.data;
+    length : [1] s32;
+    length[0] = xx shaderCode.count;
+    glShaderSource(shader, 1, code.data, length.data);
+    
+    glCompileShader(shader);
+    
+    success := true;
+    glsuccess : GLint;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, *glsuccess);
+
+    if !glsuccess then {
+        log_data: [1024] u8;
+        glGetShaderInfoLog(shader, log_data.count, null, log_data.data);
+        log("Failed to compile shader %:\n%", shaderFile, to_string(log_data.data), flags=.ERROR);        
+        success = false;
+    }
+
+    return shader, success;
+}
 
 main :: () {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -45,11 +86,13 @@ main :: () {
     print("GL Version = %\n", to_string(glGetString(GL_VERSION)));
 
     // Shaders
-    vertexShader := read_entire_file("shaders/vert.glsl");
-    fragmentShader := read_entire_file("shaders/frag.glsl");
+    // TODO: Can I use the name `success` in _both_ invocations to CreateShader?
+    vertexShader, vertSuccess := CreateShader("shaders/vert.glsl", GL_VERTEX_SHADER);
+    print("Vertex Shader ID: %, Success: %\n", vertexShader, vertSuccess);
+    fragmentShader, fragSuccess := CreateShader("shaders/frag.glsl", GL_FRAGMENT_SHADER);
+    print("Fragment Shader ID: %, Success: %\n", fragmentShader, fragSuccess);
 
     running := true;
-
     while running {
 
         // SDL Event Loop
