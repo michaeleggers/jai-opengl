@@ -2,6 +2,9 @@
 #import "SDL";
 #import "GL";
 #import "File";
+#import "Math";
+
+#import, file "model.jai";
 
 RefDef :: struct {
     clientWidth  : u32 = 1024;
@@ -82,7 +85,7 @@ main :: () {
 
     refdef : RefDef;
 
-    window := SDL_CreateWindow("Simple Quake",
+    window := SDL_CreateWindow("Jai SDL-OpenGL",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         xx refdef.clientWidth, xx refdef.clientHeight,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
@@ -107,6 +110,42 @@ main :: () {
     // Shaders
     shaderProgram := CreateShaderProgram("shaders/vert.glsl", "shaders/frag.glsl");
 
+    // Model Data
+    vertices := Vertex.[
+        .{pos = .{-1.0, -1.0, 0.0}, uv = .{0.0, 0.0}},
+        .{pos = .{ 1.0, -1.0, 0.0}, uv = .{0.0, 0.0}},
+        .{pos = .{ 0.0, 1.0, 0.0}, uv = .{0.0, 0.0}}
+    ];
+    triangle := Model.{ position = .{0.0, 0.0, 0.0}};
+    for vertices array_add(*triangle.vertices, it);
+    
+    // VAO, VBO for Model data
+    VAO : GLuint;
+    glGenVertexArrays(1, *VAO);
+    glBindVertexArray(VAO);
+
+    VBO : GLuint;
+    glGenBuffers(1, *VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, triangle.vertices.count * size_of(Vertex), triangle.vertices.data, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), null);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)size_of(Vector3));
+    glEnableVertexAttribArray(1);
+
+    // TODO: View/Projection matrices
+
+    // Set GL state
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+    glEnable(GL_DEPTH_TEST);
+
+    // Program is static for this test
+    glUseProgram(shaderProgram);
+
     running := true;
     while running {
 
@@ -129,8 +168,12 @@ main :: () {
         }
 
         glViewport(0, 0, refdef.clientWidth, refdef.clientHeight);
-        glClear(GL_COLOR_BUFFER_BIT);
+
         glClearColor(0.5, 0.5, 1.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, xx triangle.vertices.count);
 
         SDL_GL_SwapWindow(window);
     }
