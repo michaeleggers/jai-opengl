@@ -6,6 +6,7 @@
 
 #import, file "model.jai";
 #import, file "camera.jai";
+#import, file "textures.jai";
 
 RefDef :: struct {
     clientWidth  : u32 = 1024;
@@ -120,8 +121,8 @@ main :: () {
     // Model Data
     vertices := Vertex.[
         .{pos = .{-1.0, -1.0, 0.0}, uv = .{0.0, 0.0}},
-        .{pos = .{ 1.0, -1.0, 0.0}, uv = .{0.0, 0.0}},
-        .{pos = .{ 0.0, 1.0, 0.0}, uv = .{0.0, 0.0}}
+        .{pos = .{ 1.0, -1.0, 0.0}, uv = .{1.0, 0.0}},
+        .{pos = .{ 0.0, 1.0, 0.0},  uv = .{0.5, 1.0}}
     ];
     triangle := Model.{ position = .{0.0, 0.0, 0.0}};
     for vertices array_add(*triangle.vertices, it);
@@ -142,9 +143,14 @@ main :: () {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)size_of(Vector3));
     glEnableVertexAttribArray(1);
 
+    // Load some textures
+    woodPlankTex := createTexture("assets/textures/wood_planks_01.tga");
+    print("Wood Planks Texture: %\n", woodPlankTex);
+
     // Uniform Buffer Object for view projection
-    camera := Camera.{pos = .{0.0, 0.0, 7.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    camera := Camera.{pos = .{0.0, 0.0, 2.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
     viewProjMatrices : ViewProjMatrices;
+    // Transpose matrices, because Math module is row major. But OpenGL works with col-major by default.
     viewProjMatrices.view = transpose(createView(*camera));
     viewProjMatrices.proj = transpose(make_projection_matrix(90.0 * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0));
     UBO : GLuint;
@@ -184,11 +190,19 @@ main :: () {
             }
         }
 
+        viewProjMatrices.view = transpose(createView(*camera));
+        viewProjMatrices.proj = transpose(make_projection_matrix(90.0 * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0));
+        glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+        glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
         glViewport(0, 0, refdef.clientWidth, refdef.clientHeight);
 
         glClearColor(0.5, 0.5, 1.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, woodPlankTex.handle);
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, xx triangle.vertices.count);
 
