@@ -5,10 +5,16 @@
 #import "Math";
 
 #import, file "model.jai";
+#import, file "camera.jai";
 
 RefDef :: struct {
     clientWidth  : u32 = 1024;
     clientHeight : u32 = 768;
+};
+
+ViewProjMatrices :: struct {
+    view := Matrix4_Identity;
+    proj := Matrix4_Identity;
 };
 
 AllocString :: (count : u32) -> string {
@@ -73,6 +79,7 @@ CreateShaderProgram :: (vertShaderFile : string, fragShaderFile : string) -> GLu
 }
 
 main :: () {
+
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         print("SDL Init Error: %\n", to_string(SDL_GetError()));
         return;
@@ -80,7 +87,7 @@ main :: () {
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, xx SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     refdef : RefDef;
@@ -118,7 +125,7 @@ main :: () {
     ];
     triangle := Model.{ position = .{0.0, 0.0, 0.0}};
     for vertices array_add(*triangle.vertices, it);
-    
+
     // VAO, VBO for Model data
     VAO : GLuint;
     glGenVertexArrays(1, *VAO);
@@ -135,7 +142,17 @@ main :: () {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)size_of(Vector3));
     glEnableVertexAttribArray(1);
 
-    // TODO: View/Projection matrices
+    // Uniform Buffer Object for view projection
+    camera := Camera.{pos = .{0.0, 0.0, 7.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    viewProjMatrices : ViewProjMatrices;
+    viewProjMatrices.view = transpose(createView(*camera));
+    viewProjMatrices.proj = transpose(make_projection_matrix(90.0 * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0));
+    UBO : GLuint;
+    glGenBuffers(1, *UBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBO); // index (0) matches UBO binding ID in shader.
 
     // Set GL state
     glEnable(GL_CULL_FACE);

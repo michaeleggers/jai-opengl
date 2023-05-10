@@ -10,5 +10,5 @@ Vertex :: struct {
 Model :: struct {
     vertices : [..] Vertex;
     position : Vector3;
-    modelMat : Matrix4;
+    modelMat := Matrix4_Identity;
 }

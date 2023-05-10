@@ -1,4 +1,4 @@
-#version 410
+#version 420
 
 in vec4 in_Vertex;
 out vec4 out_Color;
