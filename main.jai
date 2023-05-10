@@ -24,7 +24,7 @@ ToCString :: (s : string) -> *u8 {
     return result;
 }
 
-CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint, bool {
+CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint {
     shaderCode := read_entire_file(shaderFile);    
     shader := glCreateShader(shaderType);
     
@@ -36,18 +36,37 @@ CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint, bool {
     
     glCompileShader(shader);
     
-    success := true;
     glsuccess : GLint;
     glGetShaderiv(shader, GL_COMPILE_STATUS, *glsuccess);
 
     if !glsuccess then {
-        log_data: [1024] u8;
-        glGetShaderInfoLog(shader, log_data.count, null, log_data.data);
-        log("Failed to compile shader %:\n%", shaderFile, to_string(log_data.data), flags=.ERROR);        
-        success = false;
+        logData: [1024] u8;
+        glGetShaderInfoLog(shader, logData.count, null, logData.data);
+        log("Failed to compile shader %:\n%", shaderFile, to_string(logData.data), flags=.ERROR);
+        exit(-1);
     }
 
-    return shader, success;
+    return shader;
+}
+
+CreateShaderProgram :: (vertShaderFile : string, fragShaderFile : string) -> GLuint {
+    vertShader := CreateShader(vertShaderFile, GL_VERTEX_SHADER);
+    fragShader := CreateShader(fragShaderFile, GL_FRAGMENT_SHADER);
+
+    shaderProgram := glCreateProgram();
+    glAttachShader(shaderProgram, vertShader);
+    glAttachShader(shaderProgram, fragShader);
+    glLinkProgram(shaderProgram);
+    linkStatus : GLint;
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, *linkStatus);
+    if !linkStatus {
+        logData : [1024] u8;
+        glGetShaderInfoLog(shaderProgram, logData.count, null, logData.data);
+        log("Failed to link shader program:\n%\n", to_string(logData.data), flags=.ERROR);
+        exit(-1);
+    }
+
+    return shaderProgram;
 }
 
 main :: () {
@@ -86,11 +105,7 @@ main :: () {
     print("GL Version = %\n", to_string(glGetString(GL_VERSION)));
 
     // Shaders
-    // TODO: Can I use the name `success` in _both_ invocations to CreateShader?
-    vertexShader, vertSuccess := CreateShader("shaders/vert.glsl", GL_VERTEX_SHADER);
-    print("Vertex Shader ID: %, Success: %\n", vertexShader, vertSuccess);
-    fragmentShader, fragSuccess := CreateShader("shaders/frag.glsl", GL_FRAGMENT_SHADER);
-    print("Fragment Shader ID: %, Success: %\n", fragmentShader, fragSuccess);
+    shaderProgram := CreateShaderProgram("shaders/vert.glsl", "shaders/frag.glsl");
 
     running := true;
     while running {
