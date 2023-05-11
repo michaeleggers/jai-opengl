@@ -108,8 +108,8 @@ RegisterModel :: (model : Model) -> u32 {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     //glBufferData(GL_ARRAY_BUFFER, model.vertices.count * size_of(Vertex), model.vertices.data, GL_STATIC_DRAW);   
     lastVertexOffset := totalVertexCount * size_of(Vertex);
-    glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, model.vertices.count, model.vertices);
-    totalVertexCount += model.vertices.count;
+    glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, model.vertices.count, model.vertices.data);
+    totalVertexCount += xx model.vertices.count;
     array_add(*models, model);
 
     return xx (models.count - 1);

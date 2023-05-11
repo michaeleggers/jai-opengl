@@ -85,7 +85,7 @@ main :: () {
     //modelID := RegisterModel(quad);
 
     refdef.camera = Camera.{pos = .{0.0, 0.0, 2.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
-    
+
     // Set GL state
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
