@@ -28,6 +28,14 @@ ViewProjMatrices :: struct {
     proj := Matrix4_Identity;
 };
 
+RenderPrepare :: () {
+    // Some general GL settings. Must be set BEFORE SDL creates the OpenGL context!
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, xx SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+}
+
 RenderInit :: () {
 
     // Shaders
