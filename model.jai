@@ -1,6 +1,5 @@
 #import "Basic";
 #import "Math";
-#import "File";
 
 Vertex :: struct {
     pos : Vector3;
@@ -8,7 +7,8 @@ Vertex :: struct {
 }
 
 Model :: struct {
-    vertices : [..] Vertex;
-    position : Vector3;
-    modelMat := Matrix4_Identity;
+    vertices    : [..] Vertex;
+    position    : Vector3;
+    modelMat    := Matrix4_Identity;
+    textureID   : u32;
 }
