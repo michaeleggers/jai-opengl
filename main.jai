@@ -4,10 +4,10 @@
 #import "File";
 #import "Math";
 
-#import, file "model.jai";
-#import, file "camera.jai";
-#import, file "textures.jai";
-#import, file "render.jai";
+#load "model.jai";
+#load "textures.jai";
+#load "render.jai";
+#load "camera.jai";
 
 
 AllocString :: (count : u32) -> string {
@@ -61,8 +61,6 @@ main :: () {
 
     RenderInit();
 
-
-
     // Model Data
     vertices := Vertex.[
         // lower right tri
@@ -77,9 +75,19 @@ main :: () {
     quad := Model.{ position = .{0.0, 0.0, 0.0}};
     for vertices array_add(*quad.vertices, it);
 
+    quad2 := Model.{position = .{0.0, 0.0, 0.0}};
+    for vertices {
+        vertex := it;
+        vertex.pos.x += 1.0;
+        vertex.pos.y += 1.0;        
+        array_add(*quad.vertices, vertex);
+    }
+
     // Add a nice texture to the model
     quad.textureID = RegisterTexture("assets/textures/wood_planks_01.tga");
-    //modelID := RegisterModel(quad);
+    modelID := RegisterModel(*quad);
+    quad2.textureID = RegisterTexture("assets/textures/wood_planks_01.tga");
+    model2ID := RegisterModel(*quad2);
 
     refdef.camera = Camera.{pos = .{0.0, 0.0, 2.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 

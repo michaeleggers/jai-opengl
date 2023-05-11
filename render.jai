@@ -4,9 +4,6 @@
 #import "Math";
 #import "File";
 
-#import, file "camera.jai";
-#import, file "model.jai";
-#import, file "textures.jai";
 
 VAO : GLuint;
 VBO : GLuint;
@@ -47,10 +44,9 @@ RenderInit :: () {
 
     glGenBuffers(1, *VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    //glBufferData(GL_ARRAY_BUFFER, triangle.vertices.count * size_of(Vertex), triangle.vertices.data, GL_STATIC_DRAW);
     // Allocate enough space for 1024 quads
-    glBufferSubData(GL_ARRAY_BUFFER, 1024 * 4 * size_of(Vertex), 0, null);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBufferData(GL_ARRAY_BUFFER,  1024 * 4 * size_of(Vertex), null, GL_STATIC_DRAW);    
+    // glBindBuffer(GL_ARRAY_BUFFER, 0); // DANGEROUS: Unbinding at this point will lead to a desaster.
 
     // Input assembly for vertex shader
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), null);
@@ -112,11 +108,14 @@ CreateShaderProgram :: (vertShaderFile : string, fragShaderFile : string) -> GLu
     return shaderProgram;
 }
 
-RegisterModel :: (model : Model) -> u32 {
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    //glBufferData(GL_ARRAY_BUFFER, model.vertices.count * size_of(Vertex), model.vertices.data, GL_STATIC_DRAW);   
+RegisterModel :: (model : *Model) -> u32 {
     lastVertexOffset := totalVertexCount * size_of(Vertex);
-    glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, model.vertices.count, model.vertices.data);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);    
+    glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, model.vertices.count * size_of(Vertex), model.vertices.data);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    model.offset = totalVertexCount;
     totalVertexCount += xx model.vertices.count;
     array_add(*models, model);
 
@@ -133,7 +132,7 @@ DrawFrame :: (refdef : RefDef) {
     glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    glViewport(0, 0, refdef.clientWidth, refdef.clientHeight);
+    glViewport(0, 0, refdef.clientWidth, refdef.clientHeight);    
 
     glClearColor(0.5, 0.5, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -142,7 +141,7 @@ DrawFrame :: (refdef : RefDef) {
     glBindVertexArray(VAO);
     for models {
         glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));
-        glDrawArrays(GL_TRIANGLES, 0, xx it.vertices.count);
+        glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
     }    
 
     SDL_GL_SwapWindow(refdef.window);

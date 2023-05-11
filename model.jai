@@ -11,4 +11,5 @@ Model :: struct {
     position    : Vector3;
     modelMat    := Matrix4_Identity;
     textureID   : u32;
+    offset      : u32;
 }
