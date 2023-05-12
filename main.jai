@@ -61,7 +61,7 @@ main :: () {
 
     RenderInit();
 
-    LoadMAP("assets/maps/starter.map");
+    LoadMapFile("assets/maps/starter.map");
 
     // Model Data
     vertices := Vertex.[

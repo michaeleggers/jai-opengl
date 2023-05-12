@@ -4,14 +4,15 @@
 
 GetLine :: (s : *u8, offset : u32) -> string, u32 {
     result : string;
+    
     s += offset;
     c := s;
     while <<c != #char "\r" && <<c != #char "\n" {        
         c += 1;
     }
+    
+    result.data = s;
     result.count = c - s;
-    result.data = cast(*u8)alloc(result.count);
-    memcpy(result.data, s, result.count);
 
     // advance to next char that is not '\n' or '\r'.
     charsRead := result.count;
@@ -23,11 +24,11 @@ GetLine :: (s : *u8, offset : u32) -> string, u32 {
     return result, cast(u32)charsRead;
 }
 
-LoadMAP :: (mapFile : string) {
+LoadMapFile :: (mapFile : string) {
     mapFileData := read_entire_file(mapFile);
     
     line, charsRead := GetLine(mapFileData.data, 0);
-    print("%\n", line);
+    print("First line read: %\n", line.count);
 
     totalCharsRead := charsRead;
     print("charsRead: %\n", charsRead);
@@ -35,12 +36,13 @@ LoadMAP :: (mapFile : string) {
     print("mapFileData.count: %\n", mapFileData.count);
     while totalCharsRead < mapFileData.count {        
         line, charsRead = GetLine(mapFileData.data, totalCharsRead);
-        print("%\n", line);
         totalCharsRead += charsRead;
+        line = trim_left(line);
+
+        // Do not care about comments
+        if begins_with(line, "#") continue;
+        
+        print("%\n", line);
     }
-
-    // line, pos = GetLine(mapFileData.data, pos);
-    // print(line);
-
     
 }
