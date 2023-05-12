@@ -19,7 +19,11 @@
 }
 {
     0, 1, 0, wood_planks_01.tga, 30.0 # this is a trailing comment
-}
+    # another meaningless comment
+} # another one
+
+# let's put another comment here just for kicks.
+
 {
     0, 2, 0, wood_planks_01.tga, 50.0
            }

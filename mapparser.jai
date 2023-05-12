@@ -2,7 +2,8 @@
 #import "File";
 #import "String";
 
-charsRead : u32;
+charsRead  : u32;
+lineNumber : u32;
 
 Token :: enum u32 {
     BRACE_OPEN;
@@ -38,33 +39,55 @@ GetLine :: (s : *u8, offset : u32) -> string, u32 {
 }
 
 AdvanceToNextNonWhitespace :: (s : *string) {
-    while <<s.data == #char "\r" || <<s.data == #char "\n" || << s.data == #char " " {
+    while <<s.data == #char " " {
         s.data += 1; charsRead +=1;
     }
 }
 
 AdvanceToNextWhitespace :: (s : *string) {
-    while <<s.data != #char " " && <<s.data != #char "," {
+    while <<s.data != #char " " && <<s.data != #char "," { // FIXME: The ',' here is weird!
         s.data += 1; charsRead += 1;
     }
 }
 
-AdvanceToNextLine :: (s : *string) {
+AdvanceToNextLineBreak :: (s : *string) {
     while <<s.data != #char "\r" && <<s.data != #char "\n" {
         s.data += 1; charsRead +=1;
     }
-    AdvanceToNextNonWhitespace(s);
 }
 
-SkipComments :: (s : *string) {
-    while begins_with(<<s, "#") {
-        AdvanceToNextLine(s);        
+SkipLineBreak :: (s : *string) -> bool {
+    if begins_with(<<s, "\r") {
+        s.data += 1; charsRead += 1;
+        if begins_with(<<s, "\n") {
+            s.data += 1; charsRead += 1;
+        }
+        lineNumber += 1;
+        return true;
     }
+
+    return false;
+}
+
+IsComment :: (s : *string) -> bool {
+    if begins_with(<<s, "#") {
+        return true;
+    }
+
+    return false;
 }
 
 GetNextToken :: (s : *string) -> Token {
     AdvanceToNextNonWhitespace(s);
-    SkipComments(s);
+    while SkipLineBreak(s) {
+        AdvanceToNextNonWhitespace(s);
+    }
+    while (IsComment(s)) {
+        AdvanceToNextLineBreak(s);
+        while SkipLineBreak(s) {
+            AdvanceToNextNonWhitespace(s);            
+        }
+    }
 
     if charsRead == s.count { // End of file reached
         return .EOF;
@@ -146,6 +169,8 @@ LoadMapFile :: (mapFile : string) {
         }
         token = GetNextToken(*mapFileData);
     }
+
+    print("# Lines processed: %\n", lineNumber);
     
     // line, charsRead := GetLine(mapFileData.data, 0);
     // print("First line read: %\n", line.count);
