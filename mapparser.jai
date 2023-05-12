@@ -4,8 +4,9 @@
 
 charsRead  : u32;
 lineNumber : u32;
+tokens     : [..] Token;
 
-Token :: enum u32 {
+TokenType :: enum u32 {
     BRACE_OPEN;
     BRACE_CLOSE;
     NUMBER;
@@ -14,6 +15,12 @@ Token :: enum u32 {
     COMMA;
     EOF;
     NONE;
+}
+
+Token :: struct { // TODO: Can we make this polymorphic, or make a union, like in C?
+    type : TokenType;
+    number : float;
+    name : string;
 }
 
 GetLine :: (s : *u8, offset : u32) -> string, u32 {
@@ -77,7 +84,7 @@ IsComment :: (s : *string) -> bool {
     return false;
 }
 
-GetNextToken :: (s : *string) -> Token {
+GetNextToken :: (s : *string) -> TokenType {
     AdvanceToNextNonWhitespace(s);
     while SkipLineBreak(s) {
         AdvanceToNextNonWhitespace(s);
@@ -93,7 +100,7 @@ GetNextToken :: (s : *string) -> Token {
         return .EOF;
     }
 
-    token : Token;
+    token : TokenType;
     if <<s.data == #char "{" {        
         s.data += 1; charsRead +=1;
         token = .BRACE_OPEN;
@@ -115,22 +122,32 @@ GetNextToken :: (s : *string) -> Token {
     return token;
 }
 
-Match :: (s : *string, expectedToken : Token) -> bool {
+Match :: (s : *string, expectedToken : TokenType) -> bool {
     token := GetNextToken(s);
     assert(token == expectedToken, "Expected % but got %!\n", expectedToken, token);
     return token == expectedToken;
 }
 
 ParseBrush :: (s : *string) {
-    Match(s, .NUMBER); ParseNumber(s); Match(s, .COMMA);
-    Match(s, .NUMBER); ParseNumber(s); Match(s, .COMMA);
-    Match(s, .NUMBER); ParseNumber(s); Match(s, .COMMA);
-    Match(s, .STRING); ParseString(s); Match(s, .COMMA);
-    Match(s, .NUMBER); ParseNumber(s);
+    Match(s, .NUMBER); 
+    xPos := ParseNumber(s); Match(s, .COMMA);
+    Match(s, .NUMBER); 
+    yPos := ParseNumber(s); Match(s, .COMMA);
+    Match(s, .NUMBER); 
+    zPos := ParseNumber(s); Match(s, .COMMA);
+    Match(s, .STRING); 
+    textureName := ParseString(s); Match(s, .COMMA);
+    Match(s, .NUMBER); 
+    height := ParseNumber(s);
     Match(s, .BRACE_CLOSE);
+
+    print("Brush:\n");
+    print("  xPos: %, yPos: %, zPos %\n", xPos, yPos, zPos);
+    print("  textureName: %\n", textureName);
+    print("  height: %\n", height);
 }
 
-ParseNumber :: (s : *string) -> float {
+ParseNumber :: (s : *string) -> Token {
     numberString := <<s;    
     c := s.data;
     while <<s.data >= #char "0" && <<s.data <= #char "9" || <<s.data == #char "." {
@@ -138,21 +155,24 @@ ParseNumber :: (s : *string) -> float {
     }
     numberString.count = s.data - c;
 
-    result := string_to_float(numberString);    
+    result := Token.{type = .NUMBER};
+    result.number = string_to_float(numberString);    
 
     return result;
 }
 
-ParseString :: (s : *string) -> string {    
-    result := <<s;
+ParseString :: (s : *string) -> Token {    
+    parsedString := <<s;
     c := s.data;
     // while <<s.data >= #char "a" && <<s.data <= #char "z"
     //    || <<s.data >= #char "0" && <<s.data <= #char "9" {
     //     s.data += 1; charsRead +=1;
     // }
-    AdvanceToNextWhitespace(s);
-    result.count = s.data - c;
-    print("%\n", result);
+    AdvanceToNextWhitespace(s);    
+    parsedString.count = s.data - c;
+    
+    result := Token.{type = .STRING};
+    result.name = parsedString;
     
     return result;
 }
