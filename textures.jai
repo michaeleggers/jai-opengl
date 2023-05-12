@@ -1,4 +1,5 @@
 #import "Basic";
+#import "String";
 #import "stb_image";
 #import "GL";
 
@@ -8,7 +9,16 @@ Texture :: struct {
     handle : GLuint;
 };
 
-createTexture :: (fileName : string) -> Texture {
+textures : [..] Texture;
+
+RegisterTexture :: (fileName : string) -> u32 {
+
+    for textures {
+        if !compare(fileName, it.name) {
+            return xx it_index;
+        }    
+    }
+
     texture := Texture.{ name = fileName };
     data := stbi_load(fileName.data, *texture.width, *texture.height, *texture.comp, 4);    
     if !data {
@@ -26,5 +36,12 @@ createTexture :: (fileName : string) -> Texture {
 
     stbi_image_free(data);
 
-    return texture;
+    array_add(*textures, texture);
+
+    return xx (textures.count - 1);
+}
+
+GetTextureHandleByID :: (id : u32) -> GLuint {
+    assert(id < textures.count);
+    return textures[id].handle;
 }

@@ -6,7 +6,6 @@ Camera :: struct {
     center  := Vector3.{ 0.0, 0.0, 0.0 };
     up      := Vector3.{ 0.0, 1.0, 0.0 };
     right   := Vector3.{ 1.0, 0.0, 0.0 };
-
 }
 
 createView :: (using camera : *Camera) -> Matrix4 {
