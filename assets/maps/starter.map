@@ -1,4 +1,4 @@
-
+  
 
 
 # This is a comment
@@ -15,11 +15,14 @@
 # Brush data: <int>, <int>, <int>, <name>,       <float>
 #             pos                , texture name, height
 {
-    0, 0, 0, wood_planks_01, 10.0
+    0, 0, 0, wood_planks_01.tga, 10.0
 }
 {
-    0, 1, 0, wood_planks_01, 30.0
+    0, 1, 0, wood_planks_01.tga, 30.0 # this is a trailing comment
 }
 {
-    0, 2, 0, wood_planks_01, 50.0
-}
+    0, 2, 0, wood_planks_01.tga, 50.0
+           }
+
+
+        
