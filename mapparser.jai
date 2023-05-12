@@ -186,7 +186,7 @@ ParseString :: (s : *string) -> Token {
     return result;
 }
 
-LoadMapFile :: (mapFile : string) {
+LoadMapFile :: (mapFile : string) -> [] Brush{
 
     mapFileData := read_entire_file(mapFile);
     
@@ -206,20 +206,5 @@ LoadMapFile :: (mapFile : string) {
         print("%\n", it);
     }
     
-    // line, charsRead := GetLine(mapFileData.data, 0);
-    // print("First line read: %\n", line.count);
-    // totalCharsRead := charsRead;
-    // print("charsRead: %\n", charsRead);
-    // print("totalCharsRead: %\n", totalCharsRead);
-    // print("mapFileData.count: %\n", mapFileData.count);
-    // while totalCharsRead < mapFileData.count {        
-    //     line, charsRead = GetLine(mapFileData.data, totalCharsRead);
-    //     totalCharsRead += charsRead;
-    //     line = trim_left(line);
-
-    //     // Do not care about comments
-    //     if begins_with(line, "#") continue;
-    //     print("Processing: %\n", line);
-    // }
-    
+    return brushes;
 }
