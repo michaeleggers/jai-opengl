@@ -5,6 +5,7 @@
 charsRead  : u32;
 lineNumber : u32;
 tokens     : [..] Token;
+brushes    : [..] Brush;
 
 TokenType :: enum u32 {
     BRACE_OPEN;
@@ -21,6 +22,12 @@ Token :: struct { // TODO: Can we make this polymorphic, or make a union, like i
     type : TokenType;
     number : float;
     name : string;
+}
+
+Brush :: struct {
+    xPos, yPos, zPos : float;
+    texture : string;
+    height : float;
 }
 
 GetLine :: (s : *u8, offset : u32) -> string, u32 {
@@ -128,7 +135,7 @@ Match :: (s : *string, expectedToken : TokenType) -> bool {
     return token == expectedToken;
 }
 
-ParseBrush :: (s : *string) {
+ParseBrush :: (s : *string) {    
     Match(s, .NUMBER); 
     xPos := ParseNumber(s); Match(s, .COMMA);
     Match(s, .NUMBER); 
@@ -136,15 +143,17 @@ ParseBrush :: (s : *string) {
     Match(s, .NUMBER); 
     zPos := ParseNumber(s); Match(s, .COMMA);
     Match(s, .STRING); 
-    textureName := ParseString(s); Match(s, .COMMA);
+    texture := ParseString(s); Match(s, .COMMA);
     Match(s, .NUMBER); 
     height := ParseNumber(s);
     Match(s, .BRACE_CLOSE);
 
-    print("Brush:\n");
-    print("  xPos: %, yPos: %, zPos %\n", xPos, yPos, zPos);
-    print("  textureName: %\n", textureName);
-    print("  height: %\n", height);
+    brush := Brush.{
+        xPos = xPos.number, yPos = yPos.number, zPos = zPos.number,
+        texture = texture.name,
+        height = height.number
+    };
+    array_add(*brushes, brush);    
 }
 
 ParseNumber :: (s : *string) -> Token {
@@ -191,6 +200,11 @@ LoadMapFile :: (mapFile : string) {
     }
 
     print("# Lines processed: %\n", lineNumber);
+    print("# Brushes parsed: %\n", brushes.count);
+    print("Brushes:\n");
+    for brushes {
+        print("%\n", it);
+    }
     
     // line, charsRead := GetLine(mapFileData.data, 0);
     // print("First line read: %\n", line.count);
