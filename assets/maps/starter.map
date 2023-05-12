@@ -1,0 +1,22 @@
+# This is a comment
+
+# The following defines a "brush". That is, a cube in the world.
+# Pos are the integer coordinates in the world. In the engine, the
+# dimensions of the grid are 1024.0 x 1024.0 x 1024.0. So, a cube at (0, 1, 2) will
+# appear at (0x1024.0, 1x1024.0, 2x1024.0) = (0.0, 1024.0, 2048.0).
+# A cube has a positive height. The height may be larger than the world grid's
+# height (1024.0). So, a cube is always 1024.0x1024.0 in width and height, but
+# it can be lower or higher than 1024.0.
+# The texture is the texture being used in textures/*.<image-filename>.
+# Textures must be 32 bit RGBA per pixel.
+# Brush data: <int>, <int>, <int>, <name>,       <float>
+#             pos                , texture name, height
+{
+    0, 0, 0, wood_planks_01, 10.0
+}
+{
+    0, 1, 0, wood_planks_01, 30.0
+}
+{
+    0, 2, 0, wood_planks_01, 50.0
+}

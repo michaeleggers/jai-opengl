@@ -8,7 +8,7 @@
 #load "textures.jai";
 #load "render.jai";
 #load "camera.jai";
-
+#load "mapparser.jai";
 
 AllocString :: (count : u32) -> string {
     s : string;
@@ -60,6 +60,8 @@ main :: () {
     print("GL Version = %\n", to_string(glGetString(GL_VERSION)));
 
     RenderInit();
+
+    LoadMAP("assets/maps/starter.map");
 
     // Model Data
     vertices := Vertex.[
