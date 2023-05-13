@@ -37,7 +37,7 @@
 # Or: Two brushes in the same line:
 {5, 2, 0, wood_planks_01.tga, 90.0}{6, 2, 0, wood_planks_01.tga, 110.0}
 # Let's have a brush with a fraction at the height
-{7, 3, 0, wood_planks_01.tga, 130.48594}
+{7, 4, 0, wood_planks_01.tga, 130.48594}
 
 
         
