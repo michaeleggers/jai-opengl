@@ -66,13 +66,21 @@ main :: () {
     brushes := LoadMapFile("assets/maps/starter.map");
 
     quad := Model.{ position = .{0.0, 0.0, 0.0}};
-    for GEOM_UNIT_CUBE array_add(*quad.vertices, it);
+    for brush : brushes {        
+        for vertex : GEOM_UNIT_CUBE {
+            vert := vertex;
+            vert.pos.x += brush.xPos;
+            vert.pos.y += brush.yPos;
+            vert.pos.z += brush.zPos;
+            array_add(*quad.vertices, vert);
+        }
+    }
 
     // Add a nice texture to the model
     quad.textureID = RegisterTexture("assets/textures/wood_planks_01.tga");
     modelID := RegisterModel(*quad);
 
-    refdef.camera = Camera.{pos = .{1.5, 1.2, 1.5}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    refdef.camera = Camera.{pos = .{7.5, 4.2, 6.5}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
     running := true;
     while running {
