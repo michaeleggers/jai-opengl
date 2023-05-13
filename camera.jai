@@ -1,6 +1,7 @@
 #import "Basic";
 #import "Math";
 
+
 Camera :: struct {
     pos     := Vector3.{ 0.0, 0.0, 3.0 };
     center  := Vector3.{ 0.0, 0.0, 0.0 };
@@ -9,8 +10,7 @@ Camera :: struct {
 }
 
 createView :: (using camera : Camera) -> Matrix4 {    
-    result := make_look_at_matrix(pos, center, up, x_is_forward = false);
-    result = (result);
+    result := LookAt(pos, center, up);
 
     return result;
 }

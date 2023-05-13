@@ -9,6 +9,8 @@
 #load "render.jai";
 #load "camera.jai";
 #load "mapparser.jai";
+#load "graphics_math.jai";
+#load "geometry.jai";
 
 AllocString :: (count : u32) -> string {
     s : string;
@@ -63,57 +65,14 @@ main :: () {
 
     brushes := LoadMapFile("assets/maps/starter.map");
 
-    // Model Data
-    vertices := Vertex.[
-        // front
-        // lower right tri
-        .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
-        .{pos = .{  1.0, 0.0, 0.0}, uv = .{1.0, 0.0}},
-        .{pos = .{  1.0, 1.0, 0.0},  uv = .{1.0, 1.0}},
-        // upper left tri
-        .{pos = .{  1.0, 1.0, 0.0},  uv = .{1.0, 1.0}},
-        .{pos = .{  0.0,  1.0, 0.0},  uv = .{0.0, 1.0}},
-        .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
-
-        // right side
-        // lower right tri
-        .{pos = .{  1.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
-        .{pos = .{  1.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
-        .{pos = .{  1.0, 1.0, 1.0}, uv = .{0.0, 0.0}},        
-        // upper left tri
-        .{pos = .{  1.0, 1.0, 1.0}, uv = .{0.0, 0.0}},        
-        .{pos = .{  1.0, 1.0, 0.0}, uv = .{0.0, 0.0}},        
-        .{pos = .{  1.0, 0.0, 0.0}, uv = .{0.0, 0.0}},        
-
-        // back side
-        // lower right tri
-        .{pos = .{  1.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
-        .{pos = .{  0.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
-        .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
-        // upper left tri
-        .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
-        .{pos = .{  1.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
-        .{pos = .{  1.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
-
-
-        // // left side
-        // // lower right tri
-        // .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
-        // .{pos = .{  0.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
-        // .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
-        // // upper left tri
-        // .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
-        // .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
-        // .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
-    ];
     quad := Model.{ position = .{0.0, 0.0, 0.0}};
-    for vertices array_add(*quad.vertices, it);
+    for GEOM_UNIT_CUBE array_add(*quad.vertices, it);
 
     // Add a nice texture to the model
     quad.textureID = RegisterTexture("assets/textures/wood_planks_01.tga");
     modelID := RegisterModel(*quad);
 
-    refdef.camera = Camera.{pos = .{0.0, 1.0, 4.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    refdef.camera = Camera.{pos = .{2.0, -2.0, 2.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
     // Set GL state
     glEnable(GL_CULL_FACE);
