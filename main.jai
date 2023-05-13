@@ -72,13 +72,7 @@ main :: () {
     quad.textureID = RegisterTexture("assets/textures/wood_planks_01.tga");
     modelID := RegisterModel(*quad);
 
-    refdef.camera = Camera.{pos = .{2.0, -2.0, 2.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
-
-    // Set GL state
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    refdef.camera = Camera.{pos = .{1.5, 1.2, 1.5}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
     running := true;
     while running {

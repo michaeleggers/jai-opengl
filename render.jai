@@ -36,6 +36,12 @@ RenderPrepare :: () {
 
 RenderInit :: () {
 
+    // Set GL states
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
     // Shaders
     shaderProgram = CreateShaderProgram("shaders/vert.glsl", "shaders/frag.glsl");
 
