@@ -65,39 +65,61 @@ main :: () {
 
     // Model Data
     vertices := Vertex.[
+        // front
         // lower right tri
-        .{pos = .{ -1.0, -1.0, 0.0}, uv = .{0.0, 0.0}},
-        .{pos = .{  1.0, -1.0, 0.0}, uv = .{1.0, 0.0}},
-        .{pos = .{  1.0,  1.0, 0.0},  uv = .{1.0, 1.0}},
+        .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
+        .{pos = .{  1.0, 0.0, 0.0}, uv = .{1.0, 0.0}},
+        .{pos = .{  1.0, 1.0, 0.0},  uv = .{1.0, 1.0}},
         // upper left tri
-        .{pos = .{  1.0,  1.0, 0.0},  uv = .{1.0, 1.0}},
-        .{pos = .{  -1.0,  1.0, 0.0},  uv = .{0.0, 1.0}},
-        .{pos = .{ -1.0, -1.0, 0.0}, uv = .{0.0, 0.0}}
+        .{pos = .{  1.0, 1.0, 0.0},  uv = .{1.0, 1.0}},
+        .{pos = .{  0.0,  1.0, 0.0},  uv = .{0.0, 1.0}},
+        .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
+
+        // right side
+        // lower right tri
+        .{pos = .{  1.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
+        .{pos = .{  1.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
+        .{pos = .{  1.0, 1.0, 1.0}, uv = .{0.0, 0.0}},        
+        // upper left tri
+        .{pos = .{  1.0, 1.0, 1.0}, uv = .{0.0, 0.0}},        
+        .{pos = .{  1.0, 1.0, 0.0}, uv = .{0.0, 0.0}},        
+        .{pos = .{  1.0, 0.0, 0.0}, uv = .{0.0, 0.0}},        
+
+        // back side
+        // lower right tri
+        .{pos = .{  1.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
+        .{pos = .{  0.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
+        .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
+        // upper left tri
+        .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
+        .{pos = .{  1.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
+        .{pos = .{  1.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
+
+
+        // // left side
+        // // lower right tri
+        // .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
+        // .{pos = .{  0.0, 0.0, 1.0}, uv = .{0.0, 0.0}},
+        // .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
+        // // upper left tri
+        // .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
+        // .{pos = .{  0.0, 1.0, 1.0}, uv = .{0.0, 0.0}},
+        // .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}},
     ];
     quad := Model.{ position = .{0.0, 0.0, 0.0}};
     for vertices array_add(*quad.vertices, it);
 
-    quad2 := Model.{position = .{0.0, 0.0, 0.0}};
-    for vertices {
-        vertex := it;
-        vertex.pos.x += 1.0;
-        vertex.pos.y += 1.0;        
-        array_add(*quad.vertices, vertex);
-    }
-
     // Add a nice texture to the model
     quad.textureID = RegisterTexture("assets/textures/wood_planks_01.tga");
     modelID := RegisterModel(*quad);
-    quad2.textureID = RegisterTexture("assets/textures/wood_planks_01.tga");
-    model2ID := RegisterModel(*quad2);
 
-    refdef.camera = Camera.{pos = .{0.0, 0.0, 2.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    refdef.camera = Camera.{pos = .{0.0, 1.0, 4.0}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
     // Set GL state
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    glEnable(GL_DEPTH_TEST);
 
     running := true;
     while running {

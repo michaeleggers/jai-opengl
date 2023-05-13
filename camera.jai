@@ -8,9 +8,9 @@ Camera :: struct {
     right   := Vector3.{ 1.0, 0.0, 0.0 };
 }
 
-createView :: (using camera : *Camera) -> Matrix4 {
-    result := make_translation_matrix4(pos); // TODO: Do rotation
-    result = inverse(result);
+createView :: (using camera : Camera) -> Matrix4 {    
+    result := make_look_at_matrix(pos, center, up, x_is_forward = false);
+    result = (result);
 
     return result;
 }

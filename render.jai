@@ -126,7 +126,7 @@ DrawFrame :: (refdef : RefDef) {
     glUseProgram(shaderProgram);
 
     viewProjMatrices : ViewProjMatrices;
-    viewProjMatrices.view = transpose(createView(*refdef.camera));
+    viewProjMatrices.view = transpose(createView(refdef.camera));
     viewProjMatrices.proj = transpose(make_projection_matrix(90.0 * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0));    
     glBindBuffer(GL_UNIFORM_BUFFER, UBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
