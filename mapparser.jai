@@ -3,7 +3,7 @@
 #import "String";
 
 charsRead  : u32;
-lineNumber : u32;
+lineNumber : u32 = 1;
 tokens     : [..] Token;
 brushes    : [..] Brush;
 
@@ -114,7 +114,7 @@ GetNextToken :: (s : *string) -> TokenType {
     } else if <<s.data == #char "}" {        
         s.data += 1; charsRead +=1;
         token = .BRACE_CLOSE;        
-    } else if <<s.data >= #char "0" && <<s.data <= #char "9" {
+    } else if <<s.data >= #char "0" && <<s.data <= #char "9" || <<s.data == #char "-" {
         token = .NUMBER;        
     } else if <<s.data >= #char "a" && <<s.data <= #char "z" {        
         token = .STRING;    
@@ -131,7 +131,7 @@ GetNextToken :: (s : *string) -> TokenType {
 
 Match :: (s : *string, expectedToken : TokenType) -> bool {
     token := GetNextToken(s);
-    assert(token == expectedToken, "Expected % but got %!\n", expectedToken, token);
+    assert(token == expectedToken, "Expected % but got % in Line: %\n", expectedToken, token, lineNumber);
     return token == expectedToken;
 }
 
@@ -159,6 +159,10 @@ ParseBrush :: (s : *string) {
 ParseNumber :: (s : *string) -> Token {
     numberString := <<s;    
     c := s.data;
+
+    if <<s.data == #char "-" { // '-' is only allowed at the beginning of a number!
+        s.data += 1; charsRead += 1;
+    }
     while <<s.data >= #char "0" && <<s.data <= #char "9" || <<s.data == #char "." {
         s.data += 1; charsRead +=1;
     }

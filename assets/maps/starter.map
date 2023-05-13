@@ -1,6 +1,8 @@
   
 
 
+
+
 # This is a comment
 
 # The worlds coordinate system is right-handed: x to the right, y up, z out of the screen
@@ -39,5 +41,26 @@
 # Let's have a brush with a fraction at the height
 {7, 4, 0, wood_planks_01.tga, 130.48594}
 
+# Let's test some cubes in negative z direction:
+{0, 0, -1, wood_planks_01.tga, 130.48594}
+{0, 0, -2, wood_planks_01.tga, 130.48594}
+{0, 0, -3, wood_planks_01.tga, 130.48594}
+{1, 0, -1, wood_planks_01.tga, 130.48594}
+{1, 0, -2, wood_planks_01.tga, 130.48594}
+{1, 0, -3, wood_planks_01.tga, 130.48594}
+{2, 0, -1, wood_planks_01.tga, 130.48594}
+{2, 0, -2, wood_planks_01.tga, 130.48594}
+{2, 0, -3, wood_planks_01.tga, 130.48594}
+
+# now positive z:
+{0, 0, 1, wood_planks_01.tga, 130.48594}
+{0, 0, 2, wood_planks_01.tga, 130.48594}
+{0, 0, 3, wood_planks_01.tga, 130.48594}
+{1, 0, 1, wood_planks_01.tga, 130.48594}
+{1, 0, 2, wood_planks_01.tga, 130.48594}
+{1, 0, 3, wood_planks_01.tga, 130.48594}
+{2, 0, 1, wood_planks_01.tga, 130.48594}
+{2, 0, 2, wood_planks_01.tga, 130.48594}
+{2, 0, 3, wood_planks_01.tga, 130.48594}
 
         
