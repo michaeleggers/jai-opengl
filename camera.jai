@@ -1,3 +1,6 @@
+// TODO: Make use of the orientation quaternion. At least Quaternions provide
+//       this feature of easily accumulating rotations. But we don't use it yet...
+
 #import "Basic";
 #import "Math";
 
