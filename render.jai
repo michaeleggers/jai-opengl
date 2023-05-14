@@ -133,8 +133,8 @@ DrawFrame :: (refdef : RefDef) {
     glUseProgram(shaderProgram);
 
     viewProjMatrices : ViewProjMatrices;
-    viewProjMatrices.view = createView(refdef.camera);
-    viewProjMatrices.proj = Perspective(90.0 * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0);
+    viewProjMatrices.view = CreateView(refdef.camera);
+    viewProjMatrices.proj = Perspective(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0);
     glBindBuffer(GL_UNIFORM_BUFFER, UBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);

@@ -79,7 +79,7 @@ main :: () {
     world.textureID = RegisterTexture("assets/textures/wood_planks_01.tga");
     modelID := RegisterModel(*world);
 
-    refdef.camera = Camera.{pos = .{7.5, 4.2, 6.5}}; // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    refdef.camera = CreateCamera(.{ pos = .{-1.5, 5.2, 6.5}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
     running := true;
     while running {
@@ -90,14 +90,24 @@ main :: () {
             if event.type == {
                 case SDL_QUIT;
                     running = false;
+                    
                 case SDL_KEYDOWN;
-                    if event.key.keysym.sym == SDLK_ESCAPE running = false;
+                    if event.key.keysym.sym == SDLK_ESCAPE  running = false;
+                    if event.key.keysym.sym == SDLK_RIGHT   RotateAroundUp(*refdef.camera, -0.01);
+                    if event.key.keysym.sym == SDLK_LEFT    RotateAroundUp(*refdef.camera,  0.01);
+                    if event.key.keysym.sym == SDLK_UP      RotateAroundSide(*refdef.camera,  0.01);
+                    if event.key.keysym.sym == SDLK_DOWN    RotateAroundSide(*refdef.camera, -0.01);
+                    if event.key.keysym.sym == SDLK_d       MoveSide(*refdef.camera,  0.1);
+                    if event.key.keysym.sym == SDLK_a       MoveSide(*refdef.camera, -0.1);
+                    if event.key.keysym.sym == SDLK_w       MoveForward(*refdef.camera,  0.1);
+                    if event.key.keysym.sym == SDLK_s       MoveForward(*refdef.camera, -0.1);
+
                 case SDL_WINDOWEVENT;
                     if event.window.event == SDL_WINDOWEVENT_RESIZED {
                         refdef.clientWidth = xx event.window.data1;
                         refdef.clientHeight = xx event.window.data2;
                         print("Window client dimensions have changed: ( %, % )\n", refdef.clientWidth, refdef.clientHeight);
-                    }
+                    }                    
 
             }
         }
