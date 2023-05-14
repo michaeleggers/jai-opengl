@@ -91,6 +91,11 @@ main :: () {
     running := true;
     while running {
 
+        mouseX, mouseY : s32;
+        buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
+        mouseState.oldX = mouseX;
+        mouseState.oldY = mouseY;
+
         // SDL Event Loop
         event : SDL_Event;
         while SDL_PollEvent(*event) {
@@ -129,9 +134,9 @@ main :: () {
                 //     // }
 
                 case SDL_MOUSEMOTION;
-                    mouseX, mouseY : s32;
-                    buttonMask := SDL_GetMouseState(*mouseX, *mouseY);                    
-                    if SDL_BUTTON(buttonMask) & SDL_BUTTON_LEFT == SDL_BUTTON_LEFT {
+                    mouseX = event.motion.x;
+                    mouseY = event.motion.y;
+                    if event.motion.state & SDL_BUTTON(3) {
                         dX := mouseX - mouseState.oldX;
                         dY := mouseY - mouseState.oldY;
                         UpdateCamera(*refdef.camera, dX, dY);               
