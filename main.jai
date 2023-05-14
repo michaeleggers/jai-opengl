@@ -28,6 +28,16 @@ ToCString :: (s : string) -> *u8 {
     return result;
 }
 
+MouseState :: struct {
+    x, y : s32;
+    oldX, oldY : s32;
+}
+
+UpdateCamera :: (camera : *Camera, dX : s32, dY : s32) {
+    RotateAroundUp(camera, -dX * 0.01);
+    RotateAroundSide(camera, -dY * 0.01);
+}
+
 main :: () {
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -55,12 +65,6 @@ main :: () {
         return;
     }
 
-    gl_load(*gl, SDL_GL_GetProcAddress);
-    using gl;
-
-    print("GL Vendor = %\n", to_string(glGetString(GL_VENDOR)));
-    print("GL Version = %\n", to_string(glGetString(GL_VERSION)));
-
     RenderInit();
 
     brushes := LoadMapFile("assets/maps/starter.map");
@@ -81,12 +85,24 @@ main :: () {
 
     refdef.camera = CreateCamera(.{ pos = .{-1.5, 5.2, 6.5}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
+    // Safe mouse state, so we can get a delta
+    mouseState : MouseState;
+
     running := true;
     while running {
 
         // SDL Event Loop
         event : SDL_Event;
         while SDL_PollEvent(*event) {
+
+            // mouseX, mouseY : s32;
+            // buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
+            // print("Mouse at %, %\n", mouseX, mouseY);
+            // if SDL_BUTTON(buttonMask) & SDL_BUTTON_LEFT == SDL_BUTTON_LEFT {
+            //     print("Mouse button down\n");
+            //     print("Mouse pressed at %, %\n", mouseX, mouseY);
+            // }
+
             if event.type == {
                 case SDL_QUIT;
                     running = false;
@@ -101,6 +117,32 @@ main :: () {
                     if event.key.keysym.sym == SDLK_a       MoveSide(*refdef.camera, -0.1);
                     if event.key.keysym.sym == SDLK_w       MoveForward(*refdef.camera,  0.1);
                     if event.key.keysym.sym == SDLK_s       MoveForward(*refdef.camera, -0.1);
+
+                // case SDL_MOUSEBUTTONDOWN;
+                //     // if event.button.state == SDL_PRESSED {
+                //         print("Mouse button down\n");
+                //         mouseX, mouseY : s32;
+                //         buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
+                //         if SDL_BUTTON(buttonMask) & SDL_BUTTON_LEFT == SDL_BUTTON_LEFT {
+                //             print("Mouse pressed at %, %\n", mouseX, mouseY);
+                //         }
+                //     // }
+
+                case SDL_MOUSEMOTION;
+                    mouseX, mouseY : s32;
+                    buttonMask := SDL_GetMouseState(*mouseX, *mouseY);                    
+                    if SDL_BUTTON(buttonMask) & SDL_BUTTON_LEFT == SDL_BUTTON_LEFT {
+                        dX := mouseX - mouseState.oldX;
+                        dY := mouseY - mouseState.oldY;
+                        UpdateCamera(*refdef.camera, dX, dY);               
+                        print("Mouse delta %, %\n", dX, dY);
+                        mouseState.oldX = mouseX;
+                        mouseState.oldY = mouseY;
+                    }
+                
+                case SDL_MOUSEBUTTONUP;
+                    mouseState.oldX = 0;
+                    mouseState.oldY = 0;
 
                 case SDL_WINDOWEVENT;
                     if event.window.event == SDL_WINDOWEVENT_RESIZED {

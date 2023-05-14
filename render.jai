@@ -34,7 +34,15 @@ RenderPrepare :: () {
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 }
 
+// TODO: Are there namespaces? Or do we have to prefix stuff? Because we could have just Render::Init(), maybe?
 RenderInit :: () {
+
+    // Load GL function pointers
+    gl_load(*gl, SDL_GL_GetProcAddress);
+    using gl; // TODO: Why? This is not really needed?
+
+    print("GL Vendor = %\n", to_string(glGetString(GL_VENDOR)));
+    print("GL Version = %\n", to_string(glGetString(GL_VERSION)));
 
     // Set GL states
     glEnable(GL_CULL_FACE);
