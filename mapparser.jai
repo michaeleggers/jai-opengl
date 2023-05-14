@@ -59,7 +59,7 @@ AdvanceToNextNonWhitespace :: (s : *string) {
 }
 
 AdvanceToNextWhitespace :: (s : *string) {
-    while <<s.data != #char " " && <<s.data != #char "," { // FIXME: The ',' here is weird!
+    while <<s.data != #char " " && <<s.data != #char "," { // @FIXME: The ',' here is weird!
         s.data += 1; charsRead += 1;
     }
 }
