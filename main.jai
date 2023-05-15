@@ -115,6 +115,7 @@ main :: () {
 
             // Keep for reference: We could also just always poll the state without
             //                     waiting for events to be sent by the os.
+            //                     Maybe even use SDL_GetKeyboardState() here and don't rely on SDL events at all?
 
             // mouseX, mouseY : s32;
             // buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
