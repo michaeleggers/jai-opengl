@@ -33,9 +33,22 @@ MouseState :: struct {
     oldX, oldY : s32;
 }
 
+keyState : [#run enum_highest_value(SDL_Keycode)] bool;
+
 UpdateCamera :: (camera : *Camera, dX : s32, dY : s32) {
     RotateAroundUp(camera, -dX * 0.01);
     RotateAroundSide(camera, -dY * 0.01);
+}
+
+UpdateCameraOnKeys :: (camera : *Camera) {
+    if keyState[SDLK_RIGHT]     RotateAroundUp(camera, -0.0001);
+    if keyState[SDLK_LEFT]      RotateAroundUp(camera,  0.0001);
+    if keyState[SDLK_UP]        RotateAroundSide(camera,  0.0001);
+    if keyState[SDLK_DOWN]      RotateAroundSide(camera, -0.0001);
+    if keyState[SDLK_d]         MoveSide(camera,  0.01);
+    if keyState[SDLK_a]         MoveSide(camera, -0.01);
+    if keyState[SDLK_w]         MoveForward(camera,  0.01);
+    if keyState[SDLK_s]         MoveForward(camera, -0.01);
 }
 
 main :: () {
@@ -100,6 +113,9 @@ main :: () {
         event : SDL_Event;
         while SDL_PollEvent(*event) {
 
+            // Keep for reference: We could also just always poll the state without
+            //                     waiting for events to be sent by the os.
+
             // mouseX, mouseY : s32;
             // buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
             // print("Mouse at %, %\n", mouseX, mouseY);
@@ -114,14 +130,24 @@ main :: () {
                     
                 case SDL_KEYDOWN;
                     if event.key.keysym.sym == SDLK_ESCAPE  running = false;
-                    if event.key.keysym.sym == SDLK_RIGHT   RotateAroundUp(*refdef.camera, -0.01);
-                    if event.key.keysym.sym == SDLK_LEFT    RotateAroundUp(*refdef.camera,  0.01);
-                    if event.key.keysym.sym == SDLK_UP      RotateAroundSide(*refdef.camera,  0.01);
-                    if event.key.keysym.sym == SDLK_DOWN    RotateAroundSide(*refdef.camera, -0.01);
-                    if event.key.keysym.sym == SDLK_d       MoveSide(*refdef.camera,  0.1);
-                    if event.key.keysym.sym == SDLK_a       MoveSide(*refdef.camera, -0.1);
-                    if event.key.keysym.sym == SDLK_w       MoveForward(*refdef.camera,  0.1);
-                    if event.key.keysym.sym == SDLK_s       MoveForward(*refdef.camera, -0.1);
+                    if event.key.keysym.sym == SDLK_RIGHT   keyState[SDLK_RIGHT] = true;
+                    if event.key.keysym.sym == SDLK_LEFT   keyState[SDLK_LEFT] = true;
+                    if event.key.keysym.sym == SDLK_UP   keyState[SDLK_UP] = true;
+                    if event.key.keysym.sym == SDLK_DOWN   keyState[SDLK_DOWN] = true;
+                    if event.key.keysym.sym == SDLK_d   keyState[SDLK_d] = true;
+                    if event.key.keysym.sym == SDLK_a   keyState[SDLK_a] = true;
+                    if event.key.keysym.sym == SDLK_w   keyState[SDLK_w] = true;
+                    if event.key.keysym.sym == SDLK_s   keyState[SDLK_s] = true;
+            
+                case SDL_KEYUP;
+                    if event.key.keysym.sym == SDLK_RIGHT   keyState[SDLK_RIGHT] = false;
+                    if event.key.keysym.sym == SDLK_LEFT   keyState[SDLK_LEFT] = false;
+                    if event.key.keysym.sym == SDLK_UP   keyState[SDLK_UP] = false;
+                    if event.key.keysym.sym == SDLK_DOWN   keyState[SDLK_DOWN] = false;
+                    if event.key.keysym.sym == SDLK_d   keyState[SDLK_d] = false;
+                    if event.key.keysym.sym == SDLK_a   keyState[SDLK_a] = false;
+                    if event.key.keysym.sym == SDLK_w   keyState[SDLK_w] = false;
+                    if event.key.keysym.sym == SDLK_s   keyState[SDLK_s] = false;
 
                 // case SDL_MOUSEBUTTONDOWN;
                 //     // if event.button.state == SDL_PRESSED {
@@ -139,7 +165,7 @@ main :: () {
                     if event.motion.state & SDL_BUTTON(3) {
                         dX := mouseX - mouseState.oldX;
                         dY := mouseY - mouseState.oldY;
-                        UpdateCamera(*refdef.camera, dX, dY);               
+                        UpdateCamera(*refdef.camera, dX, dY); // TODO: Move this down, out of the event loop
                         print("Mouse delta %, %\n", dX, dY);
                         mouseState.oldX = mouseX;
                         mouseState.oldY = mouseY;
@@ -159,6 +185,10 @@ main :: () {
             }
         }
 
+        // Update stuff
+        UpdateCameraOnKeys(*refdef.camera);
+
+        // Rendition
         DrawFrame(refdef);
     }
 

@@ -23,6 +23,21 @@ get_caller_address :: () -> *void {
     return context.stack_trace.info.procedure_address;
 }
 
+SomeEnum :: enum s32 {
+    FIRST;
+    SECOND;
+    THIRD;
+    FOURTH;
+}
+
+SpecifiedEnum :: enum s32 {
+    APPLE :: 2;
+    BANANA :: 12;
+    BEER :: 10;
+}
+
+specifiedEnums : [#run enum_highest_value(SpecifiedEnum)] SpecifiedEnum;
+
 main :: () {
     a := 10;
     b := *a;
@@ -62,5 +77,13 @@ main :: () {
     print("p3 return: %\n", p3);
     print("p4 return: %\n", p4);
 
+    print("size_of(SomeEnum): %\n", size_of(SomeEnum));
+    print("SomeEnum.FIRST: %\n", cast(s32)SomeEnum.FIRST);
+    print("SomeEnum.SECOND: %\n", cast(s32)SomeEnum.SECOND);
+
+    print("enum_highest_value(SomeEnum): %\n", enum_highest_value(SomeEnum));
+    print("enum_highest_value(SpecifiedEnum): %\n", enum_highest_value(SpecifiedEnum));
+    
+    print("specifiedEnums.count: %\n", specifiedEnums.count);
 
 }
