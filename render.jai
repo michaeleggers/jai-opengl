@@ -51,6 +51,8 @@ RenderInit :: () {
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Shaders
     shaderProgram = CreateShaderProgram("shaders/vert.glsl", "shaders/frag.glsl");
@@ -158,13 +160,18 @@ DrawFrame :: (refdef : RefDef) {
 
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);    
+    
     glUseProgram(shaderProgram);
     for models {
-        glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));        
-        glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
+        // glEnable(GL_DEPTH_TEST);
+        // glEnable(GL_CULL_FACE);        
+        // glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));        
+        // glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
         if refdef.wireframe {        
+            glEnable(GL_CULL_FACE);            
+            glEnable(GL_DEPTH_TEST);
             glUseProgram(wireframeShaderProgram);            
-            glDrawArrays(GL_LINES, xx it.offset, xx it.vertices.count);
+            glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
         }
     }    
 

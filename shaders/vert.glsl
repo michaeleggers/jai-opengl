@@ -16,4 +16,5 @@ out vec3 BaryCentricCoords;
 void main() {
     gl_Position = proj * view * vec4(pos, 1.0);
     TexCoord = uv;
+    BaryCentricCoords = bc;
 }
