@@ -4,6 +4,7 @@
 Vertex :: struct {
     pos : Vector3;
     uv  : Vector2;
+    bc  : Vector3;
 }
 
 Model :: struct {

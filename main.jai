@@ -139,6 +139,7 @@ main :: () {
                     if event.key.keysym.sym == SDLK_a   keyState[SDLK_a] = true;
                     if event.key.keysym.sym == SDLK_w   keyState[SDLK_w] = true;
                     if event.key.keysym.sym == SDLK_s   keyState[SDLK_s] = true;
+                    if event.key.keysym.sym == SDLK_TAB keyState[SDLK_TAB] = !keyState[SDLK_TAB];
             
                 case SDL_KEYUP;
                     if event.key.keysym.sym == SDLK_RIGHT   keyState[SDLK_RIGHT] = false;
@@ -187,7 +188,11 @@ main :: () {
         }
 
         // Update stuff
+        // Camera    
         UpdateCameraOnKeys(*refdef.camera);
+
+        // Render settings
+        refdef.wireframe = keyState[SDLK_TAB];        
 
         // Rendition
         DrawFrame(refdef);

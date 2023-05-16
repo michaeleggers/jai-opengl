@@ -11,14 +11,16 @@ VBO : GLuint;
 totalVertexCount : u32;
 UBO : GLuint;
 shaderProgram : GLuint;
+wireframeShaderProgram : GLuint;
 
 models : [..] Model;
 
 RefDef :: struct {
     clientWidth  : u32 = 1024;
     clientHeight : u32 = 768;
-    camera : Camera;
     window : *SDL_Window;
+    camera : Camera;
+    wireframe := false;
 };
 
 ViewProjMatrices :: struct {
@@ -52,6 +54,7 @@ RenderInit :: () {
 
     // Shaders
     shaderProgram = CreateShaderProgram("shaders/vert.glsl", "shaders/frag.glsl");
+    wireframeShaderProgram = CreateShaderProgram("shaders/vert.glsl", "shaders/wireframe.frag");
 
     // VAO, VBO for Model data
     glGenVertexArrays(1, *VAO);
@@ -69,6 +72,9 @@ RenderInit :: () {
 
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)size_of(Vector3));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2)));
+    glEnableVertexAttribArray(2);
 
     // Per Frame Data (as of now: view proj matrices)
     glGenBuffers(1, *UBO);
@@ -138,8 +144,6 @@ RegisterModel :: (model : *Model) -> u32 {
 }
 
 DrawFrame :: (refdef : RefDef) {
-    glUseProgram(shaderProgram);
-
     viewProjMatrices : ViewProjMatrices;
     viewProjMatrices.view = CreateView(refdef.camera);
     viewProjMatrices.proj = Perspective(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0);
@@ -153,10 +157,15 @@ DrawFrame :: (refdef : RefDef) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(VAO);
+    glBindVertexArray(VAO);    
+    glUseProgram(shaderProgram);
     for models {
-        glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));
+        glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));        
         glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
+        if refdef.wireframe {        
+            glUseProgram(wireframeShaderProgram);            
+            glDrawArrays(GL_LINES, xx it.offset, xx it.vertices.count);
+        }
     }    
 
     SDL_GL_SwapWindow(refdef.window);
