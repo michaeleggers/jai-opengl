@@ -3,6 +3,7 @@
 in vec4 in_Vertex;
 in vec2 TexCoord;
 in vec3 BaryCentricCoords;
+in vec3 Normal;
 
 out vec4 out_Color;
 
@@ -27,5 +28,7 @@ void main() {
         wireframe = vec4(mix(vec3(1.0), vec3(0.0), edgeFactor()), 1.0);        
     }
     
+    vec3 normalColor = 0.5*Normal + 0.5;
     out_Color = vec4(texColor.rgb + wireframe.rgb, 1.0);
+    out_Color = vec4(normalColor + wireframe.rgb, 1.0);
 }

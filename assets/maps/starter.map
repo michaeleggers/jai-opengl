@@ -65,4 +65,7 @@
 {2, -2, 3, wood_planks_01.tga, 130.48594}
 {2, -3, 3, wood_planks_01.tga, 130.48594}
 
+# A cuba far in pos z
+{0, 0, 10, vines.tga, 130.48594}
+
         

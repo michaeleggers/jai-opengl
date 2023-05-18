@@ -52,6 +52,9 @@ CreateBatch :: () -> *Batch {
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2)));
     glEnableVertexAttribArray(2);
 
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3)));
+    glEnableVertexAttribArray(3);
+
     // Allocate enough space for 1024 quads
     glBufferData(GL_ARRAY_BUFFER, 1024 * 4 * size_of(Vertex), null, GL_STATIC_DRAW);
 
