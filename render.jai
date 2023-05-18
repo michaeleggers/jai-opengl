@@ -6,9 +6,7 @@
 
 
 // Vertex World data
-VAO : GLuint;
-VBO : GLuint;
-totalVertexCount : u32;
+totalVertexCount : u32; // TODO: Clean this up. Should be part of the batch struct. But doesn't work without it. Figure out why...
 
 // Uniform Buffers
 viewProjectionUBO : GLuint;
@@ -18,7 +16,6 @@ perFrameSettingsUBO : GLuint;
 shaderProgram : GLuint;
 wireframeShaderProgram : GLuint;
 
-models : [..] Model;
 batches : [..] Batch;
 
 RefDef :: struct {
@@ -101,26 +98,6 @@ RenderInit :: () {
     // Shaders
     shaderProgram = CreateShaderProgram("shaders/vert.glsl", "shaders/frag.glsl");
     wireframeShaderProgram = CreateShaderProgram("shaders/vert.glsl", "shaders/wireframe.frag");
-
-    // VAO, VBO for Model data
-    glGenVertexArrays(1, *VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1, *VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // Allocate enough space for 1024 quads
-    glBufferData(GL_ARRAY_BUFFER,  1024 * 4 * size_of(Vertex), null, GL_STATIC_DRAW);    
-    // glBindBuffer(GL_ARRAY_BUFFER, 0); // DANGEROUS: Unbinding at this point will lead to a desaster.
-
-    // Input assembly for vertex shader
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), null);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)size_of(Vector3));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2)));
-    glEnableVertexAttribArray(2);
 
     // Per Frame Data (as of now: view proj matrices)
     uniformBuffers : [2] *GLuint;
