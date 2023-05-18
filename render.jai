@@ -96,8 +96,8 @@ RenderInit :: () {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Shaders
-    shaderProgram = CreateShaderProgram("shaders/vert.glsl", "shaders/frag.glsl");
-    wireframeShaderProgram = CreateShaderProgram("shaders/vert.glsl", "shaders/wireframe.frag");
+    shaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/basic_world.frag");
+    wireframeShaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/wireframe.frag");
 
     // Per Frame Data (as of now: view proj matrices)
     uniformBuffers : [2] *GLuint;
