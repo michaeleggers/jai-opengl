@@ -5,11 +5,16 @@
 #import "File";
 
 
-
+// Vertex World data
 VAO : GLuint;
 VBO : GLuint;
 totalVertexCount : u32;
-UBO : GLuint;
+
+// Uniform Buffers
+viewProjectionUBO : GLuint;
+perFrameSettingsUBO : GLuint;
+
+// Shaders
 shaderProgram : GLuint;
 wireframeShaderProgram : GLuint;
 
@@ -27,6 +32,10 @@ ViewProjMatrices :: struct {
     view := Matrix4_Identity;
     proj := Matrix4_Identity;
 };
+
+PerFrameSettings :: struct {
+    drawWireframe : u32 = 0;
+}
 
 RenderPrepare :: () {
     // Some general GL settings. Must be set BEFORE SDL creates the OpenGL context!
@@ -79,11 +88,15 @@ RenderInit :: () {
     glEnableVertexAttribArray(2);
 
     // Per Frame Data (as of now: view proj matrices)
-    glGenBuffers(1, *UBO);
+    uniformBuffers : [2] *GLuint;
+    uniformBuffers[0] = *viewProjectionUBO;
+    uniformBuffers[1] = *perFrameSettingsUBO;
+    glGenBuffers(xx uniformBuffers.count, uniformBuffers[0]);
     // glBindBuffer(GL_UNIFORM_BUFFER, UBO);
     // glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBO); // index (0) matches UBO binding ID in shader.
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO); // index (0) matches UBO binding ID in shader.
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
 }
 
 CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint {
@@ -149,8 +162,19 @@ DrawFrame :: (refdef : RefDef) {
     viewProjMatrices : ViewProjMatrices;
     viewProjMatrices.view = CreateView(refdef.camera);
     viewProjMatrices.proj = Perspective(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0);
-    glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // Can this check syntactically be more concise?
+    perFrameSettings : PerFrameSettings;
+    if refdef.wireframe {
+        perFrameSettings.drawWireframe = 1;
+    } else {
+        perFrameSettings.drawWireframe = 0;
+    }
+    glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(PerFrameSettings), *perFrameSettings, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     glViewport(0, 0, refdef.clientWidth, refdef.clientHeight);    
@@ -165,14 +189,8 @@ DrawFrame :: (refdef : RefDef) {
     for models {
         // glEnable(GL_DEPTH_TEST);
         // glEnable(GL_CULL_FACE);        
-        // glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));        
-        // glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
-        if refdef.wireframe {        
-            glEnable(GL_CULL_FACE);            
-            glEnable(GL_DEPTH_TEST);
-            glUseProgram(wireframeShaderProgram);            
-            glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
-        }
+        glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));        
+        glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
     }    
 
     SDL_GL_SwapWindow(refdef.window);
