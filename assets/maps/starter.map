@@ -53,14 +53,14 @@
 {2, 0, -3, wood_planks_01.tga, 130.48594}
 
 # now positive z:
-{0, 0, 1, wood_planks_01.tga, 130.48594}
-{0, 0, 2, wood_planks_01.tga, 130.48594}
-{0, 0, 3, wood_planks_01.tga, 130.48594}
-{1, 0, 1, wood_planks_01.tga, 130.48594}
-{1, 0, 2, wood_planks_01.tga, 130.48594}
-{1, 0, 3, wood_planks_01.tga, 130.48594}
-{2, 0, 1, wood_planks_01.tga, 130.48594}
-{2, 0, 2, wood_planks_01.tga, 130.48594}
+{0, 0, 1, vines.tga, 130.48594}
+{0, 0, 2, vines.tga, 130.48594}
+{0, 0, 3, vines.tga, 130.48594}
+{1, 0, 1, vines.tga, 130.48594}
+{1, 0, 2, vines.tga, 130.48594}
+{1, 0, 3, vines.tga, 130.48594}
+{2, 0, 1, vines.tga, 130.48594}
+{2, 0, 2, vines.tga, 130.48594}
 {2, 0, 3, wood_planks_01.tga, 130.48594}
 
         

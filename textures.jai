@@ -20,7 +20,8 @@ RegisterTexture :: (fileName : string) -> u32 {
     }
 
     texture := Texture.{ name = fileName };
-    data := stbi_load(fileName.data, *texture.width, *texture.height, *texture.comp, 4);    
+    texturePath := tprint("assets/textures/%", fileName);
+    data := stbi_load(texturePath.data, *texture.width, *texture.height, *texture.comp, 4);    
     if !data {
         log("Failed to load texture: %\n", fileName, flags=.ERROR);
         exit(-1);

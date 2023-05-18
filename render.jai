@@ -19,6 +19,7 @@ shaderProgram : GLuint;
 wireframeShaderProgram : GLuint;
 
 models : [..] Model;
+batches : [..] Batch;
 
 RefDef :: struct {
     clientWidth  : u32 = 1024;
@@ -27,6 +28,40 @@ RefDef :: struct {
     camera : Camera;
     wireframe := false;
 };
+
+Batch :: struct {
+    VAO, VBO         : GLuint;
+    textureID        : u32;
+    totalVertexCount : u32;
+    offset           : u32;
+    vertices         : [..] Vertex;
+}
+
+CreateBatch :: () -> *Batch {
+    result : Batch;
+    glGenVertexArrays(1, *result.VAO);
+    glBindVertexArray(result.VAO);
+
+    glGenBuffers(1, *result.VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, result.VBO);
+
+    // Input assembly for vertex shader
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), null);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)size_of(Vector3));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2)));
+    glEnableVertexAttribArray(2);
+
+    // Allocate enough space for 1024 quads
+    glBufferData(GL_ARRAY_BUFFER, 1024 * 4 * size_of(Vertex), null, GL_STATIC_DRAW);
+
+    array_add(*batches, result);
+
+    return *batches[batches.count - 1];
+}
 
 ViewProjMatrices :: struct {
     view := Matrix4_Identity;
@@ -144,18 +179,32 @@ CreateShaderProgram :: (vertShaderFile : string, fragShaderFile : string) -> GLu
     return shaderProgram;
 }
 
-RegisterModel :: (model : *Model) -> u32 {
-    lastVertexOffset := totalVertexCount * size_of(Vertex);
+RegisterModel :: (model : *Model) {
+    findBatchByTexID :: (textureID : u32) -> *Batch {
+        if batches.count <= textureID {
+            return null;
+        }
+        else {
+            return *batches[textureID];
+        }
+    }
+    batch := findBatchByTexID(model.textureID);
+    if !batch {
+        batch = CreateBatch();
+        batch.textureID = model.textureID;
+    }
+
+    for model.vertices {
+        array_add(*batch.vertices, it);
+    }
+    lastVertexOffset := batch.totalVertexCount * size_of(Vertex);
     
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);    
+    glBindBuffer(GL_ARRAY_BUFFER, batch.VBO);    
     glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, model.vertices.count * size_of(Vertex), model.vertices.data);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    model.offset = totalVertexCount;
-    totalVertexCount += xx model.vertices.count;
-    array_add(*models, model);
-
-    return xx (models.count - 1);
+    batch.offset = totalVertexCount;
+    batch.totalVertexCount += xx model.vertices.count;    
 }
 
 DrawFrame :: (refdef : RefDef) {
@@ -183,15 +232,20 @@ DrawFrame :: (refdef : RefDef) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(VAO);    
     
     glUseProgram(shaderProgram);
-    for models {
-        // glEnable(GL_DEPTH_TEST);
-        // glEnable(GL_CULL_FACE);        
-        glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));        
+    for batches {
+        glBindVertexArray(it.VAO);    
+        // glBindBuffer(GL_ARRAY_BUFFER, it.VBO);
+        glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));
         glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
-    }    
+    }
+    // for models {
+    //     // glEnable(GL_DEPTH_TEST);
+    //     // glEnable(GL_CULL_FACE);        
+    //     glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));        
+    //     glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
+    // }    
 
     SDL_GL_SwapWindow(refdef.window);
 }

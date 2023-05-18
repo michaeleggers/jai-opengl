@@ -35,7 +35,7 @@ MouseState :: struct {
 
 keyState : [#run enum_highest_value(SDL_Keycode)] bool;
 
-UpdateCamera :: (camera : *Camera, dX : s32, dY : s32) {
+UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
     RotateAroundUp(camera, -dX * 0.01);
     RotateAroundSide(camera, -dY * 0.01);
 }
@@ -81,20 +81,24 @@ main :: () {
     RenderInit();
 
     brushes := LoadMapFile("assets/maps/starter.map");
-    world := Model.{ position = .{0.0, 0.0, 0.0}};
-    for brush : brushes {        
+    world : [..] Model;
+    //world := Model.{ position = .{0.0, 0.0, 0.0}};
+    for brush : brushes {
+        model : Model;
+        model.textureID = RegisterTexture(brush.texture);        
         for vertex : GEOM_UNIT_CUBE {
             vert := vertex;
             vert.pos.x += brush.xPos;
             vert.pos.y += brush.yPos;
             vert.pos.z += brush.zPos;
-            array_add(*world.vertices, vert);
+            array_add(*model.vertices, vert);
         }
+        RegisterModel(*model);
     }
 
     // Add a nice texture to the model
-    world.textureID = RegisterTexture("assets/textures/wood_planks_01.tga");
-    modelID := RegisterModel(*world);
+    // world.textureID = RegisterTexture("wood_planks_01.tga");
+    // modelID := RegisterModel(*world);
 
     refdef.camera = CreateCamera(.{ pos = .{-1.5, 5.2, 6.5}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
@@ -167,7 +171,7 @@ main :: () {
                     if event.motion.state & SDL_BUTTON(3) {
                         dX := mouseX - mouseState.oldX;
                         dY := mouseY - mouseState.oldY;
-                        UpdateCamera(*refdef.camera, dX, dY); // TODO: Move this down, out of the event loop
+                        UpdateCameraOnMouse(*refdef.camera, dX, dY); // TODO: Move this down, out of the event loop
                         print("Mouse delta %, %\n", dX, dY);
                         mouseState.oldX = mouseX;
                         mouseState.oldY = mouseY;
