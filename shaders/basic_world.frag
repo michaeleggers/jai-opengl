@@ -30,5 +30,5 @@ void main() {
     
     vec3 normalColor = 0.5*Normal + 0.5;
     out_Color = vec4(texColor.rgb + wireframe.rgb, 1.0);
-    // out_Color = vec4(normalColor + wireframe.rgb, 1.0);
+    //out_Color = vec4(normalColor + wireframe.rgb, 1.0);
 }

@@ -80,7 +80,7 @@ main :: () {
 
     RenderInit();
 
-    brushes := LoadMapFile("assets/maps/starter.map");
+    brushes := LoadMapFile("assets/maps/single_brush.map");
     world : [..] Model;
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
     for brush : brushes {
@@ -93,6 +93,7 @@ main :: () {
             t.c.pos += Vector3.{brush.xPos, brush.yPos, brush.zPos};
             array_add(*model.tris, t);
         }
+        array_add(*world, model);
         RegisterModel(*model);
     }
 
@@ -100,7 +101,7 @@ main :: () {
     // world.textureID = RegisterTexture("wood_planks_01.tga");
     // modelID := RegisterModel(*world);
 
-    refdef.camera = CreateCamera(.{ pos = .{-1.5, 5.2, 6.5}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    refdef.camera = CreateCamera(.{ pos = .{0.0, 0.0, 3.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
     // Safe mouse state, so we can get a delta
     mouseState : MouseState;
@@ -108,6 +109,7 @@ main :: () {
     running := true;
     while running {
 
+        // Maybe even use SDL_GetKeyboardState() here and don't rely on SDL events at all?
         mouseX, mouseY : s32;
         buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
         mouseState.oldX = mouseX;
@@ -115,19 +117,7 @@ main :: () {
 
         // SDL Event Loop
         event : SDL_Event;
-        while SDL_PollEvent(*event) {
-
-            // Keep for reference: We could also just always poll the state without
-            //                     waiting for events to be sent by the os.
-            //                     Maybe even use SDL_GetKeyboardState() here and don't rely on SDL events at all?
-
-            // mouseX, mouseY : s32;
-            // buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
-            // print("Mouse at %, %\n", mouseX, mouseY);
-            // if SDL_BUTTON(buttonMask) & SDL_BUTTON_LEFT == SDL_BUTTON_LEFT {
-            //     print("Mouse button down\n");
-            //     print("Mouse pressed at %, %\n", mouseX, mouseY);
-            // }
+        while SDL_PollEvent(*event) {         
 
             if event.type == {
                 case SDL_QUIT;
@@ -194,6 +184,11 @@ main :: () {
         // Update stuff
         // Camera    
         UpdateCameraOnKeys(*refdef.camera);
+
+        // Test triangle picking
+        worldSpaceXYZ := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);        
+        print("Worldspace X, Y, Z: %, %, %\n", worldSpaceXYZ.x, worldSpaceXYZ.y, worldSpaceXYZ.z);
+        viewMat := CreateView(refdef.camera);        
 
         // Render settings
         refdef.wireframe = keyState[SDLK_TAB];        
