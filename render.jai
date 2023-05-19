@@ -30,7 +30,6 @@ Batch :: struct {
     VAO, VBO         : GLuint;
     textureID        : u32;
     totalVertexCount : u32;
-    offset           : u32;
     vertices         : [..] Vertex;
 }
 
@@ -174,17 +173,22 @@ RegisterModel :: (model : *Model) {
         batch.textureID = model.textureID;
     }
 
-    for model.vertices {
-        array_add(*batch.vertices, it);
+    for model.tris {
+        v0 := it.a;
+        v1 := it.b;
+        v2 := it.c;
+        array_add(*batch.vertices, v0);
+        array_add(*batch.vertices, v1);
+        array_add(*batch.vertices, v2);
     }
     lastVertexOffset := batch.totalVertexCount * size_of(Vertex);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, batch.VBO);    
-    glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, model.vertices.count * size_of(Vertex), model.vertices.data);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    dataSize := model.tris.count * size_of(Tri);
 
-    batch.offset = totalVertexCount;
-    batch.totalVertexCount += xx model.vertices.count;    
+    glBindBuffer(GL_ARRAY_BUFFER, batch.VBO);    
+    glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, dataSize, model.tris.data);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
+    batch.totalVertexCount += xx (model.tris.count * 3);    
 }
 
 DrawFrame :: (refdef : RefDef) {
@@ -218,7 +222,7 @@ DrawFrame :: (refdef : RefDef) {
         glBindVertexArray(it.VAO);    
         // glBindBuffer(GL_ARRAY_BUFFER, it.VBO);
         glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));
-        glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
+        glDrawArrays(GL_TRIANGLES, 0, xx it.vertices.count);
     }
     // for models {
     //     // glEnable(GL_DEPTH_TEST);

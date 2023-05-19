@@ -8,8 +8,12 @@ Vertex :: struct {
     normal  : Vector3;
 }
 
+Tri :: struct {
+    a, b, c : Vertex;
+}
+
 Model :: struct {
-    vertices    : [..] Vertex;
+    tris        : [..] Tri;
     position    : Vector3;
     modelMat    := Matrix4_Identity;
     textureID   : u32;

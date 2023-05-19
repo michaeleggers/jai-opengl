@@ -85,13 +85,13 @@ main :: () {
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
     for brush : brushes {
         model : Model;
-        model.textureID = RegisterTexture(brush.texture);        
-        for vertex : GEOM_UNIT_CUBE {
-            vert := vertex;
-            vert.pos.x += brush.xPos;
-            vert.pos.y += brush.yPos;
-            vert.pos.z += brush.zPos;
-            array_add(*model.vertices, vert);
+        model.textureID = RegisterTexture(brush.texture);
+        for tri : GEOM_UNIT_CUBE {
+            t := tri;
+            t.a.pos += Vector3.{brush.xPos, brush.yPos, brush.zPos};
+            t.b.pos += Vector3.{brush.xPos, brush.yPos, brush.zPos};
+            t.c.pos += Vector3.{brush.xPos, brush.yPos, brush.zPos};
+            array_add(*model.tris, t);
         }
         RegisterModel(*model);
     }
