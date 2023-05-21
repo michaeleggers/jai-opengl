@@ -101,7 +101,7 @@ main :: () {
     // world.textureID = RegisterTexture("wood_planks_01.tga");
     // modelID := RegisterModel(*world);
 
-    refdef.camera = CreateCamera(.{ pos = .{0.0, 0.0, 3.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    refdef.camera = CreateCamera(.{ pos = .{0.0, 0.0, -5.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
     // Safe mouse state, so we can get a delta
     mouseState : MouseState;

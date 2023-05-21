@@ -194,7 +194,11 @@ RegisterModel :: (model : *Model) {
 DrawFrame :: (refdef : RefDef) {
     viewProjMatrices : ViewProjMatrices;
     viewProjMatrices.view = CreateView(refdef.camera);
+    viewProjMatrices.view = transpose(make_look_at_matrix(refdef.camera.pos, refdef.camera.center, refdef.camera.up, x_is_forward=false));
+
     viewProjMatrices.proj = Perspective(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0);
+    viewProjMatrices.proj = transpose(make_projection_matrix(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0));
+    
     glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);

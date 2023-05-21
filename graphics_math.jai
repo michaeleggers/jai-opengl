@@ -41,59 +41,40 @@ Perspective :: (fov : float, aspect : float, near : float, far : float) -> Matri
     return result;
 }
 
+// From Lengyel, FOGED, Vol. 1, page 50
 Inverse :: (m : Matrix4) -> Matrix4 {
-    result : Matrix4;
-    inv : [16] float;
-    det : float;
+    a := Vector3.{m._11, m._12, m._13};
+    b := Vector3.{m._21, m._22, m._23};
+    c := Vector3.{m._31, m._32, m._33};
+    d := Vector3.{m._41, m._42, m._43};
 
-    inv[0] = m._22 * m._33 * m._44 -
-             m._22 * m._34 * m._43 -
-             m._32 * m._23 * m._44 +
-             m._32 * m._24  * m._43 +
-             m._42 * m._23  * m._34 - 
-             m._42 * m._24 * m._33;
+    x := m._14;
+    y := m._24;
+    z := m._34;
+    w := m._44;
 
-    inv[4] = -m._21  * m._33 * m._44 + 
-            m._21  * m._34 * m._43 + 
-            m._31  * m._23  * m._44 - 
-            m._31  * m._24  * m._43 - 
-            m._41 * m._23  * m._34 + 
-            m._41 * m._24  * m._33;
+    s := cross(a, b);
+    t := cross(c, d);
+    u := a*y - b*x;
+    v := c*w - d*z;
 
-    inv[8] = m._21  * m._32 * m._44 - 
-        m._21  * m._34 * m._42 - 
-        m._31  * m._22 * m._44 + 
-        m._31  * m._24 * m._42 + 
-        m._41 * m._22 * m._34 - 
-        m._41 * m._24 * m._32;       
+    invDet := 1.0 / (dot(s, v) + dot(t, u));
+    s *= invDet;
+    t *= invDet;
+    u *= invDet;
+    v *= invDet;
 
-    inv[12] = -m._21 * m._32 * m._43 + 
-        m._21 * m._33 * m._42 +
-        m._31 * m._22 * m._43 - 
-        m._31 * m._23 * m._42 - 
-        m._41 * m._22 * m._33 + 
-        m._41 * m._23 * m._32;
+    r0 := cross(b, v) + t*y;
+    r1 := cross(v, a) - t*x;
+    r2 := cross(d, u) + s*w;
+    r3 := cross(u, c) - s*z;
 
-    det = m._11 * inv[0] + m._12 * inv[4] + m._13 * inv[8] + m._14 * inv[12];
-
-    assert (det != 0, "matrix not invertible. Determinant is %\n", det);
-
-    det = 1.0 / det;
-
-    for i : 0..3 {
-        inv[i] = inv[i] * det;
-        inv[i + 4] = inv[i + 4] * det;
-        inv[i + 8] = inv[i + 8] * det;
-        inv[i + 12] = inv[i + 12] * det;
-    }
-
-    for i : 0..3 {
-        for j : 0..3 {
-            result.coef[j][i] = inv[i + j*4];
-        }
-    }
-
-    return result;
+    return .{
+        _11 = r0.x, _12 = r1.x, _13 = r2.x, _14 = r3.x,
+        _21 = r0.y, _22 = r1.y, _23 = r2.y, _24 = r3.y,
+        _31 = r0.z, _32 = r1.z, _33 = r2.z, _34 = r3.z,
+        _41 = -dot(b, t), _42 = dot(a, t), _43 = -dot(d, s), _44 = dot(c, s)
+    };  
 }
 
 Mat4XVec4 :: (m: Matrix4, v: Vector4) -> Vector4 {
@@ -108,20 +89,35 @@ Mat4XVec4 :: (m: Matrix4, v: Vector4) -> Vector4 {
 PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientHeight : u32, world : [] Model) -> Vector4 {
     // Get Worldspace coordinates of target
     viewMat := CreateView(camera);
+    // viewMat = make_look_at_matrix(camera.pos, camera.center, camera.up, x_is_forward=false);
+
     projMat := Perspective(camera.fov * PI / 180.0, clientWidth / cast(float)clientHeight, 0.1, 1000.0);
+    // projMat = make_projection_matrix(camera.fov * PI / 180.0, clientWidth / cast(float)clientHeight, 0.1, 1000.0);
+
     centerX := screenSpaceXY.x - cast(float)clientWidth / 2.0;
     centerY := screenSpaceXY.y - cast(float)clientHeight / 2.0;
     
-    Xnd := centerX / (cast(float)clientWidth / 2.0);
-    Ynd := centerY / (cast(float)clientHeight / 2.0);
-    invProjMat := inverse(transpose(projMat));
-    invViewMat := inverse(transpose(viewMat));
+    Xndc := centerX / (cast(float)clientWidth / 2.0);
+    Yndc := centerY / (cast(float)clientHeight / 2.0);
 
-    viewSpace := transpose(invProjMat) * Vector4.{Xnd, Ynd, 0.0, 1.0};
-    worldSpace := transpose(invViewMat) * viewSpace;
-    
-    
-    return worldSpace;
+    Xndc *= -camera.pos.z;
+    Yndc *= -camera.pos.z;
+
+    print("Camera pos: %\n", camera.pos);
+
+    invProjMat := Inverse(projMat);
+    ident := invProjMat * projMat;
+    // print("Ident: %\n\n\n", ident);
+    invViewMat := Inverse(viewMat);
+    //toWorldSpace := invViewMat * invProjMat;
+
+    viewSpaceCoords := (invProjMat * Vector4.{Xndc, Yndc, -1.0, 1.0});
+    worldSpaceCoords := (invViewMat * viewSpaceCoords);
+
+    // worldSpaceCoords = Mat4XVec4(transpose(toWorldSpace), Vector4.{Xndc, Yndc, -1.0, 1.0});
+    // worldSpace := transpose(invViewMat) * viewSpace;
+        
+    return worldSpaceCoords;
     
     // return .{Xnd, Ynd, 0.0, 0.0};
 }
