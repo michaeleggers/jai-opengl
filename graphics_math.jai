@@ -103,13 +103,11 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
     Xndc *= -camera.pos.z;
     Yndc *= -camera.pos.z;
 
-    print("Camera pos: %\n", camera.pos);
+    // print("Camera pos: %\n", camera.pos);
 
-    invProjMat := Inverse(projMat);
-    ident := invProjMat * projMat;
-    // print("Ident: %\n\n\n", ident);
+
+    invProjMat := Inverse(projMat);   
     invViewMat := Inverse(viewMat);
-    //toWorldSpace := invViewMat * invProjMat;
 
     viewSpaceCoords := (invProjMat * Vector4.{Xndc, Yndc, -1.0, 1.0});
     worldSpaceCoords := (invViewMat * viewSpaceCoords);
