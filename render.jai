@@ -110,7 +110,8 @@ CreateBatch :: () -> *Batch {
     glEnableVertexAttribArray(3);
 
     // Allocate enough space for 1024 quads
-    glBufferData(GL_ARRAY_BUFFER, 1024 * 4 * size_of(Vertex), null, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 1024 * 6 * size_of(Vertex), null, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     array_add(*batches, result);
 
@@ -123,6 +124,22 @@ RenderPrepare :: () {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, xx SDL_GL_CONTEXT_DEBUG_FLAG);
+
+}
+
+MessageCallback :: (source : GLenum,
+                 type : GLenum,
+                 id : GLuint,
+                 severity : GLenum,
+                 length : GLsizei,
+                 message : *u8,
+                 userParam : *void) -> void #c_call
+{
+    new_context : Context;
+    push_context new_context {
+        print("GL CALLBACK: % type = %, severity = %, message = %\n", "foo", type, severity, to_string(message) );
+    }
 }
 
 // TODO: Are there namespaces? Or do we have to prefix stuff? Because we could have just Render::Init(), maybe?
@@ -136,6 +153,9 @@ RenderInit :: () {
     print("GL Version = %\n", to_string(glGetString(GL_VERSION)));
 
     // Set GL states
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, null);
+
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
@@ -238,7 +258,7 @@ RegisterModel :: (model : *Model) {
 
     glBindVertexArray(batch.VAO);
     glBindBuffer(GL_ARRAY_BUFFER, batch.VBO);    
-    glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, dataSize, model.tris.data);
+    glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, dataSize, batch.vertices.data + batch.totalVertexCount);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     
@@ -287,6 +307,10 @@ RegisterHUD :: (model : *Model) {
 }
 
 DrawFrame :: (refdef : RefDef) {
+    glViewport(0, 0, refdef.clientWidth, refdef.clientHeight);    
+    glClearColor(0.5, 0.5, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     // World
     glUseProgram(gShaderProgram);
     viewProjMatrices : ViewProjMatrices;
@@ -314,18 +338,16 @@ DrawFrame :: (refdef : RefDef) {
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
-
-    glViewport(0, 0, refdef.clientWidth, refdef.clientHeight);    
-
-    glClearColor(0.5, 0.5, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glActiveTexture(GL_TEXTURE0);
     for batches {
-        glBindVertexArray(it.VAO);    
-        // glBindBuffer(GL_ARRAY_BUFFER, it.VBO);
+        glBindVertexArray(it.VAO);            
         glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));
         glDrawArrays(GL_TRIANGLES, 0, xx it.vertices.count);
+        
+        // gl_Err := glGetError();
+        // if gl_Err != GL_NO_ERROR {
+        //     print("ERROR drawing world: GL Error: %\n", gl_Err);
+        // }
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -345,12 +367,13 @@ DrawFrame :: (refdef : RefDef) {
         hud := hudElements[hudDrawCmd.hudID];
         glBindVertexArray(hud.VAO);
         glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(hud.textureID));
-        // glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO); // glBindBufferBase seems to be enough.
+        glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO); // glBindBufferBase seems to be enough.
         glBufferData(GL_UNIFORM_BUFFER, size_of(HUDTransform), *hudDrawCmd.transform, GL_STATIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
         glDrawArrays(GL_TRIANGLES, 0, xx hud.vertices.count);    
+        
     }
 
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glEnable(GL_DEPTH_TEST);
     // Dont forget to clear the drawlist!!!
     HUDDrawCount = 0;

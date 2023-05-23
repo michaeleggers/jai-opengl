@@ -1,6 +1,5 @@
 #version 420
 
-in vec4 in_Vertex;
 in vec2 TexCoord;
 in vec3 BaryCentricCoords;
 

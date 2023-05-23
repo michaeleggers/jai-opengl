@@ -21,8 +21,11 @@ out vec3 BaryCentricCoords;
 void main() {
 
     vec2 screenSpacePos = pos.xy / clientDimensions;
-    screenSpacePos *= scaleXY;
-    screenSpacePos.x -= 0.5;
+    screenSpacePos *= scaleXY * vec2(3);
+    // screenSpacePos.x -= 0.5;
+    screenSpacePos.x += (offset.x-1.0)/clientDimensions.x/2.0;
+    screenSpacePos.y += offset.y/clientDimensions.y/2.0;
+
 
     gl_Position = vec4(screenSpacePos, 0.0, 1.0);
     
