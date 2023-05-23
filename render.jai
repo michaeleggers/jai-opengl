@@ -169,12 +169,22 @@ RenderInit :: () {
     HUDShaderProgram = CreateShaderProgram("shaders/hud.vert", "shaders/hud.frag");
 
     // Per Frame Data (as of now: view proj matrices)
-    uniformBuffers : [4] *GLuint;
-    uniformBuffers[0] = *viewProjectionUBO;
-    uniformBuffers[1] = *perFrameSettingsUBO;
-    uniformBuffers[2] = *hudTransformUBO;
-    uniformBuffers[3] = *hudWindowDataUBO;
-    glGenBuffers(xx uniformBuffers.count, uniformBuffers[0]);
+    // The following way of initializing the buffers causes the shader programs, for whatever reason,
+    // to get other values...
+
+    // uniformBuffers : [4] *GLuint;
+    // uniformBuffers[0] = *viewProjectionUBO;
+    // uniformBuffers[1] = *perFrameSettingsUBO;
+    // uniformBuffers[2] = *hudTransformUBO;
+    // uniformBuffers[3] = *hudWindowDataUBO;
+    // glGenBuffers(xx uniformBuffers.count, uniformBuffers[0]);
+
+    // This, however, seems to work.
+    glGenBuffers(1, *viewProjectionUBO);
+    glGenBuffers(1, *perFrameSettingsUBO);
+    glGenBuffers(1, *hudTransformUBO);
+    glGenBuffers(1, *hudWindowDataUBO);
+
     // glBindBuffer(GL_UNIFORM_BUFFER, UBO);
     // glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
