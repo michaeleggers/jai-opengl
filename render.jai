@@ -5,32 +5,82 @@
 #import "File";
 
 
-// Vertex World data
-totalVertexCount : u32; // TODO: Clean this up. Should be part of the batch struct. But doesn't work without it. Figure out why...
-
-// Uniform Buffers
-viewProjectionUBO : GLuint;
-perFrameSettingsUBO : GLuint;
 
 // Shaders
 shaderProgram : GLuint;
-wireframeShaderProgram : GLuint;
+wireframeShaderProgram : GLuint; // TODO: Not used
+HUDShaderProgram : GLuint;
 
+// Uniform Buffers for world geometry
+viewProjectionUBO : GLuint;
+perFrameSettingsUBO : GLuint;
+// VBOs, VAOs per batch for world geometry
 batches : [..] Batch;
 
+
+// TODO: God, this is so ugly. Can we do better with dynamic array?
+MAX_HUD_DRAW_CMDS : u32 : 64;
+HUDDrawCount      : u32;
+
+// Draw Settings for one frame
 RefDef :: struct {
     clientWidth  : u32 = 1024;
     clientHeight : u32 = 768;
     window : *SDL_Window;
     camera : Camera;
     wireframe := false;
+
+    HUDDrawList : [MAX_HUD_DRAW_CMDS] HUDDrawCmd;
 };
+
+// HUD
+HUDElement :: struct {
+    VAO, VBO    : GLuint;
+    textureID   : u32;
+    vertices    : [..] Vertex;
+}
+
+HUDDrawCmd :: struct {
+    hudID       : u32;
+    transform   : HUDTransform;
+}
+
+HUDTransform :: struct {
+    pos     : Vector2;
+    scaleXY : Vector2;
+}
+// Stores VAO, VBO for each HUD element (wasteful!). TODO: Batch HUD elements.
+hudElements : [..] HUDElement;
+// Uniform for HUD
+hudTransformUBO : GLuint;
+
+DrawHUD :: (refdef : *RefDef, hudElem : CHUDElement, xPos : float = 0.0, yPos : float = 0.0, scaleX : float = 0.0, scaleY : float = 0.0) {
+    drawCmd := HUDDrawCmd.{
+        hudID = hudElem.id, 
+        transform = HUDTransform.{ 
+            pos     = .{x=xPos, y=yPos}, 
+            scaleXY = .{x = scaleX, y = scaleY}
+        }
+    };
+
+    refdef.HUDDrawList[HUDDrawCount] = drawCmd;
+    HUDDrawCount += 1;
+}
 
 Batch :: struct {
     VAO, VBO         : GLuint;
     textureID        : u32;
-    totalVertexCount : u32;
+    totalVertexCount : u32; // TODO: Why is this here again? vertices.count gives us that!
     vertices         : [..] Vertex;
+}
+
+ViewProjMatrices :: struct {
+    view := Matrix4_Identity;
+    proj := Matrix4_Identity;
+}
+
+PerFrameSettings :: struct {
+    drawWireframe : u32 = 0;
 }
 
 CreateBatch :: () -> *Batch {
@@ -62,15 +112,6 @@ CreateBatch :: () -> *Batch {
     return *batches[batches.count - 1];
 }
 
-ViewProjMatrices :: struct {
-    view := Matrix4_Identity;
-    proj := Matrix4_Identity;
-};
-
-PerFrameSettings :: struct {
-    drawWireframe : u32 = 0;
-}
-
 RenderPrepare :: () {
     // Some general GL settings. Must be set BEFORE SDL creates the OpenGL context!
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, xx SDL_GL_CONTEXT_PROFILE_CORE);
@@ -100,17 +141,23 @@ RenderInit :: () {
     // Shaders
     shaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/basic_world.frag");
     wireframeShaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/wireframe.frag");
+    HUDShaderProgram = CreateShaderProgram("shaders/hud.vert", "shaders/hud.frag");
 
     // Per Frame Data (as of now: view proj matrices)
-    uniformBuffers : [2] *GLuint;
+    uniformBuffers : [3] *GLuint;
     uniformBuffers[0] = *viewProjectionUBO;
     uniformBuffers[1] = *perFrameSettingsUBO;
+    uniformBuffers[2] = *hudTransformUBO;
     glGenBuffers(xx uniformBuffers.count, uniformBuffers[0]);
     // glBindBuffer(GL_UNIFORM_BUFFER, UBO);
     // glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO); // index (0) matches UBO binding ID in shader.
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
+    
+    glBindBufferBase(GL_UNIFORM_BUFFER, 3, hudTransformUBO); // this index should be reusable cause we switch shader for drawing HUDs!
+    // TODO: How can I reuse the binding ID?? It is a different shader after all! But doesn't work if I reuse 0 or one from world shader prog!
+    
 }
 
 CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint {
@@ -191,7 +238,50 @@ RegisterModel :: (model : *Model) {
     batch.totalVertexCount += xx (model.tris.count * 3);    
 }
 
+RegisterHUD :: (model : *Model) {
+    hudElem : HUDElement;
+    for model.tris {
+        v0 := it.a;
+        v1 := it.b;
+        v2 := it.c;
+        array_add(*hudElem.vertices, v0);
+        array_add(*hudElem.vertices, v1);
+        array_add(*hudElem.vertices, v2);
+    }
+    
+    dataSize := model.tris.count * size_of(Tri);
+
+    glGenVertexArrays(1, *hudElem.VAO);
+    glBindVertexArray(hudElem.VAO);
+
+    glGenBuffers(1, *hudElem.VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, hudElem.VBO);
+
+    // Input assembly for vertex shader
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), null);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)size_of(Vector3));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2)));
+    glEnableVertexAttribArray(2);
+
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3)));
+    glEnableVertexAttribArray(3);
+
+    // Allocate enough space for 1024 quads
+    glBufferData(GL_ARRAY_BUFFER, dataSize, cast(*void)model.tris.data, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    array_add(*hudElements, hudElem);
+    model.hudID = xx (hudElements.count - 1);
+}
+
 DrawFrame :: (refdef : RefDef) {
+    // World
+    glUseProgram(shaderProgram);
     viewProjMatrices : ViewProjMatrices;
     viewProjMatrices.view = CreateView(refdef.camera);
     // viewProjMatrices.view = transpose(make_look_at_matrix(refdef.camera.pos, refdef.camera.center, refdef.camera.up, x_is_forward=false));
@@ -220,20 +310,31 @@ DrawFrame :: (refdef : RefDef) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    
-    glUseProgram(shaderProgram);
     for batches {
         glBindVertexArray(it.VAO);    
         // glBindBuffer(GL_ARRAY_BUFFER, it.VBO);
         glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));
         glDrawArrays(GL_TRIANGLES, 0, xx it.vertices.count);
     }
-    // for models {
-    //     // glEnable(GL_DEPTH_TEST);
-    //     // glEnable(GL_CULL_FACE);        
-    //     glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));        
-    //     glDrawArrays(GL_TRIANGLES, xx it.offset, xx it.vertices.count);
-    // }    
+
+    // HUD
+    glUseProgram(HUDShaderProgram);
+    glActiveTexture(GL_TEXTURE0);
+    glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO);
+
+    for i : 0..HUDDrawCount-1 {
+        hudDrawCmd := refdef.HUDDrawList[i];
+        hud := hudElements[hudDrawCmd.hudID];
+        glBindVertexArray(hud.VAO);
+        glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(hud.textureID));
+        glBufferData(GL_UNIFORM_BUFFER, size_of(HUDTransform), *hudDrawCmd.transform, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, xx hud.vertices.count);    
+    }
+
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // Dont forget to clear the drawlist!!!
+    HUDDrawCount = 0;
 
     SDL_GL_SwapWindow(refdef.window);
 }

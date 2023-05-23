@@ -100,21 +100,51 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
     Xndc := centerX / (cast(float)clientWidth / 2.0);
     Yndc := centerY / (cast(float)clientHeight / 2.0);
 
-    Xndc *= -camera.pos.z;
-    Yndc *= -camera.pos.z;
+    // Xndc *= -camera.pos.z;
+    // Yndc *= -camera.pos.z;
 
     // print("Camera pos: %\n", camera.pos);
 
 
-    invProjMat := Inverse(projMat);   
-    invViewMat := Inverse(viewMat);
+    invProjMat := inverse(projMat);   
+    invViewMat := inverse(viewMat);
 
-    viewSpaceCoords := (invProjMat * Vector4.{Xndc, Yndc, -1.0, 1.0});
-    worldSpaceCoords := (invViewMat * viewSpaceCoords);
+    viewSpaceCoords := ((invProjMat) * Vector4.{Xndc, Yndc, -1.0, 0.0});
+    viewSpaceCoords.z = -1.0;
+    viewSpaceCoords.w = 1.0;
+    worldSpaceCoords := ((invViewMat) * viewSpaceCoords);
+
+    worldSpaceCoords3 := Vector3.{worldSpaceCoords.x, worldSpaceCoords.y, worldSpaceCoords.z};
+    // print("camera.forward.z: %\n", camera.forward.z);
 
     // worldSpaceCoords = Mat4XVec4(transpose(toWorldSpace), Vector4.{Xndc, Yndc, -1.0, 1.0});
     // worldSpace := transpose(invViewMat) * viewSpace;
-        
+    
+    r := normalize(camera.forward);
+    print("r: %\n", r);
+    // r := Vector3.{worldSpaceCoords.x, worldSpaceCoords.y, camera.forward.z};
+    // r = normalize(r);
+    shortestT := 999999.99;
+    testTri := Tri.{
+        .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
+        .{pos = .{  1.0, 0.0, 0.0}, uv = .{1.0, 0.0}, bc = .{0.0, 1.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
+        .{pos = .{  1.0, 1.0, 0.0}, uv = .{1.0, 1.0}, bc = .{0.0, 0.0, 1.0}, normal = .{0.0, 0.0, 1.0}}
+    };
+    // for model : world {
+    //     for tri : model.tris {            
+            tri := testTri;
+            n := tri.a.normal; // NOTE: The normal could be an average between two vertex-normals but for now we only have hard surfaces.
+            nDotR := dot(n, r);
+            // if nDotR >= -0.00001 && nDotR <= 0.00001 continue;
+            d := -dot(n, tri.a.pos);
+            t := (-dot(n, camera.pos) + d) / nDotR;
+            shortestT = t;
+    //     }
+    // }
+    hitPoint := camera.pos + (shortestT*r);
+    print("t: %, hitPoint: %\n", shortestT, hitPoint);
+    // print("canera.pos: % || shortestT: %\n", camera.pos, shortestT);
+
     return worldSpaceCoords;
     
     // return .{Xnd, Ynd, 0.0, 0.0};

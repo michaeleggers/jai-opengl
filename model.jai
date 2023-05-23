@@ -18,4 +18,7 @@ Model :: struct {
     modelMat    := Matrix4_Identity;
     textureID   : u32;
     offset      : u32;
+
+    // Only for HUD elements. ID is index into the HUDElements array in render.jai
+    hudID       : u32;
 }

@@ -11,6 +11,7 @@
 #load "mapparser.jai";
 #load "graphics_math.jai";
 #load "geometry.jai";
+#load "hud.jai";
 
 AllocString :: (count : u32) -> string {
     s : string;
@@ -80,6 +81,8 @@ main :: () {
 
     RenderInit();
 
+    crosshairHUD := CreateHUD("crosshair_point.png");
+
     brushes := LoadMapFile("assets/maps/single_brush.map");
     world : [..] Model;
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
@@ -88,9 +91,10 @@ main :: () {
         model.textureID = RegisterTexture(brush.texture);
         for tri : GEOM_UNIT_CUBE {
             t := tri;
-            t.a.pos += Vector3.{brush.xPos, brush.yPos, brush.zPos};
-            t.b.pos += Vector3.{brush.xPos, brush.yPos, brush.zPos};
-            t.c.pos += Vector3.{brush.xPos, brush.yPos, brush.zPos};
+            brushOffset := Vector3.{brush.xPos, brush.yPos, brush.zPos};
+            t.a.pos += brushOffset;
+            t.b.pos += brushOffset; 
+            t.c.pos += brushOffset;
             array_add(*model.tris, t);
         }
         array_add(*world, model);
@@ -101,7 +105,7 @@ main :: () {
     // world.textureID = RegisterTexture("wood_planks_01.tga");
     // modelID := RegisterModel(*world);
 
-    refdef.camera = CreateCamera(.{ pos = .{0.0, 0.0, -5.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    refdef.camera = CreateCamera(.{ pos = .{0.0, 0.0, 5.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
 
     // Safe mouse state, so we can get a delta
     mouseState : MouseState;
@@ -186,9 +190,13 @@ main :: () {
         UpdateCameraOnKeys(*refdef.camera);
 
         // Test triangle picking
-        worldSpaceXYZ := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);        
-        print("Worldspace X, Y, Z: %, %, %\n", worldSpaceXYZ.x, worldSpaceXYZ.y, worldSpaceXYZ.z);
+        worldSpaceXYZ := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);
+        // print("ws x, y : %\n", worldSpaceXYZ);
         viewMat := CreateView(refdef.camera);        
+
+        // Draw a test HUD element
+        DrawHUD(*refdef, crosshairHUD, xPos = 0.5, yPos = -.5, scaleX = .2, scaleY = .2);
+        DrawHUD(*refdef, crosshairHUD, xPos = -0.5, yPos = .5, scaleX = .1, scaleY = .1);
 
         // Render settings
         refdef.wireframe = keyState[SDLK_TAB];        
