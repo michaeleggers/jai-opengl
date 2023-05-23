@@ -196,10 +196,10 @@ main :: () {
 
         // Draw a test HUD element
         // DrawHUD(*refdef, crosshairHUD);
-        // DrawHUD(*refdef, crosshairHUD, xPos = -0.5, yPos = .5, scaleX = 100, scaleY = 200);
-        // DrawHUD(*refdef, crosshairHUD, xPos = -0.1, yPos = 0, scaleX = 100, scaleY = 100);
-        // DrawHUD(*refdef, crosshairHUD, xPos = -.2, yPos = 0.0, scaleX = 100.0, scaleY = 100.0);
-        DrawHUD(*refdef, crosshairHUD, xPos = 0, yPos = 0.0, scaleX = 10.0, scaleY = 10.0);
+        DrawHUD(*refdef, crosshairHUD, xPos = -0.5, yPos = .5, scaleX = 10, scaleY = 2);
+        DrawHUD(*refdef, crosshairHUD, xPos = -0.1, yPos = 0, scaleX = 10, scaleY = 10);
+        DrawHUD(*refdef, crosshairHUD, xPos = -.2, yPos = 0.0, scaleX = 10.0, scaleY = 10.0);
+        DrawHUD(*refdef, crosshairHUD, xPos = 0.0, yPos = 0.0, scaleX = 80.0, scaleY = 60.0);
 
         // Render settings
         refdef.wireframe = keyState[SDLK_TAB];        

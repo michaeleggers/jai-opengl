@@ -181,8 +181,18 @@ RenderInit :: () {
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO); // index (0) matches UBO binding ID in shader.
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
     
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, hudTransformUBO);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 1, hudWindowDataUBO);    
+    glBindBufferBase(GL_UNIFORM_BUFFER, 2, hudTransformUBO);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 3, hudWindowDataUBO);    
+
+    glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), null, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(PerFrameSettings), null, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(HUDTransform), null, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, hudWindowDataUBO);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(HUDWindowData), null, GL_DYNAMIC_DRAW);
 }
 
 CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint {
@@ -215,17 +225,25 @@ CreateShaderProgram :: (vertShaderFile : string, fragShaderFile : string) -> GLu
     fragShader := CreateShader(fragShaderFile, GL_FRAGMENT_SHADER);
 
     shaderProgram := glCreateProgram();
+    print("type_of(shaderProgram): %, value: %\n", type_of(shaderProgram), shaderProgram);
     glAttachShader(shaderProgram, vertShader);
     glAttachShader(shaderProgram, fragShader);
     glLinkProgram(shaderProgram);
     linkStatus : GLint;
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, *linkStatus);
     if !linkStatus {
-        logData : [1024] u8;
-        glGetShaderInfoLog(shaderProgram, logData.count, null, logData.data);
-        log("Failed to link shader program:\n%\n", to_string(logData.data), flags=.ERROR);
+        info_len : s32;
+        glGetProgramiv (shaderProgram, GL_INFO_LOG_LENGTH, *info_len);
+        info_data := cast (*u8) alloc (info_len, temp);
+        glGetProgramInfoLog (shaderProgram, xx info_len, xx *info_len, info_data);
+        result : string;
+        result.data = info_data;
+        result.count = info_len;
+        log("Failed to link shader program:\n%\n", result, flags=.ERROR);
         exit(-1);
     }
+    glDeleteShader(vertShader);
+    glDeleteShader(fragShader);
 
     return shaderProgram;
 }
@@ -320,9 +338,13 @@ DrawFrame :: (refdef : RefDef) {
     viewProjMatrices.proj = Perspective(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0);
     // viewProjMatrices.proj = transpose(make_projection_matrix(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0));
     
-    // glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO);
-    glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
+    // glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO);
+    ptr := glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    memcpy(ptr, *viewProjMatrices, size_of(ViewProjMatrices));
+    glUnmapBuffer(GL_UNIFORM_BUFFER);
+
+    // glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // Can this check syntactically be more concise?
@@ -332,9 +354,12 @@ DrawFrame :: (refdef : RefDef) {
     } else {
         perFrameSettings.drawWireframe = 0;
     }
-    // glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
-    glBufferData(GL_UNIFORM_BUFFER, size_of(PerFrameSettings), *perFrameSettings, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
+    ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    memcpy(ptr, *perFrameSettings, size_of(PerFrameSettings));
+    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    // glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
+    // glBufferData(GL_UNIFORM_BUFFER, size_of(PerFrameSettings), *perFrameSettings, GL_STATIC_DRAW);
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
@@ -357,24 +382,37 @@ DrawFrame :: (refdef : RefDef) {
     glActiveTexture(GL_TEXTURE0);
     
     hudWindowData := HUDWindowData.{clientDimensions = .{cast(float)refdef.clientWidth, cast(float)refdef.clientHeight}};
-    glBindBufferBase(GL_UNIFORM_BUFFER, 1, hudWindowDataUBO);
-    glBufferData(GL_UNIFORM_BUFFER, size_of(HUDWindowData), *hudWindowData, GL_STATIC_DRAW);    
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // glBindBufferBase(GL_UNIFORM_BUFFER, 3, hudWindowDataUBO);
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, hudTransformUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, hudWindowDataUBO);
+    ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    memcpy(ptr, *hudWindowData, size_of(HUDWindowData));
+    glUnmapBuffer(GL_UNIFORM_BUFFER);
+
+    // glBufferData(GL_UNIFORM_BUFFER, size_of(HUDWindowData), *hudWindowData, GL_STATIC_DRAW);    
+    // glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // glBindBufferBase(GL_UNIFORM_BUFFER, 2, hudTransformUBO);
     for i : 0..HUDDrawCount-1 {
         hudDrawCmd := refdef.HUDDrawList[i];
         hud := hudElements[hudDrawCmd.hudID];
         glBindVertexArray(hud.VAO);
         glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(hud.textureID));
-        glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO); // glBindBufferBase seems to be enough.
-        glBufferData(GL_UNIFORM_BUFFER, size_of(HUDTransform), *hudDrawCmd.transform, GL_STATIC_DRAW);
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        // glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO); // glBindBufferBase seems to be enough.
+        // glBufferData(GL_UNIFORM_BUFFER, size_of(HUDTransform), *hudDrawCmd.transform, GL_STATIC_DRAW);
+        // glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO);
+        ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+        memcpy(ptr, *hudDrawCmd.transform, size_of(HUDTransform));
+        glUnmapBuffer(GL_UNIFORM_BUFFER);
+
         glDrawArrays(GL_TRIANGLES, 0, xx hud.vertices.count);    
         
     }
 
     glEnable(GL_DEPTH_TEST);
+
     // Dont forget to clear the drawlist!!!
     HUDDrawCount = 0;
 
