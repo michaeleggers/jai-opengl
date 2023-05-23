@@ -142,7 +142,7 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
     //     }
     // }
     hitPoint := camera.pos + (shortestT*r);
-    // print("t: %, hitPoint: %\n", shortestT, hitPoint);
+    print("t: %, hitPoint: %\n", shortestT, hitPoint);
     // print("canera.pos: % || shortestT: %\n", camera.pos, shortestT);
 
     return worldSpaceCoords;

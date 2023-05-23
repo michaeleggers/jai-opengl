@@ -166,7 +166,7 @@ main :: () {
                         dX := mouseX - mouseState.oldX;
                         dY := mouseY - mouseState.oldY;
                         UpdateCameraOnMouse(*refdef.camera, dX, dY); // TODO: Move this down, out of the event loop
-                        print("Mouse delta %, %\n", dX, dY);
+                        //print("Mouse delta %, %\n", dX, dY);
                         mouseState.oldX = mouseX;
                         mouseState.oldY = mouseY;
                     }
@@ -196,10 +196,11 @@ main :: () {
 
         // Draw a test HUD element
         // DrawHUD(*refdef, crosshairHUD);
-        DrawHUD(*refdef, crosshairHUD, xPos = -0.5, yPos = .5, scaleX = 10, scaleY = 2);
-        DrawHUD(*refdef, crosshairHUD, xPos = -0.1, yPos = 0, scaleX = 10, scaleY = 10);
-        DrawHUD(*refdef, crosshairHUD, xPos = -.2, yPos = 0.0, scaleX = 10.0, scaleY = 10.0);
-        DrawHUD(*refdef, crosshairHUD, xPos = 0.0, yPos = 0.0, scaleX = 80.0, scaleY = 60.0);
+        // DrawHUD(*refdef, crosshairHUD, xPos = -0.5, yPos = .5, scaleX = 10, scaleY = 2);
+        // DrawHUD(*refdef, crosshairHUD, xPos = -0.1, yPos = 0, scaleX = 10, scaleY = 10);
+        // DrawHUD(*refdef, crosshairHUD, xPos = -.2, yPos = 0.0, scaleX = 10.0, scaleY = 10.0);
+
+        DrawHUD(*refdef, crosshairHUD, xPos = cast(float)refdef.clientWidth/2.0 - 5.0, yPos = cast(float)refdef.clientHeight/2.0 - 5.0, scaleX = 10.0, scaleY = 10.0);
 
         // Render settings
         refdef.wireframe = keyState[SDLK_TAB];        
