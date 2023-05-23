@@ -11,11 +11,20 @@ layout (std140, binding = 0) uniform HUDTransform {
     vec2 scaleXY;
 };
 
+layout (std140, binding = 1) uniform HUDWindowData {
+    vec2 clientDimensions;
+};
+
 out vec2 TexCoord;
 out vec3 BaryCentricCoords;
 
 void main() {
-    gl_Position = vec4( vec3(scaleXY * pos.xy, 0.0) + vec3(offset, 0.0), 1.0);
+
+    vec2 screenSpacePos = pos.xy / clientDimensions;
+    screenSpacePos *= scaleXY;
+    screenSpacePos.x -= 0.5;
+
+    gl_Position = vec4(screenSpacePos, 0.0, 1.0);
     
     TexCoord = uv;
     BaryCentricCoords = bc;

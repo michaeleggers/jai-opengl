@@ -7,12 +7,12 @@ CHUDElement :: struct {
 }
 
 CreateHUD :: (file : string) -> CHUDElement {    
-    id := RegisterTexture(file);
+    texID := RegisterTexture(file);
     model : Model;
     for tri : GEOM_QUAD {
         array_add(*model.tris, tri);
     }
-    model.textureID = id;
+    model.textureID = texID;
     RegisterHUD(*model);
     
     result := CHUDElement.{id = model.hudID};

@@ -121,7 +121,7 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
     // worldSpace := transpose(invViewMat) * viewSpace;
     
     r := normalize(camera.forward);
-    print("r: %\n", r);
+    // print("r: %\n", r);
     // r := Vector3.{worldSpaceCoords.x, worldSpaceCoords.y, camera.forward.z};
     // r = normalize(r);
     shortestT := 999999.99;
@@ -142,7 +142,7 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
     //     }
     // }
     hitPoint := camera.pos + (shortestT*r);
-    print("t: %, hitPoint: %\n", shortestT, hitPoint);
+    // print("t: %, hitPoint: %\n", shortestT, hitPoint);
     // print("canera.pos: % || shortestT: %\n", camera.pos, shortestT);
 
     return worldSpaceCoords;

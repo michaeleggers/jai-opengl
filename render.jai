@@ -7,7 +7,7 @@
 
 
 // Shaders
-shaderProgram : GLuint;
+gShaderProgram : GLuint;
 wireframeShaderProgram : GLuint; // TODO: Not used
 HUDShaderProgram : GLuint;
 
@@ -20,7 +20,7 @@ batches : [..] Batch;
 
 // TODO: God, this is so ugly. Can we do better with dynamic array?
 MAX_HUD_DRAW_CMDS : u32 : 64;
-HUDDrawCount      : u32;
+HUDDrawCount      : s32;
 
 // Draw Settings for one frame
 RefDef :: struct {
@@ -49,10 +49,15 @@ HUDTransform :: struct {
     pos     : Vector2;
     scaleXY : Vector2;
 }
+
+HUDWindowData :: struct {
+    clientDimensions : Vector2;
+}
 // Stores VAO, VBO for each HUD element (wasteful!). TODO: Batch HUD elements.
 hudElements : [..] HUDElement;
 // Uniform for HUD
-hudTransformUBO : GLuint;
+hudTransformUBO     : GLuint;
+hudWindowDataUBO    : GLuint;
 
 DrawHUD :: (refdef : *RefDef, hudElem : CHUDElement, xPos : float = 0.0, yPos : float = 0.0, scaleX : float = 1.0, scaleY : float = 1.0) {
     drawCmd := HUDDrawCmd.{
@@ -139,15 +144,16 @@ RenderInit :: () {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Shaders
-    shaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/basic_world.frag");
-    wireframeShaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/wireframe.frag");
+    gShaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/basic_world.frag");
+    // wireframeShaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/wireframe.frag");
     HUDShaderProgram = CreateShaderProgram("shaders/hud.vert", "shaders/hud.frag");
 
     // Per Frame Data (as of now: view proj matrices)
-    uniformBuffers : [3] *GLuint;
+    uniformBuffers : [4] *GLuint;
     uniformBuffers[0] = *viewProjectionUBO;
     uniformBuffers[1] = *perFrameSettingsUBO;
     uniformBuffers[2] = *hudTransformUBO;
+    uniformBuffers[3] = *hudWindowDataUBO;
     glGenBuffers(xx uniformBuffers.count, uniformBuffers[0]);
     // glBindBuffer(GL_UNIFORM_BUFFER, UBO);
     // glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
@@ -155,9 +161,8 @@ RenderInit :: () {
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO); // index (0) matches UBO binding ID in shader.
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
     
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, hudTransformUBO); // this index should be reusable cause we switch shader for drawing HUDs!
-    // TODO: How can I reuse the binding ID?? It is a different shader after all! But doesn't work if I reuse 0 or one from world shader prog!
-    
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, hudTransformUBO);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, hudWindowDataUBO);    
 }
 
 CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint {
@@ -229,11 +234,13 @@ RegisterModel :: (model : *Model) {
         array_add(*batch.vertices, v2);
     }
     lastVertexOffset := batch.totalVertexCount * size_of(Vertex);
-    dataSize := model.tris.count * size_of(Tri);
+    dataSize := model.tris.count * 3 * size_of(Vertex);
 
+    glBindVertexArray(batch.VAO);
     glBindBuffer(GL_ARRAY_BUFFER, batch.VBO);    
     glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, dataSize, model.tris.data);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
     
     batch.totalVertexCount += xx (model.tris.count * 3);    
 }
@@ -249,7 +256,6 @@ RegisterHUD :: (model : *Model) {
         array_add(*hudElem.vertices, v2);
     }
     
-    dataSize := model.tris.count * size_of(Tri);
 
     glGenVertexArrays(1, *hudElem.VAO);
     glBindVertexArray(hudElem.VAO);
@@ -269,11 +275,12 @@ RegisterHUD :: (model : *Model) {
 
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3)));
     glEnableVertexAttribArray(3);
-
-    // Allocate enough space for 1024 quads
-    glBufferData(GL_ARRAY_BUFFER, dataSize, cast(*void)model.tris.data, GL_STATIC_DRAW);
+    
+    dataSize := hudElem.vertices.count * size_of(Vertex);
+    glBufferData(GL_ARRAY_BUFFER, dataSize, cast(*void)hudElem.vertices.data, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     array_add(*hudElements, hudElem);
     model.hudID = xx (hudElements.count - 1);
@@ -281,7 +288,7 @@ RegisterHUD :: (model : *Model) {
 
 DrawFrame :: (refdef : RefDef) {
     // World
-    glUseProgram(shaderProgram);
+    glUseProgram(gShaderProgram);
     viewProjMatrices : ViewProjMatrices;
     viewProjMatrices.view = CreateView(refdef.camera);
     // viewProjMatrices.view = transpose(make_look_at_matrix(refdef.camera.pos, refdef.camera.center, refdef.camera.up, x_is_forward=false));
@@ -292,7 +299,7 @@ DrawFrame :: (refdef : RefDef) {
     // glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // Can this check syntactically be more concise?
     perFrameSettings : PerFrameSettings;
@@ -304,7 +311,7 @@ DrawFrame :: (refdef : RefDef) {
     // glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(PerFrameSettings), *perFrameSettings, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
 
@@ -320,13 +327,19 @@ DrawFrame :: (refdef : RefDef) {
         glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(it.textureID));
         glDrawArrays(GL_TRIANGLES, 0, xx it.vertices.count);
     }
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     // HUD
     glUseProgram(HUDShaderProgram);
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, hudTransformUBO);
+    
+    hudWindowData := HUDWindowData.{clientDimensions = .{cast(float)refdef.clientWidth, cast(float)refdef.clientHeight}};
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, hudWindowDataUBO);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(HUDWindowData), *hudWindowData, GL_STATIC_DRAW);    
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, hudTransformUBO);
     for i : 0..HUDDrawCount-1 {
         hudDrawCmd := refdef.HUDDrawList[i];
         hud := hudElements[hudDrawCmd.hudID];
