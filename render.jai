@@ -155,7 +155,7 @@ RenderInit :: () {
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO); // index (0) matches UBO binding ID in shader.
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
     
-    glBindBufferBase(GL_UNIFORM_BUFFER, 3, hudTransformUBO); // this index should be reusable cause we switch shader for drawing HUDs!
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, hudTransformUBO); // this index should be reusable cause we switch shader for drawing HUDs!
     // TODO: How can I reuse the binding ID?? It is a different shader after all! But doesn't work if I reuse 0 or one from world shader prog!
     
 }
@@ -289,7 +289,8 @@ DrawFrame :: (refdef : RefDef) {
     viewProjMatrices.proj = Perspective(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0);
     // viewProjMatrices.proj = transpose(make_projection_matrix(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0));
     
-    glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
+    // glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -300,9 +301,12 @@ DrawFrame :: (refdef : RefDef) {
     } else {
         perFrameSettings.drawWireframe = 0;
     }
-    glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
+    // glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(PerFrameSettings), *perFrameSettings, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+
 
     glViewport(0, 0, refdef.clientWidth, refdef.clientHeight);    
 
@@ -320,13 +324,14 @@ DrawFrame :: (refdef : RefDef) {
     // HUD
     glUseProgram(HUDShaderProgram);
     glActiveTexture(GL_TEXTURE0);
-    glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, hudTransformUBO);
 
     for i : 0..HUDDrawCount-1 {
         hudDrawCmd := refdef.HUDDrawList[i];
         hud := hudElements[hudDrawCmd.hudID];
         glBindVertexArray(hud.VAO);
         glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(hud.textureID));
+        // glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO); // glBindBufferBase seems to be enough.
         glBufferData(GL_UNIFORM_BUFFER, size_of(HUDTransform), *hudDrawCmd.transform, GL_STATIC_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, xx hud.vertices.count);    
     }

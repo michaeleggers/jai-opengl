@@ -6,7 +6,7 @@ layout (location = 2) in vec3 bc;
 layout (location = 3) in vec3 normal;
 
 
-layout (std140, binding = 3) uniform HUDTransform {
+layout (std140, binding = 0) uniform HUDTransform {
     vec2 offset;
     vec2 scaleXY;
 };
