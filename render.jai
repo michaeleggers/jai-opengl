@@ -54,7 +54,7 @@ hudElements : [..] HUDElement;
 // Uniform for HUD
 hudTransformUBO : GLuint;
 
-DrawHUD :: (refdef : *RefDef, hudElem : CHUDElement, xPos : float = 0.0, yPos : float = 0.0, scaleX : float = 0.0, scaleY : float = 0.0) {
+DrawHUD :: (refdef : *RefDef, hudElem : CHUDElement, xPos : float = 0.0, yPos : float = 0.0, scaleX : float = 1.0, scaleY : float = 1.0) {
     drawCmd := HUDDrawCmd.{
         hudID = hudElem.id, 
         transform = HUDTransform.{ 
@@ -323,6 +323,7 @@ DrawFrame :: (refdef : RefDef) {
 
     // HUD
     glUseProgram(HUDShaderProgram);
+    glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, hudTransformUBO);
 
@@ -337,7 +338,7 @@ DrawFrame :: (refdef : RefDef) {
     }
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
+    glEnable(GL_DEPTH_TEST);
     // Dont forget to clear the drawlist!!!
     HUDDrawCount = 0;
 

@@ -195,6 +195,7 @@ main :: () {
         viewMat := CreateView(refdef.camera);        
 
         // Draw a test HUD element
+        DrawHUD(*refdef, crosshairHUD);
         DrawHUD(*refdef, crosshairHUD, xPos = 0.5, yPos = -.5, scaleX = .2, scaleY = .2);
         DrawHUD(*refdef, crosshairHUD, xPos = -0.5, yPos = .5, scaleX = .1, scaleY = .1);
 
