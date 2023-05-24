@@ -124,23 +124,30 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
     // print("r: %\n", r);
     // r := Vector3.{worldSpaceCoords.x, worldSpaceCoords.y, camera.forward.z};
     // r = normalize(r);
-    shortestT := 999999.99;
+    shortestT := 999.99;
     testTri := Tri.{
         .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
         .{pos = .{  1.0, 0.0, 0.0}, uv = .{1.0, 0.0}, bc = .{0.0, 1.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
         .{pos = .{  1.0, 1.0, 0.0}, uv = .{1.0, 1.0}, bc = .{0.0, 0.0, 1.0}, normal = .{0.0, 0.0, 1.0}}
     };
-    // for model : world {
-    //     for tri : model.tris {            
-            tri := testTri;
+    for model : world {
+        for tri : model.tris {            
+            // tri := testTri;
             n := tri.a.normal; // NOTE: The normal could be an average between two vertex-normals but for now we only have hard surfaces.
-            nDotR := dot(n, r);
-            // if nDotR >= -0.00001 && nDotR <= 0.00001 continue;
-            d := -dot(n, tri.a.pos);
-            t := (-dot(n, camera.pos) + d) / nDotR;
-            shortestT = t;
-    //     }
-    // }
+            c := normalize(camera.pos - tri.a.pos); 
+            nDotC := dot(n, c);
+            if nDotC >= 0 { // Is camera pos on the positive (front side) of the plane?
+                nDotR := dot(n, r);
+                if nDotR <= 0.0 { // Is the ray looking to the front face of the tri?
+                    // if nDotR >= -0.00001 && nDotR <= 0.00001 continue;
+                    d := -dot(n, tri.a.pos);
+                    t := (-dot(n, camera.pos) - d) / nDotR;
+                        if t < shortestT
+                            shortestT = t;            
+                }
+            }
+        }
+    }
     hitPoint := camera.pos + (shortestT*r);
     print("t: %, hitPoint: %\n", shortestT, hitPoint);
     // print("canera.pos: % || shortestT: %\n", camera.pos, shortestT);
