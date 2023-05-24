@@ -190,20 +190,23 @@ main :: () {
         UpdateCameraOnKeys(*refdef.camera);
 
         // Test triangle picking
-        hitFound, tri := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);
+        hitFound, tri, rayLength := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);
         if hitFound {
             tris : [1]Tri;
             tris[0] = tri;
             Draw3DImmediate(tris);
+            hudScaleFactor := clamp(5.0 - rayLength, 1.0, 5.0);
+            hudScale := 10*hudScaleFactor;
+            DrawHUD(*refdef, crosshairHUD, 
+                xPos = cast(float)refdef.clientWidth/2.0 - hudScale/2.0, 
+                yPos = cast(float)refdef.clientHeight/2.0 - hudScale/2.0, 
+                scaleX = hudScale, scaleY = hudScale);
+        } else {
+            DrawHUD(*refdef, crosshairHUD, 
+                xPos = cast(float)refdef.clientWidth/2.0 - 5.0, 
+                yPos = cast(float)refdef.clientHeight/2.0 - 5.0, 
+                scaleX = 10.0, scaleY = 10.0);
         }
-
-        // Draw a test HUD element
-        // DrawHUD(*refdef, crosshairHUD);
-        // DrawHUD(*refdef, crosshairHUD, xPos = -0.5, yPos = .5, scaleX = 10, scaleY = 2);
-        // DrawHUD(*refdef, crosshairHUD, xPos = -0.1, yPos = 0, scaleX = 10, scaleY = 10);
-        // DrawHUD(*refdef, crosshairHUD, xPos = -.2, yPos = 0.0, scaleX = 10.0, scaleY = 10.0);
-
-        DrawHUD(*refdef, crosshairHUD, xPos = cast(float)refdef.clientWidth/2.0 - 5.0, yPos = cast(float)refdef.clientHeight/2.0 - 5.0, scaleX = 10.0, scaleY = 10.0);
 
         // Render settings
         refdef.wireframe = keyState[SDLK_TAB];        
