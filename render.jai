@@ -10,12 +10,19 @@
 gShaderProgram : GLuint;
 wireframeShaderProgram : GLuint; // TODO: Not used
 HUDShaderProgram : GLuint;
+gImmediate3DProgram : GLuint;
 
 // Uniform Buffers for world geometry
 viewProjectionUBO : GLuint;
 perFrameSettingsUBO : GLuint;
 // VBOs, VAOs per batch for world geometry
 batches : [..] Batch;
+
+// Immediate 3D
+gImmediateVBO : GLuint;
+gImmediateVAO : GLuint;
+gImmediateOffset : u32;
+gImmediateVertexCount : u32;
 
 // TODO: God, this is so ugly. Can we do better with dynamic array?
 MAX_HUD_DRAW_CMDS : u32 : 64;
@@ -30,8 +37,6 @@ RefDef :: struct {
     wireframe           := false;
 
     HUDDrawList         : [MAX_HUD_DRAW_CMDS] HUDDrawCmd;
-    pickedTri           : Tri;
-    pickTriSuccess      := false;
 };
 
 // HUD
@@ -119,6 +124,44 @@ CreateBatch :: () -> *Batch {
     return *batches[batches.count - 1];
 }
 
+InitImmediateBuffers :: () {
+    glGenVertexArrays(1, *gImmediateVAO);
+    glBindVertexArray(gImmediateVAO);
+
+    glGenBuffers(1, *gImmediateVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, gImmediateVBO);
+
+    // Input assembly for vertex shader
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), null);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)size_of(Vector3));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2)));
+    glEnableVertexAttribArray(2);
+
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3)));
+    glEnableVertexAttribArray(3);
+
+    // Allocate enough space for 1024 tris
+    glBufferData(GL_ARRAY_BUFFER, 1024 * 3 * size_of(Vertex), null, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+Draw3DImmediate :: (tris : [] Tri) {
+    size := tris.count * size_of(Tri);
+
+    glBindVertexArray(gImmediateVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, gImmediateVBO);    
+    glBufferSubData(GL_ARRAY_BUFFER, gImmediateOffset, size, tris.data);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    gImmediateOffset += xx size;
+    gImmediateVertexCount += xx (tris.count * 3);
+}
+
 RenderPrepare :: () {
     // Some general GL settings. Must be set BEFORE SDL creates the OpenGL context!
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, xx SDL_GL_CONTEXT_PROFILE_CORE);
@@ -168,6 +211,10 @@ RenderInit :: () {
     gShaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/basic_world.frag");
     // wireframeShaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/wireframe.frag");
     HUDShaderProgram = CreateShaderProgram("shaders/hud.vert", "shaders/hud.frag");
+    gImmediate3DProgram = CreateShaderProgram("shaders/immediate3D.vert", "shaders/immediate3D.frag");
+
+    // VAO/VBO for immediat 3D
+    InitImmediateBuffers();
 
     // Per Frame Data (as of now: view proj matrices)
     // The following way of initializing the buffers causes the shader programs, for whatever reason,
@@ -372,8 +419,6 @@ DrawFrame :: (refdef : RefDef) {
     // glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
     // glBufferData(GL_UNIFORM_BUFFER, size_of(PerFrameSettings), *perFrameSettings, GL_STATIC_DRAW);
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-
     glActiveTexture(GL_TEXTURE0);
     for batches {
         glBindVertexArray(it.VAO);            
@@ -386,6 +431,17 @@ DrawFrame :: (refdef : RefDef) {
         // }
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    // Immediate3D
+    glUseProgram(gImmediate3DProgram);
+    glDisable(GL_DEPTH_TEST);
+    glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
+    if gImmediateOffset > 0 {
+        glBindVertexArray(gImmediateVAO);
+        glDrawArrays(GL_TRIANGLES, 0, gImmediateVertexCount);
+    }
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glEnable(GL_DEPTH_TEST);
 
     // HUD
     glUseProgram(HUDShaderProgram);
@@ -421,11 +477,14 @@ DrawFrame :: (refdef : RefDef) {
         glDrawArrays(GL_TRIANGLES, 0, xx hud.vertices.count);    
         
     }
-
     glEnable(GL_DEPTH_TEST);
 
     // Dont forget to clear the drawlist!!!
     HUDDrawCount = 0;
+
+    // Also, don't forget to reset the immediate 3D offset
+    gImmediateOffset = 0;
+    gImmediateVertexCount = 0;
 
     SDL_GL_SwapWindow(refdef.window);
 }

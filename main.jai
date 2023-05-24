@@ -191,9 +191,11 @@ main :: () {
 
         // Test triangle picking
         hitFound, tri := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);
-        
-        // print("ws x, y : %\n", worldSpaceXYZ);
-        viewMat := CreateView(refdef.camera);        
+        if hitFound {
+            tris : [1]Tri;
+            tris[0] = tri;
+            Draw3DImmediate(tris);
+        }
 
         // Draw a test HUD element
         // DrawHUD(*refdef, crosshairHUD);
