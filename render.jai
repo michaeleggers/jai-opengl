@@ -17,20 +17,21 @@ perFrameSettingsUBO : GLuint;
 // VBOs, VAOs per batch for world geometry
 batches : [..] Batch;
 
-
 // TODO: God, this is so ugly. Can we do better with dynamic array?
 MAX_HUD_DRAW_CMDS : u32 : 64;
 HUDDrawCount      : s32;
 
 // Draw Settings for one frame
 RefDef :: struct {
-    clientWidth  : u32 = 1024;
-    clientHeight : u32 = 768;
-    window : *SDL_Window;
-    camera : Camera;
-    wireframe := false;
+    clientWidth         : u32 = 1024;
+    clientHeight        : u32 = 768;
+    window              : *SDL_Window;
+    camera              : Camera;
+    wireframe           := false;
 
-    HUDDrawList : [MAX_HUD_DRAW_CMDS] HUDDrawCmd;
+    HUDDrawList         : [MAX_HUD_DRAW_CMDS] HUDDrawCmd;
+    pickedTri           : Tri;
+    pickTriSuccess      := false;
 };
 
 // HUD

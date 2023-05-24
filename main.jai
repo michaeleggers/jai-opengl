@@ -83,7 +83,7 @@ main :: () {
 
     crosshairHUD := CreateHUD("crosshair_point.png");
 
-    brushes := LoadMapFile("assets/maps/single_brush.map");
+    brushes := LoadMapFile("assets/maps/starter.map");
     world : [..] Model;
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
     for brush : brushes {
@@ -190,7 +190,8 @@ main :: () {
         UpdateCameraOnKeys(*refdef.camera);
 
         // Test triangle picking
-        worldSpaceXYZ := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);
+        hitFound, tri := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);
+        
         // print("ws x, y : %\n", worldSpaceXYZ);
         viewMat := CreateView(refdef.camera);        
 
