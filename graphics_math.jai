@@ -175,7 +175,7 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
 
     hitPoint := camera.pos + (shortestT*r);
     // print("t: %, hitPoint: %, bestTri: %\n", shortestT, hitPoint, bestTri);
-    print("bestTri: %\n", bestTri);
+    // print("bestTri: %\n", bestTri);
     // print("canera.pos: % || shortestT: %\n", camera.pos, shortestT);
 
     return success, bestTri, shortestT;

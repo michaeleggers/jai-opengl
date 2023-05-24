@@ -192,10 +192,11 @@ main :: () {
         // Test triangle picking
         hitFound, tri, rayLength := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);
         if hitFound {
+            print("t: %\n", rayLength);
             tris : [1]Tri;
             tris[0] = tri;
             Draw3DImmediate(tris);
-            hudScaleFactor := clamp(5.0 - rayLength, 1.0, 5.0);
+            hudScaleFactor := clamp(3.0 - rayLength, 1.0, 3.0);
             hudScale := 10*hudScaleFactor;
             DrawHUD(*refdef, crosshairHUD, 
                 xPos = cast(float)refdef.clientWidth/2.0 - hudScale/2.0, 
