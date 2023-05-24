@@ -86,7 +86,7 @@ Mat4XVec4 :: (m: Matrix4, v: Vector4) -> Vector4 {
     return result;
 }
 
-PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientHeight : u32, world : [] Model) -> Vector4 {
+PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientHeight : u32, world : [] Model) -> bool, Tri {
     // Get Worldspace coordinates of target
     viewMat := CreateView(camera);
     // viewMat = make_look_at_matrix(camera.pos, camera.center, camera.up, x_is_forward=false);
@@ -124,28 +124,61 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
     // print("r: %\n", r);
     // r := Vector3.{worldSpaceCoords.x, worldSpaceCoords.y, camera.forward.z};
     // r = normalize(r);
-    shortestT := 999999.99;
+    shortestT := 999.99;
     testTri := Tri.{
         .{pos = .{  0.0, 0.0, 0.0}, uv = .{0.0, 0.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
         .{pos = .{  1.0, 0.0, 0.0}, uv = .{1.0, 0.0}, bc = .{0.0, 1.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
         .{pos = .{  1.0, 1.0, 0.0}, uv = .{1.0, 1.0}, bc = .{0.0, 0.0, 1.0}, normal = .{0.0, 0.0, 1.0}}
     };
-    // for model : world {
-    //     for tri : model.tris {            
-            tri := testTri;
+    modelToCheck : Model;
+    bestTri : Tri;
+    success := false;
+    for model : world {
+        for tri : model.tris {            
+            // tri := testTri;
             n := tri.a.normal; // NOTE: The normal could be an average between two vertex-normals but for now we only have hard surfaces.
-            nDotR := dot(n, r);
-            // if nDotR >= -0.00001 && nDotR <= 0.00001 continue;
-            d := -dot(n, tri.a.pos);
-            t := (-dot(n, camera.pos) + d) / nDotR;
-            shortestT = t;
-    //     }
-    // }
+            c := normalize(camera.pos - tri.a.pos); 
+            nDotC := dot(n, c);
+            if nDotC >= 0 { // Is camera pos on the positive (front side) of the plane?
+                nDotR := dot(n, r);
+                if nDotR <= 0.0 { // Is the ray looking to the front face of the plane?
+                    // if nDotR >= -0.00001 && nDotR <= 0.00001 continue;
+                    // compute the hitpoint p between ray and plane
+                    d := -dot(n, tri.a.pos);
+                    t := (-dot(n, camera.pos) - d) / nDotR;
+                    p := camera.pos + t*r;
+                    // if t < shortestT {
+                        modelToCheck = model;
+                        
+                        v0 := normalize(tri.b.pos - tri.a.pos);
+                        v1 := normalize(tri.c.pos - tri.b.pos);
+                        v2 := normalize(tri.a.pos - tri.c.pos);
+                        ap := normalize(p - tri.a.pos);
+                        bp := normalize(p - tri.b.pos);
+                        cp := normalize(p - tri.c.pos);
+                        n0 := cross(v0, n);
+                        n1 := cross(v1, n);
+                        n2 := cross(v2, n);
+                        if dot(n0, ap) > 0.0 continue;
+                        if dot(n1, bp) > 0.0 continue;
+                        if dot(n2, cp) > 0.0 continue;
+                        if t < shortestT {
+                            bestTri = tri;    
+                            shortestT = t;             
+                            success = true;                       
+                        }
+                    // }
+                }
+            }
+        }
+    }
+
     hitPoint := camera.pos + (shortestT*r);
-    // print("t: %, hitPoint: %\n", shortestT, hitPoint);
+    // print("t: %, hitPoint: %, bestTri: %\n", shortestT, hitPoint, bestTri);
+    print("bestTri: %\n", bestTri);
     // print("canera.pos: % || shortestT: %\n", camera.pos, shortestT);
 
-    return worldSpaceCoords;
+    return success, bestTri;
     
     // return .{Xnd, Ynd, 0.0, 0.0};
 }

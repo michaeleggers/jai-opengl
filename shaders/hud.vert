@@ -20,16 +20,14 @@ out vec3 BaryCentricCoords;
 
 void main() {
 
-    vec2 pos01 = (pos.xy + vec2(1.0)) / 2.0;
+    
 
     vec2 screenSpacePos = pos.xy / clientDimensions;
-    screenSpacePos *= scaleXY;
-    // screenSpacePos.x -= 0.5;
-    // screenSpacePos.x += (1.0 - offset.x)/clientDimensions.x/2.0;
-    // screenSpacePos.y += offset.y/clientDimensions.y/2.0;
-    screenSpacePos.x += (offset.x/clientDimensions.x + 1.0) / 2.0;
-    // screenSpacePos.x = (screenSpacePos.x + 1.0) / 3.0;
+    screenSpacePos *= (2.0*scaleXY);   // Scale scale by 2 because we are now in ndc from -1 to +1, not 0 to 1.
 
+    screenSpacePos.x += 2.0*(offset.x / clientDimensions.x) - 1.0;
+    screenSpacePos.y += -2.0*(offset.y / clientDimensions.y) + 1.0;
+    screenSpacePos.y -= 2.0*(scaleXY.y / clientDimensions.y);
 
 
     gl_Position = vec4(screenSpacePos, 0.0, 1.0);
