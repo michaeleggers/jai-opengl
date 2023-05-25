@@ -13,6 +13,7 @@
 #load "geometry.jai";
 #load "hud.jai";
 #load "entity.jai";
+#load "world.jai";
 
 AllocString :: (count : u32) -> string {
     s : string;
@@ -85,7 +86,8 @@ main :: () {
     crosshairHUD := CreateHUD("crosshair_point.png");
 
     brushes, entities := LoadMapFile("assets/maps/single_brush.map");
-    world : [..] Model;
+    // Init world and upload the world geometry to GPU
+    world : World;
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
     for brush : brushes {
         model : Model;
@@ -98,9 +100,11 @@ main :: () {
             t.c.pos += brushOffset;
             array_add(*model.tris, t);
         }
-        array_add(*world, model);
-        RegisterModel(*model);
+        array_add(*world.models, model);
+        RegisterModel(*model); // Upload to GPU
     }
+    // Initialize Entities
+    SpawnEntities(entities, *world);
 
     // Add a nice texture to the model
     // world.textureID = RegisterTexture("wood_planks_01.tga");
@@ -191,7 +195,7 @@ main :: () {
         UpdateCameraOnKeys(*refdef.camera);
 
         // Test triangle picking
-        hitFound, tri, rayLength := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);
+        hitFound, tri, rayLength := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world.models);
         if hitFound {
             // print("t: %\n", rayLength);
             tris : [1]Tri;
