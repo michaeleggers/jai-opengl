@@ -84,7 +84,7 @@ main :: () {
 
     crosshairHUD := CreateHUD("crosshair_point.png");
 
-    brushes, mapEntities := LoadMapFile("assets/maps/single_brush.map");
+    brushes, entities := LoadMapFile("assets/maps/single_brush.map");
     world : [..] Model;
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
     for brush : brushes {

@@ -257,7 +257,7 @@ ParseString :: (s : *string) -> Token {
     return result;
 }
 
-LoadMapFile :: (mapFile : string) -> [] Brush, [] MapEntity {
+LoadMapFile :: (mapFile : string) -> [] Brush, [] Entity {
 
     mapFileData := read_entire_file(mapFile);
     
@@ -270,20 +270,32 @@ LoadMapFile :: (mapFile : string) -> [] Brush, [] MapEntity {
         token = GetNextToken(*mapFileData);
     }
 
+    entities : [..] Entity;
+    for mapEntity : mapEntities {
+        entity : Entity;
+        for mapEntity.keyValuePairs {
+            if !compare("origin", it.key) {
+                x := ParseNumber(*it.value); GetNextToken(*it.value);
+                y := ParseNumber(*it.value); GetNextToken(*it.value);
+                z := ParseNumber(*it.value);
+                entity.pos = .{x.number, y.number, z.number};
+                array_add(*entities, entity);
+            }
+        }
+    }
+    print("# Entities parsed: %\n", entities.count);
+    print("Entities:\n");
+    for entities {
+        print("Entity # %\n", it_index);
+        print("  pos: %\n", it.pos);
+    }
+
     print("# Lines processed: %\n", lineNumber);
     print("# Brushes parsed: %\n", brushes.count);
     print("Brushes:\n");
     for brushes {
         print("%\n", it);
     }
-    print("# Entities parsed: %\n", mapEntities.count);
-    print("Entities:\n");
-    for mapEntities {
-        print("Entity %\n", it_index);
-        for it.keyValuePairs {
-            print("%\n", it);
-        }
-    }
     
-    return brushes, mapEntities;
+    return brushes, entities;
 }

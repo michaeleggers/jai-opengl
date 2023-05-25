@@ -8,6 +8,6 @@
 # Player entity
 {
     "classname" "info_player_start"
-    "origin" "-56, 224, 4"
+    "origin" "-56 224 4"
     # "angle" 270
 }
