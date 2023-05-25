@@ -21,51 +21,51 @@
 #             pos                , texture name, height
 
 {
-    1, 0, 0, wood_planks_01.tga, 10.0
+    1, 0, 0, "wood_planks_01.tga", 10.0
 }
 {
-    2, 1, 0, wood_planks_01.tga, 30.0 # this is a trailing comment
+    2, 1, 0, "wood_planks_01.tga", 30.0 # this is a trailing comment
     # another meaningless comment
 } # another one
 
 # let's put another comment here just for kicks.
 
 {
-    3, 1, 0, wood_planks_01.tga, 50.0
+    3, 1, 0, "wood_planks_01.tga", 50.0
            }
 
 # Let us define a brush in a single line, which is totally valid
-{4, 2, 0, wood_planks_01.tga, 70.0}
+{4, 2, 0, "wood_planks_01.tga", 70.0}
 # Or: Two brushes in the same line:
-{5, 2, 0, wood_planks_01.tga, 90.0}{6, 2, 0, wood_planks_01.tga, 110.0}
+{5, 2, 0, "wood_planks_01.tga", 90.0}{6, 2, 0, "wood_planks_01.tga", 110.0}
 # Let's have a brush with a fraction at the height
-{7, 4, 0, wood_planks_01.tga, 130.48594}
+{7, 4, 0, "wood_planks_01.tga", 130.48594}
 
 # Let's test some cubes in negative z direction:
-{0, 0, -1, wood_planks_01.tga, 130.48594}
-{0, 0, -2, wood_planks_01.tga, 130.48594}
-{0, 0, -3, wood_planks_01.tga, 130.48594}
-{1, 0, -1, wood_planks_01.tga, 130.48594}
-{1, 0, -2, wood_planks_01.tga, 130.48594}
-{1, 0, -3, wood_planks_01.tga, 130.48594}
-{2, 0, -1, wood_planks_01.tga, 130.48594}
-{2, 0, -2, wood_planks_01.tga, 130.48594}
-{2, 0, -3, wood_planks_01.tga, 130.48594}
+{0, 0, -1, "wood_planks_01.tga", 130.48594}
+{0, 0, -2, "wood_planks_01.tga", 130.48594}
+{0, 0, -3, "wood_planks_01.tga", 130.48594}
+{1, 0, -1, "wood_planks_01.tga", 130.48594}
+{1, 0, -2, "wood_planks_01.tga", 130.48594}
+{1, 0, -3, "wood_planks_01.tga", 130.48594}
+{2, 0, -1, "wood_planks_01.tga", 130.48594}
+{2, 0, -2, "wood_planks_01.tga", 130.48594}
+{2, 0, -3, "wood_planks_01.tga", 130.48594}
 
 # now positive z:
-{0, 0, 1, vines.tga, 130.48594}
-{0, 0, 2, vines.tga, 130.48594}
-{0, 0, 3, vines.tga, 130.48594}
-{1, 0, 1, vines.tga, 130.48594}
-{1, 0, 2, vines.tga, 130.48594}
-{1, 0, 3, vines.tga, 130.48594}
-{2, 0, 1, vines.tga, 130.48594}
-{2, 0, 2, vines.tga, 130.48594}
-{2, -1, 3, wood_planks_01.tga, 130.48594}
-{2, -2, 3, wood_planks_01.tga, 130.48594}
-{2, -3, 3, wood_planks_01.tga, 130.48594}
+{0, 0, 1, "vines.tga", 130.48594}
+{0, 0, 2, "vines.tga", 130.48594}
+{0, 0, 3, "vines.tga", 130.48594}
+{1, 0, 1, "vines.tga", 130.48594}
+{1, 0, 2, "vines.tga", 130.48594}
+{1, 0, 3, "vines.tga", 130.48594}
+{2, 0, 1, "vines.tga", 130.48594}
+{2, 0, 2, "vines.tga", 130.48594}
+{2, -1, 3, "wood_planks_01.tga", 130.48594}
+{2, -2, 3, "wood_planks_01.tga", 130.48594}
+{2, -3, 3, "wood_planks_01.tga", 130.48594}
 
 # A cuba far in pos z
-{0, 0, 10, vines.tga, 130.48594}
+{0, 0, 10, "vines.tga", 130.48594}
 
         

@@ -116,10 +116,46 @@ GetNextToken :: (s : *string) -> TokenType {
         token = .BRACE_CLOSE;        
     } else if <<s.data >= #char "0" && <<s.data <= #char "9" || <<s.data == #char "-" {
         token = .NUMBER;        
-    } else if <<s.data >= #char "a" && <<s.data <= #char "z" {        
+    } else if <<s.data == #char "\"" {        
         token = .STRING;    
     } else if <<s.data == #char "," {
         s.data += 1; charsRead +=1;
+        token = .COMMA;        
+    } else {
+        token = .NONE;
+    }
+    print("%\n", token);
+
+    return token;
+}
+
+// Like GetNextToken but does not advance cursor, except for newlines and comments
+PeekToken :: (s : *string) -> TokenType {
+    AdvanceToNextNonWhitespace(s);
+    while SkipLineBreak(s) {
+        AdvanceToNextNonWhitespace(s);
+    }
+    while (IsComment(s)) {
+        AdvanceToNextLineBreak(s);
+        while SkipLineBreak(s) {
+            AdvanceToNextNonWhitespace(s);            
+        }
+    }
+
+    if charsRead == s.count { // End of file reached
+        return .EOF;
+    }
+
+    token : TokenType;
+    if <<s.data == #char "{" {        
+        token = .BRACE_OPEN;
+    } else if <<s.data == #char "}" {                
+        token = .BRACE_CLOSE;        
+    } else if <<s.data >= #char "0" && <<s.data <= #char "9" || <<s.data == #char "-" {
+        token = .NUMBER;        
+    } else if <<s.data == #char "\"" {        
+        token = .STRING;    
+    } else if <<s.data == #char "," {
         token = .COMMA;        
     } else {
         token = .NONE;
@@ -136,7 +172,7 @@ Match :: (s : *string, expectedToken : TokenType) -> bool {
 }
 
 ParseBrush :: (s : *string) {    
-    Match(s, .NUMBER); 
+    Match(s, .NUMBER);  // TODO: Redundant match, see: ParseBrushOrEntity
     xPos := ParseNumber(s); Match(s, .COMMA);
     Match(s, .NUMBER); 
     yPos := ParseNumber(s); Match(s, .COMMA);
@@ -154,6 +190,27 @@ ParseBrush :: (s : *string) {
         height = height.number
     };
     array_add(*brushes, brush);    
+}
+
+ParseEntity :: (s : *string) {
+    Match(s, .STRING); // TODO: Redundant match, see: ParseBrushOrEntity
+    while GetNextToken(s) != .BRACE_CLOSE {
+        key := ParseString(s);
+        if PeekToken(s) == .STRING {
+            value := ParseString(s);            
+        } else if PeekToken(s) == .NUMBER {
+            x := ParseNumber(s); Match(s, .COMMA); 
+            Match(s, .NUMBER);
+            y := ParseNumber(s); Match(s, .COMMA);
+            Match(s, .NUMBER);
+            z := ParseNumber(s);
+        }
+    }
+}
+
+ParseBrushOrEntity :: (s : *string) {
+    if      PeekToken(s) == .NUMBER ParseBrush(s);
+    else if PeekToken(s) == .STRING ParseEntity(s);
 }
 
 ParseNumber :: (s : *string) -> Token {
@@ -175,15 +232,19 @@ ParseNumber :: (s : *string) -> Token {
 }
 
 ParseString :: (s : *string) -> Token {    
+    s.data += 1; charsRead += 1; // advance over opening "
     parsedString := <<s;
     c := s.data;
     // while <<s.data >= #char "a" && <<s.data <= #char "z"
     //    || <<s.data >= #char "0" && <<s.data <= #char "9" {
     //     s.data += 1; charsRead +=1;
     // }
-    AdvanceToNextWhitespace(s);    
+    while <<s.data != #char "\"" {
+        s.data += 1; charsRead += 1;
+    }
     parsedString.count = s.data - c;
-    
+    s.data += 1; charsRead += 1; // advance over closing "
+
     result := Token.{type = .STRING};
     result.name = parsedString;
     
@@ -197,7 +258,7 @@ LoadMapFile :: (mapFile : string) -> [] Brush{
     token := GetNextToken(*mapFileData);    
     while token != .EOF {        
         if token == {
-            case .BRACE_OPEN; ParseBrush(*mapFileData);
+            case .BRACE_OPEN; ParseBrushOrEntity(*mapFileData);
             case .NONE;       
         }
         token = GetNextToken(*mapFileData);
