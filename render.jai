@@ -182,7 +182,12 @@ MessageCallback :: (source : GLenum,
 {
     new_context : Context;
     push_context new_context {
-        print("GL CALLBACK: % type = %, severity = %, message = %\n", "foo", type, severity, to_string(message) );
+        severityString := "";
+        if severity == GL_DEBUG_SEVERITY_HIGH severityString = "HIGH";
+        if severity == GL_DEBUG_SEVERITY_MEDIUM severityString = "MEDIUM";
+        if severity == GL_DEBUG_SEVERITY_LOW severityString = "LOW";
+        if severity == GL_DEBUG_SEVERITY_NOTIFICATION severityString = "NOTIFICATION";
+        print("GL CALLBACK: % type = %, severity = %, message = %\n", "foo", type, severityString, to_string(message) );
     }
 }
 

@@ -8,7 +8,7 @@ in vec3 Normal;
 out vec4 out_Color;
 
 layout (std140, binding = 1) uniform PerFrameSettings {
-    uint drawWireframe;
+    uint drawWireframe; // TODO: Check how to reliably pass an actual bool from CPU to shader.
 };
 
 uniform sampler2D colorTex;
@@ -24,7 +24,7 @@ void main() {
     vec4 texColor = texture(colorTex, TexCoord);
 
     vec4 wireframe = vec4(0.0);
-    if (drawWireframe) {
+    if (drawWireframe == 1) {
         wireframe = vec4(mix(vec3(1.0), vec3(0.0), edgeFactor()), 1.0);        
     }
     
