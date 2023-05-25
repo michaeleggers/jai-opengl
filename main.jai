@@ -12,6 +12,7 @@
 #load "graphics_math.jai";
 #load "geometry.jai";
 #load "hud.jai";
+#load "entity.jai";
 
 AllocString :: (count : u32) -> string {
     s : string;
@@ -83,7 +84,7 @@ main :: () {
 
     crosshairHUD := CreateHUD("crosshair_point.png");
 
-    brushes := LoadMapFile("assets/maps/starter.map");
+    brushes, mapEntities := LoadMapFile("assets/maps/single_brush.map");
     world : [..] Model;
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
     for brush : brushes {
@@ -192,7 +193,7 @@ main :: () {
         // Test triangle picking
         hitFound, tri, rayLength := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world);
         if hitFound {
-            print("t: %\n", rayLength);
+            // print("t: %\n", rayLength);
             tris : [1]Tri;
             tris[0] = tri;
             Draw3DImmediate(tris);

@@ -2,10 +2,20 @@
 #import "File";
 #import "String";
 
-charsRead  : u32;
-lineNumber : u32 = 1;
-tokens     : [..] Token;
-brushes    : [..] Brush;
+charsRead   : u32;
+lineNumber  : u32 = 1;
+tokens      : [..] Token;
+brushes     : [..] Brush;
+mapEntities : [..] MapEntity;
+
+KeyValuePair :: struct {
+    key     : string;
+    value   : string;
+}
+
+MapEntity :: struct {
+    keyValuePairs : [..] KeyValuePair;
+}
 
 TokenType :: enum u32 {
     BRACE_OPEN;
@@ -171,6 +181,11 @@ Match :: (s : *string, expectedToken : TokenType) -> bool {
     return token == expectedToken;
 }
 
+ParseBrushOrEntity :: (s : *string) {
+    if      PeekToken(s) == .NUMBER ParseBrush(s);
+    else if PeekToken(s) == .STRING ParseEntity(s);
+}
+
 ParseBrush :: (s : *string) {    
     Match(s, .NUMBER);  // TODO: Redundant match, see: ParseBrushOrEntity
     xPos := ParseNumber(s); Match(s, .COMMA);
@@ -194,23 +209,13 @@ ParseBrush :: (s : *string) {
 
 ParseEntity :: (s : *string) {
     Match(s, .STRING); // TODO: Redundant match, see: ParseBrushOrEntity
+    entity : MapEntity;
     while GetNextToken(s) != .BRACE_CLOSE {
         key := ParseString(s);
-        if PeekToken(s) == .STRING {
-            value := ParseString(s);            
-        } else if PeekToken(s) == .NUMBER {
-            x := ParseNumber(s); Match(s, .COMMA); 
-            Match(s, .NUMBER);
-            y := ParseNumber(s); Match(s, .COMMA);
-            Match(s, .NUMBER);
-            z := ParseNumber(s);
-        }
+        value := ParseString(s);    
+        array_add(*entity.keyValuePairs, .{key = key.name, value = value.name});
     }
-}
-
-ParseBrushOrEntity :: (s : *string) {
-    if      PeekToken(s) == .NUMBER ParseBrush(s);
-    else if PeekToken(s) == .STRING ParseEntity(s);
+    array_add(*mapEntities, entity);
 }
 
 ParseNumber :: (s : *string) -> Token {
@@ -232,6 +237,7 @@ ParseNumber :: (s : *string) -> Token {
 }
 
 ParseString :: (s : *string) -> Token {    
+    AdvanceToNextNonWhitespace(s);
     s.data += 1; charsRead += 1; // advance over opening "
     parsedString := <<s;
     c := s.data;
@@ -251,7 +257,7 @@ ParseString :: (s : *string) -> Token {
     return result;
 }
 
-LoadMapFile :: (mapFile : string) -> [] Brush{
+LoadMapFile :: (mapFile : string) -> [] Brush, [] MapEntity {
 
     mapFileData := read_entire_file(mapFile);
     
@@ -270,6 +276,14 @@ LoadMapFile :: (mapFile : string) -> [] Brush{
     for brushes {
         print("%\n", it);
     }
+    print("# Entities parsed: %\n", mapEntities.count);
+    print("Entities:\n");
+    for mapEntities {
+        print("Entity %\n", it_index);
+        for it.keyValuePairs {
+            print("%\n", it);
+        }
+    }
     
-    return brushes;
+    return brushes, mapEntities;
 }
