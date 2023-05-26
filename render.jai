@@ -4,6 +4,8 @@
 #import "Math";
 #import "File";
 
+// TODOS:
+// We probably do not need to store the vertices on CPU side inside this module.
 
 
 // Shaders
@@ -18,15 +20,21 @@ perFrameSettingsUBO : GLuint;
 // VBOs, VAOs per batch for world geometry
 batches : [..] Batch;
 
+// VBOs, VAOs for entities
+entityModels : [..] EntityModel;
+
 // Immediate 3D
-gImmediateVBO : GLuint;
-gImmediateVAO : GLuint;
-gImmediateOffset : u32;
-gImmediateVertexCount : u32;
+gImmediateVBO           : GLuint;
+gImmediateVAO           : GLuint;
+gImmediateOffset        : u32;
+gImmediateVertexCount   : u32;
 
 // TODO: God, this is so ugly. Can we do better with dynamic array?
-MAX_HUD_DRAW_CMDS : u32 : 64;
+MAX_HUD_DRAW_CMDS : u32 : 128;
 HUDDrawCount      : s32;
+
+MAX_ENTITIES      : u32 : 1024;
+entityCount       : u32;
 
 // Draw Settings for one frame
 RefDef :: struct {
@@ -37,7 +45,14 @@ RefDef :: struct {
     wireframe           := false;
 
     HUDDrawList         : [MAX_HUD_DRAW_CMDS] HUDDrawCmd;
+    entities            : [MAX_ENTITIES] Entity;
 };
+
+// Models for entities (Players, Monsters, Pickup Items...)
+EntityModel :: struct {
+    VAO, VBO    : GLuint;
+    vertices    : [..] Vertex;
+}
 
 // HUD
 HUDElement :: struct {
@@ -147,6 +162,52 @@ InitImmediateBuffers :: () {
     // Allocate enough space for 1024 tris
     glBufferData(GL_ARRAY_BUFFER, 1024 * 3 * size_of(Vertex), null, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+RenderAddEntity :: (refdef : *RefDef, entity : Entity) {
+    if entityCount >= MAX_ENTITIES {
+        print("RenderAddEntity: No more space left for more entities!\n");
+        return;
+    }
+
+    refdef.entities[entityCount] = entity;
+    entityCount += 1;
+}
+
+CreateEntityModel :: (tris : [] Tri) -> u32 {
+    result : EntityModel; 
+    
+    for tris {
+        array_add(*result.vertices, it.a);
+        array_add(*result.vertices, it.b);
+        array_add(*result.vertices, it.c);
+    }
+
+    glGenVertexArrays(1, *result.VAO);
+    glBindVertexArray(result.VAO);
+
+    glGenBuffers(1, *result.VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, result.VBO);
+
+    // Input assembly for vertex shader
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), null);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)size_of(Vector3));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2)));
+    glEnableVertexAttribArray(2);
+
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3)));
+    glEnableVertexAttribArray(3);
+
+    glBufferData(GL_ARRAY_BUFFER, tris.count * 3 * size_of(Vertex), tris.data, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    array_add(*entityModels, result);
+
+    return cast(u32)(entityModels.count - 1);
 }
 
 Draw3DImmediate :: (tris : [] Tri) {
@@ -436,6 +497,20 @@ DrawFrame :: (refdef : RefDef) {
         // }
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+
+    // Draw entities (for now just pretty much the same as world stuff)
+    glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
+    for i : 0..entityCount-1 {
+        entity := refdef.entities[i];
+        entityModel := entityModels[entity.modelID];
+        glBindVertexArray(entityModel.VAO);
+        glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(entity.textureID));
+        glDrawArrays(GL_TRIANGLES, 0, xx entityModel.vertices.count);
+    }
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    
 
     // Immediate3D
     glUseProgram(gImmediate3DProgram);

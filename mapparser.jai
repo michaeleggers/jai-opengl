@@ -279,15 +279,19 @@ LoadMapFile :: (mapFile : string) -> [] Brush, [] Entity {
                 y := ParseNumber(*it.value); GetNextToken(*it.value);
                 z := ParseNumber(*it.value);
                 entity.pos = .{x.number, y.number, z.number};
-                array_add(*entities, entity);
+            }
+            else if !compare("texture", it.key) {
+                entity.texture = copy_string(it.value); // NOTE: it.value's data pointer is pointing to memory owned by mapFileData. This could be a problem?
             }
         }
+        array_add(*entities, entity);
     }
     print("# Entities parsed: %\n", entities.count);
     print("Entities:\n");
     for entities {
         print("Entity # %\n", it_index);
         print("  pos: %\n", it.pos);
+        print("  texture: %\n", it.texture);
     }
 
     print("# Lines processed: %\n", lineNumber);

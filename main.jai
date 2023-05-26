@@ -104,7 +104,7 @@ main :: () {
         RegisterModel(*model); // Upload to GPU
     }
     // Initialize Entities
-    SpawnEntities(entities, *world);
+    SpawnEntities(entities, *refdef, *world);
 
     // Add a nice texture to the model
     // world.textureID = RegisterTexture("wood_planks_01.tga");
