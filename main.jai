@@ -214,6 +214,21 @@ main :: () {
                 scaleX = 10.0, scaleY = 10.0);
         }
 
+        // TODO: Right now, depth testing is disabled for Immediate 3D drawing. Fix it without breaking Triangle Picking.
+        someTris := Tri.[
+            .{
+                .{pos = .{  0.0, 0.0, -1.0}, uv = .{0.0, 0.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
+                .{pos = .{  1.0, 0.0, -1.0}, uv = .{1.0, 0.0}, bc = .{0.0, 1.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
+                .{pos = .{  1.0, 1.0, -1.0}, uv = .{1.0, 1.0}, bc = .{0.0, 0.0, 1.0}, normal = .{0.0, 0.0, 1.0}}
+            },   
+            .{
+                .{pos = .{  1.0, 1.0, -1.0}, uv = .{1.0, 1.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
+                .{pos = .{  0.0, 1.0, -1.0}, uv = .{0.0, 1.0}, bc = .{0.0, 1.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
+                .{pos = .{  0.0, 0.0, -1.0}, uv = .{0.0, 0.0}, bc = .{0.0, 0.0, 1.0}, normal = .{0.0, 0.0, 1.0}}
+            }
+        ];
+        Draw3DImmediate(someTris);
+
         // Render settings
         refdef.wireframe = keyState[SDLK_TAB];        
 
