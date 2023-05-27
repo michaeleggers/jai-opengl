@@ -140,6 +140,9 @@ CreateBatch :: () -> *Batch {
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3)));
     glEnableVertexAttribArray(3);
 
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3) + size_of(Vector3)));
+    glEnableVertexAttribArray(4);
+
     // Allocate enough space for 1024 quads
     glBufferData(GL_ARRAY_BUFFER, 1024 * 6 * size_of(Vertex), null, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -168,6 +171,9 @@ InitImmediateBuffers :: () {
 
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3)));
     glEnableVertexAttribArray(3);
+
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3) + size_of(Vector3)));
+    glEnableVertexAttribArray(4);
 
     // Allocate enough space for 1024 tris
     glBufferData(GL_ARRAY_BUFFER, 1024 * 3 * size_of(Vertex), null, GL_STATIC_DRAW);
@@ -211,6 +217,9 @@ CreateEntityModel :: (tris : [] Tri) -> u32 {
 
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3)));
     glEnableVertexAttribArray(3);
+
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3) + size_of(Vector3)));
+    glEnableVertexAttribArray(4);
 
     glBufferData(GL_ARRAY_BUFFER, tris.count * 3 * size_of(Vertex), tris.data, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -496,6 +505,9 @@ RegisterHUD :: (model : *Model) {
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3)));
     glEnableVertexAttribArray(3);
     
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3) + size_of(Vector3)));
+    glEnableVertexAttribArray(4);
+
     dataSize := hudElem.vertices.count * size_of(Vertex);
     glBufferData(GL_ARRAY_BUFFER, dataSize, cast(*void)hudElem.vertices.data, GL_STATIC_DRAW);
 

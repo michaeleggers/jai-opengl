@@ -6,6 +6,7 @@ Vertex :: struct {
     uv      : Vector2;
     bc      : Vector3;
     normal  : Vector3;
+    color   : Vector3;
 }
 
 Tri :: struct {

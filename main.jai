@@ -200,6 +200,9 @@ main :: () {
         hitFound, tri, rayLength := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world.models);
         if hitFound {
             // print("t: %\n", rayLength);
+            tri.a.color = .{1.0, 0.95, 0.0};
+            tri.b.color = .{1.0, 0.95, 0.0};
+            tri.c.color = .{1.0, 0.95, 0.0};
             tris : [1]Tri;
             tris[0] = tri;
             Draw3DImmediateTris(tris, depthTest = false);
@@ -219,22 +222,22 @@ main :: () {
         // TODO: Right now, depth testing is disabled for Immediate 3D drawing. Fix it without breaking Triangle Picking.
         someTris := Tri.[
             .{
-                .{pos = .{  0.0, 0.0, -1.0}, uv = .{0.0, 0.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
-                .{pos = .{  1.0, 0.0, -1.0}, uv = .{1.0, 0.0}, bc = .{0.0, 1.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
-                .{pos = .{  1.0, 1.0, -1.0}, uv = .{1.0, 1.0}, bc = .{0.0, 0.0, 1.0}, normal = .{0.0, 0.0, 1.0}}
+                .{pos = .{ 0.0, 0.0, -1.0}, color = .{0.8, 0.1, 0.9}},
+                .{pos = .{ 1.0, 0.0, -1.0}, color = .{0.8, 0.1, 0.9}},
+                .{pos = .{ 1.0, 1.0, -1.0}, color = .{0.8, 0.1, 0.9}}
             },   
             .{
-                .{pos = .{  1.0, 1.0, -1.0}, uv = .{1.0, 1.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
-                .{pos = .{  0.0, 1.0, -1.0}, uv = .{0.0, 1.0}, bc = .{0.0, 1.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
-                .{pos = .{  0.0, 0.0, -1.0}, uv = .{0.0, 0.0}, bc = .{0.0, 0.0, 1.0}, normal = .{0.0, 0.0, 1.0}}
+                .{pos = .{ 1.0, 1.0, -1.0}, color = .{0.8, 0.1, 0.9}},
+                .{pos = .{ 0.0, 1.0, -1.0}, color = .{0.8, 0.1, 0.9}},
+                .{pos = .{ 0.0, 0.0, -1.0}, color = .{0.8, 0.1, 0.9}}
             }
         ];
         Draw3DImmediateTris(someTris);
 
         Draw3DImmediateLines(.[
             .{
-             a = .{pos = .{  -1.0, -1.0, -1.0}, uv = .{0.0, 0.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
-             b = .{pos = .{  10.0, 10.0, 10.0}, uv = .{0.0, 0.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}}
+             a = .{pos = .{ -1.0, -1.0, -1.0}, color = .{1.0, 1.0, 1.0}},
+             b = .{pos = .{ 10.0, 10.0, 10.0}, color = .{1.0, 1.0, 1.0}}
             }
         ]);
 
