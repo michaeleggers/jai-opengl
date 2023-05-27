@@ -220,6 +220,8 @@ CreateEntityModel :: (tris : [] Tri) -> u32 {
     return cast(u32)(entityModels.count - 1);
 }
 
+// TODO: ImmediateTris and ImmediateLines are fairly similar. I am sure Jai offers some way to
+//       compress this in a neat way.
 Draw3DImmediateTris :: (tris : [] Tri, depthTest := true) {
     size := tris.count * size_of(Tri);
 
