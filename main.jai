@@ -194,13 +194,15 @@ main :: () {
         // Camera    
         UpdateCameraOnKeys(*refdef.camera);
 
+        UpdateWorld(*refdef, *world);
+
         // Test triangle picking
         hitFound, tri, rayLength := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world.models);
         if hitFound {
             // print("t: %\n", rayLength);
             tris : [1]Tri;
             tris[0] = tri;
-            Draw3DImmediate(tris);
+            Draw3DImmediateTris(tris, depthTest = false);
             hudScaleFactor := clamp(3.0 - rayLength, 1.0, 3.0);
             hudScale := 10*hudScaleFactor;
             DrawHUD(*refdef, crosshairHUD, 
@@ -227,7 +229,14 @@ main :: () {
                 .{pos = .{  0.0, 0.0, -1.0}, uv = .{0.0, 0.0}, bc = .{0.0, 0.0, 1.0}, normal = .{0.0, 0.0, 1.0}}
             }
         ];
-        Draw3DImmediate(someTris);
+        Draw3DImmediateTris(someTris);
+
+        Draw3DImmediateLines(.[
+            .{
+             a = .{pos = .{  -1.0, -1.0, -1.0}, uv = .{0.0, 0.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}},
+             b = .{pos = .{  10.0, 10.0, 10.0}, uv = .{0.0, 0.0}, bc = .{1.0, 0.0, 0.0}, normal = .{0.0, 0.0, 1.0}}
+            }
+        ]);
 
         // Render settings
         refdef.wireframe = keyState[SDLK_TAB];        

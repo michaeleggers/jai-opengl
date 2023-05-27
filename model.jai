@@ -12,6 +12,10 @@ Tri :: struct {
     a, b, c : Vertex;
 }
 
+Line :: struct {
+    a, b : Vertex;
+}
+
 Model :: struct {
     tris        : [..] Tri;
     position    : Vector3;

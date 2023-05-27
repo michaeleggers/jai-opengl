@@ -1,5 +1,5 @@
 
-gEntities : [..] Entity;
+gEntities : [..] Entity; // TODO: What is this?
 
 World :: struct {
     models : [..] Model; // World geometry
@@ -12,7 +12,10 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             world.player = entity;
             world.player.textureID = RegisterTexture(entity.texture);
             world.player.modelID = CreateEntityModel(GEOM_UNIT_CUBE);
-            RenderAddEntity(refdef, world.player);
         }
     }
+}
+
+UpdateWorld :: (refdef : *RefDef, world : *World) {
+    RenderAddEntity(refdef, world.player);
 }

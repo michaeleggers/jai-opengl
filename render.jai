@@ -23,11 +23,13 @@ batches : [..] Batch;
 // VBOs, VAOs for entities
 entityModels : [..] EntityModel;
 
+
 // Immediate 3D
-gImmediateVBO           : GLuint;
-gImmediateVAO           : GLuint;
-gImmediateOffset        : u32;
-gImmediateVertexCount   : u32;
+gImmediateVBO               : GLuint;
+gImmediateVAO               : GLuint;
+MAX_IMMEDIATE3D_DRAW_CMDS :: 128;
+gImmediate3DDrawCmds        : [MAX_IMMEDIATE3D_DRAW_CMDS] Immediate3DDrawCmd;
+gImmediate3DDrawCmdCount    : s32;
 
 // TODO: God, this is so ugly. Can we do better with dynamic array?
 MAX_HUD_DRAW_CMDS : u32 : 128;
@@ -92,6 +94,14 @@ DrawHUD :: (refdef : *RefDef, hudElem : CHUDElement, xPos : float = 0.0, yPos : 
     refdef.HUDDrawList[HUDDrawCount] = drawCmd;
     HUDDrawCount += 1;
 }
+
+Immediate3DDrawCmd :: struct {
+    primitiveType   : GLenum = GL_TRIANGLES;
+    depthTest       := true;
+    offset          : u32; // Byte offset into Vertex buffer    
+    firstVertex     : u32;
+    vertexCount     : u32;
+};
 
 Batch :: struct {
     VAO, VBO         : GLuint;
@@ -210,17 +220,64 @@ CreateEntityModel :: (tris : [] Tri) -> u32 {
     return cast(u32)(entityModels.count - 1);
 }
 
-Draw3DImmediate :: (tris : [] Tri) {
+Draw3DImmediateTris :: (tris : [] Tri, depthTest := true) {
     size := tris.count * size_of(Tri);
+
+    offset := 0;
+    firstVertex := 0;
+    if gImmediate3DDrawCmdCount > 0 {
+        lastDrawCmd := gImmediate3DDrawCmds[gImmediate3DDrawCmdCount-1];
+        firstVertex = lastDrawCmd.firstVertex + lastDrawCmd.vertexCount;
+        offset = lastDrawCmd.offset + lastDrawCmd.vertexCount * size_of(Vertex);
+    }
 
     glBindVertexArray(gImmediateVAO);
     glBindBuffer(GL_ARRAY_BUFFER, gImmediateVBO);    
-    glBufferSubData(GL_ARRAY_BUFFER, gImmediateOffset, size, tris.data);
+    glBufferSubData(GL_ARRAY_BUFFER, offset, size, tris.data);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    gImmediateOffset += xx size;
-    gImmediateVertexCount += xx (tris.count * 3);
+    drawCmd := Immediate3DDrawCmd.{
+        offset = xx offset,
+        firstVertex = xx firstVertex,
+        vertexCount = xx (tris.count * 3),
+        depthTest = depthTest
+    };
+
+    gImmediate3DDrawCmds[gImmediate3DDrawCmdCount] = drawCmd;
+    gImmediate3DDrawCmdCount += 1;
+
+    // gImmediateOffset += xx size;
+    // gImmediateVertexCount += xx (tris.count * 3);
+}
+
+Draw3DImmediateLines :: (lines : [] Line, depthTest := true) {
+    size := lines.count * size_of(Line);
+
+    offset := 0;
+    firstVertex := 0;
+    if gImmediate3DDrawCmdCount > 0 {
+        lastDrawCmd := gImmediate3DDrawCmds[gImmediate3DDrawCmdCount-1];
+        firstVertex = lastDrawCmd.firstVertex + lastDrawCmd.vertexCount;
+        offset = lastDrawCmd.offset + lastDrawCmd.vertexCount * size_of(Vertex);
+    }
+
+    glBindVertexArray(gImmediateVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, gImmediateVBO);    
+    glBufferSubData(GL_ARRAY_BUFFER, offset, size, lines.data);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    drawCmd := Immediate3DDrawCmd.{
+        primitiveType = GL_LINES,
+        offset = xx offset,
+        firstVertex = xx firstVertex,
+        vertexCount = xx (lines.count * 2),
+        depthTest = depthTest
+    };
+
+    gImmediate3DDrawCmds[gImmediate3DDrawCmdCount] = drawCmd;
+    gImmediate3DDrawCmdCount += 1;
 }
 
 RenderPrepare :: () {
@@ -230,7 +287,6 @@ RenderPrepare :: () {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, xx SDL_GL_CONTEXT_DEBUG_FLAG);
-
 }
 
 MessageCallback :: (source : GLenum,
@@ -514,14 +570,18 @@ DrawFrame :: (refdef : RefDef) {
 
     // Immediate3D
     glUseProgram(gImmediate3DProgram);
-    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
     glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
-    if gImmediateOffset > 0 {
-        glBindVertexArray(gImmediateVAO);
-        glDrawArrays(GL_TRIANGLES, 0, gImmediateVertexCount);
+    glBindVertexArray(gImmediateVAO);
+    for i : 0..gImmediate3DDrawCmdCount-1 {
+        drawCmd := gImmediate3DDrawCmds[i];
+        if !drawCmd.depthTest glDisable(GL_DEPTH_TEST);
+        glDrawArrays(drawCmd.primitiveType, xx drawCmd.firstVertex, drawCmd.vertexCount);
+        glEnable(GL_DEPTH_TEST);
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
     // HUD
     glUseProgram(HUDShaderProgram);
@@ -559,12 +619,14 @@ DrawFrame :: (refdef : RefDef) {
     }
     glEnable(GL_DEPTH_TEST);
 
-    // Dont forget to clear the drawlist!!!
+    // Reset Entity count
+    entityCount = 0;
+
+    // Dont forget to clear the HUD drawlist!!!
     HUDDrawCount = 0;
 
-    // Also, don't forget to reset the immediate 3D offset
-    gImmediateOffset = 0;
-    gImmediateVertexCount = 0;
+    // Also, don't forget to reset the immediate 3D draw CMDs
+    gImmediate3DDrawCmdCount = 0;
 
     SDL_GL_SwapWindow(refdef.window);
 }
