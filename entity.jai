@@ -8,7 +8,7 @@ AABB :: struct {
     width : float = 2;
     height : float = 2;
     depth : float = 2;
-    debugLines : *Line; // Lines for rendering view of this aabb
+    debugLines : *Line; // Lines for rendering view of this aabb. It should be [12]Line but that results in a stack overflow right at startup.
 }
 
 // Should maybe be in math graphics or collision.jai or something...
