@@ -291,6 +291,35 @@ Draw3DImmediateLines :: (lines : [] Line, depthTest := true) {
     gImmediate3DDrawCmdCount += 1;
 }
 
+Draw3DImmediateLinesPtr :: (lines : *Line, count : u32, depthTest := true) {
+    size := count * size_of(Line);
+
+    offset := 0;
+    firstVertex := 0;
+    if gImmediate3DDrawCmdCount > 0 {
+        lastDrawCmd := gImmediate3DDrawCmds[gImmediate3DDrawCmdCount-1];
+        firstVertex = lastDrawCmd.firstVertex + lastDrawCmd.vertexCount;
+        offset = lastDrawCmd.offset + lastDrawCmd.vertexCount * size_of(Vertex);
+    }
+
+    glBindVertexArray(gImmediateVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, gImmediateVBO);    
+    glBufferSubData(GL_ARRAY_BUFFER, offset, size, lines);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    drawCmd := Immediate3DDrawCmd.{
+        primitiveType = GL_LINES,
+        offset = xx offset,
+        firstVertex = xx firstVertex,
+        vertexCount = xx (count * 2),
+        depthTest = depthTest
+    };
+
+    gImmediate3DDrawCmds[gImmediate3DDrawCmdCount] = drawCmd;
+    gImmediate3DDrawCmdCount += 1;
+}
+
 RenderPrepare :: () {
     // Some general GL settings. Must be set BEFORE SDL creates the OpenGL context!
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, xx SDL_GL_CONTEXT_PROFILE_CORE);
