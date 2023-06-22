@@ -93,6 +93,6 @@ UpdateWorld :: (refdef : *RefDef, world : *World) {
     // free(AABBlines);
 
     // Add player entity to refresh definition
-    RenderAddEntity(refdef, world.player);
+    // RenderAddEntity(refdef, world.player);
 }
 

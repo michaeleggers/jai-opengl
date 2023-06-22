@@ -36,8 +36,8 @@ gImmediate3DDrawCmdCount    : s32;
 MAX_HUD_DRAW_CMDS : u32 : 128;
 HUDDrawCount      : s32;
 
-MAX_ENTITIES      : u32 : 1024;
-entityCount       : u32;
+MAX_ENTITIES      : s32 : 1024;
+entityCount       : s32;
 
 // Draw Settings for one frame
 RefDef :: struct {
