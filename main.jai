@@ -205,9 +205,9 @@ main :: () {
             tri.c.color = .{1.0, 0.95, 0.0};
             // Pull the tris 'out' just a little bit so that they won't rejected during
             // rasterization because of failing the depth test.
-            tri.a.pos += 0.001*tri.a.normal;
-            tri.b.pos += 0.001*tri.b.normal;
-            tri.c.pos += 0.001*tri.c.normal;
+            tri.a.pos += 0.0001*tri.a.normal;
+            tri.b.pos += 0.0001*tri.b.normal;
+            tri.c.pos += 0.0001*tri.c.normal;
             tris : [1]Tri;
             tris[0] = tri;
             Draw3DImmediateTris(tris, depthTest = true);
