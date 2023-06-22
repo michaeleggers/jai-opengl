@@ -1,5 +1,18 @@
+
 EntityType :: enum u32 {
     PLAYER;
+}
+
+Entity :: struct {
+    type        : EntityType;
+    pos         : Vector3;
+    orientation : Quaternion;
+    aabb        : AABB;    
+    currentAABB : AABB;
+    modelID     : u32; // ID into entity model array in render.jai
+    textureID   : u32;
+    texture     : string; // TODO: actually when processing entities in a loop, I don't really want that here!
+    transform   := Matrix4_Identity; // Holds the current transformation matrix
 }
 
 AABB :: struct {
@@ -8,7 +21,6 @@ AABB :: struct {
     width : float = 2;
     height : float = 2;
     depth : float = 2;
-    debugLines : *Line; // Lines for rendering view of this aabb. It should be [12]Line but that results in a stack overflow right at startup.
 }
 
 // Should maybe be in math graphics or collision.jai or something...
@@ -44,72 +56,25 @@ ComputeAABB :: (tris : [] Tri) -> AABB {
     height := abs(maxY - minY);
     depth := abs(maxZ - minZ);
 
-    // We allocate memory here because returning an array of [12]Line lines will result in a stack overflow and crash.
-    AABBlines := cast(*Line)alloc(12 * size_of(Line));
-    AABBlines[0] = .{
-            a = .{pos = .{minX, minY, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX + width, minY, minZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[1] = .{
-            a = .{pos = .{minX, minY, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX, minY + height, minZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[2] = .{
-            a = .{pos = .{minX, minY, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX, minY, minZ + depth}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[3] = .{
-            a = .{pos = .{maxX, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX - width, maxY, maxZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[4] = .{
-            a = .{pos = .{maxX, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX, maxY - height, maxZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[5] = .{
-            a = .{pos = .{maxX, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[6] = .{
-            a = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX, minY + height, minZ}, color = .{1.0, 1.0, 1.0}},
-    };
-    AABBlines[7] = .{
-            a = .{pos = .{minX, minY + height, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX - width, maxY, maxZ}, color = .{1.0, 1.0, 1.0}}
-    };
-    AABBlines[8] = .{
-            a = .{pos = .{maxX - width, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX, minY, minZ + depth}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[9] = .{
-            a = .{pos = .{minX, minY, minZ + depth}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX, maxY - height, maxZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[10] = .{
-            a = .{pos = .{maxX, maxY - height, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX + width, minY, minZ}, color = .{1.0, 1.0, 1.0}}
-    };
-    AABBlines[11] = .{
-            a = .{pos = .{minX + width, minY, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}}
-    };
-
     return .{
         minXYZ = .{minX, minY, minZ},
         maxXYZ = .{maxX, maxY, maxZ},
         width = width, height = height, depth = depth,    
-        debugLines = AABBlines
     };
 }
 
-Entity :: struct {
-    type        : EntityType;
-    pos         : Vector3;
-    orientation : Quaternion;
-    aabb        : AABB;    
-    modelID     : u32; // ID into entity model array in render.jai
-    textureID   : u32;
-    texture     : string; // TODO: actually when processing entities in a loop, I don't really want that here!
+vec3toVec4 :: (v : Vector3) -> Vector4 {
+    return .{v.x, v.y, v.z, 1.0};
+}
+
+updateEntity :: (entity : *Entity) {
+    // update transform matrix
+    entity.transform = transpose(make_translation_matrix4(entity.pos));    
+
+    // apply that transform to AABB. We need it on CPU side for collision detection
+    minXYZ := Mat4XVec4(entity.transform, vec3toVec4(entity.aabb.minXYZ));
+    maxXYZ := Mat4XVec4(entity.transform, vec3toVec4(entity.aabb.maxXYZ));
+    entity.currentAABB.minXYZ = .{minXYZ.x, minXYZ.y, minXYZ.z};
+    entity.currentAABB.maxXYZ = .{maxXYZ.x, maxXYZ.y, maxXYZ.z};    
 }
 

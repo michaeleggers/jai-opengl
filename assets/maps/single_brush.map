@@ -4,11 +4,15 @@
 {
     1, 1, 1, "wood_planks_01.tga", 10.0
 }
+# Brush at origin
+{
+    0, 0, 0, "wood_planks_01.tga", 10.0
+}
 
 # Player entity
 {
     "classname" "info_player_start"
-    "origin" "1 -1 -2"
+    "origin" "2 -1 -0.5"
     "texture" "vines.tga"
     # "angle" 270
 }
