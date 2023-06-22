@@ -85,7 +85,7 @@ main :: () {
 
     crosshairHUD := CreateHUD("crosshair_point.png");
 
-    brushes, entities := LoadMapFile("assets/maps/single_brush.map");
+    brushes, entities := LoadMapFile("assets/maps/starter.map");
     // Init world and upload the world geometry to GPU
     world : World;
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
@@ -203,9 +203,14 @@ main :: () {
             tri.a.color = .{1.0, 0.95, 0.0};
             tri.b.color = .{1.0, 0.95, 0.0};
             tri.c.color = .{1.0, 0.95, 0.0};
+            // Pull the tris 'out' just a little bit so that they won't rejected during
+            // rasterization because of failing the depth test.
+            tri.a.pos += 0.001*tri.a.normal;
+            tri.b.pos += 0.001*tri.b.normal;
+            tri.c.pos += 0.001*tri.c.normal;
             tris : [1]Tri;
             tris[0] = tri;
-            Draw3DImmediateTris(tris, depthTest = false);
+            Draw3DImmediateTris(tris, depthTest = true);
             hudScaleFactor := clamp(3.0 - rayLength, 1.0, 3.0);
             hudScale := 10*hudScaleFactor;
             DrawHUD(*refdef, crosshairHUD, 

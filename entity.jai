@@ -67,7 +67,7 @@ vec3toVec4 :: (v : Vector3) -> Vector4 {
     return .{v.x, v.y, v.z, 1.0};
 }
 
-updateEntity :: (entity : *Entity) {
+updateEntity :: (entity : *Entity) { // TODO: Find out how to do namespaces (if they exist or if there is something like it)
     // update transform matrix
     entity.transform = transpose(make_translation_matrix4(entity.pos));    
 

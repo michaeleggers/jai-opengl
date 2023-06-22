@@ -68,4 +68,11 @@
 # A cuba far in pos z
 {0, 0, 10, "vines.tga", 130.48594}
 
+# Player entity
+{
+    "classname" "info_player_start"
+    "origin" "2 -5 -0.5"
+    "texture" "vines.tga"
+    # "angle" 270
+}
         
