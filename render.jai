@@ -9,10 +9,11 @@
 
 
 // Shaders
-gShaderProgram : GLuint;
+gStaticWorldProgram : GLuint;
 wireframeShaderProgram : GLuint; // TODO: Not used
 HUDShaderProgram : GLuint;
 gImmediate3DProgram : GLuint;
+gEntityShaderProgram : GLuint;
 
 // Uniform Buffers for world geometry
 viewProjectionUBO : GLuint;
@@ -55,6 +56,11 @@ EntityModel :: struct {
     VAO, VBO    : GLuint;
     vertices    : [..] Vertex;
 }
+
+EntityTransform :: struct {
+    transform := Matrix4_Identity;
+}
+entityTransformUBO : GLuint;
 
 // HUD
 HUDElement :: struct {
@@ -370,10 +376,11 @@ RenderInit :: () {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Shaders
-    gShaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/basic_world.frag");
+    gStaticWorldProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/basic_world.frag");
     // wireframeShaderProgram = CreateShaderProgram("shaders/basic_world.vert", "shaders/wireframe.frag");
     HUDShaderProgram = CreateShaderProgram("shaders/hud.vert", "shaders/hud.frag");
     gImmediate3DProgram = CreateShaderProgram("shaders/immediate3D.vert", "shaders/immediate3D.frag");
+    gEntityShaderProgram = CreateShaderProgram("shaders/entities.vert", "shaders/entities.frag");
 
     // VAO/VBO for immediat 3D
     InitImmediateBuffers();
@@ -394,6 +401,7 @@ RenderInit :: () {
     glGenBuffers(1, *perFrameSettingsUBO);
     glGenBuffers(1, *hudTransformUBO);
     glGenBuffers(1, *hudWindowDataUBO);
+    glGenBuffers(1, *entityTransformUBO);
 
     // glBindBuffer(GL_UNIFORM_BUFFER, UBO);
     // glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
@@ -404,6 +412,8 @@ RenderInit :: () {
     glBindBufferBase(GL_UNIFORM_BUFFER, 2, hudTransformUBO);
     glBindBufferBase(GL_UNIFORM_BUFFER, 3, hudWindowDataUBO);    
 
+    glBindBufferBase(GL_UNIFORM_BUFFER, 4, entityTransformUBO);
+
     glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), null, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
@@ -413,6 +423,9 @@ RenderInit :: () {
     glBufferData(GL_UNIFORM_BUFFER, size_of(HUDTransform), null, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, hudWindowDataUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(HUDWindowData), null, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, entityTransformUBO);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(EntityTransform), null, GL_DYNAMIC_DRAW);
 }
 
 CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint {
@@ -553,7 +566,7 @@ DrawFrame :: (refdef : RefDef) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // World
-    glUseProgram(gShaderProgram);
+    glUseProgram(gStaticWorldProgram);
     viewProjMatrices : ViewProjMatrices;
     viewProjMatrices.view = CreateView(refdef.camera);
     // viewProjMatrices.view = transpose(make_look_at_matrix(refdef.camera.pos, refdef.camera.center, refdef.camera.up, x_is_forward=false));
@@ -599,8 +612,14 @@ DrawFrame :: (refdef : RefDef) {
 
 
     // Draw entities (for now just pretty much the same as world stuff)
+    glUseProgram(gEntityShaderProgram);
     glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, entityTransformUBO);
+    entityTransform := Matrix4_Identity;
+    ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    memcpy(ptr, *entityTransform, size_of(EntityTransform));
+    glUnmapBuffer(GL_UNIFORM_BUFFER);
     for i : 0..entityCount-1 {
         entity := refdef.entities[i];
         entityModel := entityModels[entity.modelID];

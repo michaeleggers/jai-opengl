@@ -95,15 +95,12 @@ ComputeAABB :: (tris : [] Tri) -> AABB {
             b = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}}
     };
 
-    aabb := AABB.{
+    return .{
         minXYZ = .{minX, minY, minZ},
         maxXYZ = .{maxX, maxY, maxZ},
         width = width, height = height, depth = depth,    
         debugLines = AABBlines
     };
-    // memcpy(aabb.debugLines.data, AABBlines.data, 12 * size_of(Line));
-
-    return aabb;
 }
 
 Entity :: struct {

@@ -13,6 +13,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             world.player.textureID = RegisterTexture(entity.texture);
             world.player.modelID = CreateEntityModel(GEOM_UNIT_CUBE);
             world.player.aabb = ComputeAABB(GEOM_UNIT_CUBE);
+            world.player.pos = entity.pos;
         }
     }
 }
