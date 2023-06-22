@@ -616,17 +616,17 @@ DrawFrame :: (refdef : RefDef) {
     glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, entityTransformUBO);
-    entityTransform := Matrix4_Identity;
     ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    memcpy(ptr, *entityTransform, size_of(EntityTransform));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
     for i : 0..entityCount-1 {
         entity := refdef.entities[i];
         entityModel := entityModels[entity.modelID];
+        entityTransform := transpose(make_translation_matrix4(entity.pos));
+        memcpy(ptr, *entityTransform, size_of(EntityTransform));
         glBindVertexArray(entityModel.VAO);
         glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(entity.textureID));
         glDrawArrays(GL_TRIANGLES, 0, xx entityModel.vertices.count);
     }
+    glUnmapBuffer(GL_UNIFORM_BUFFER);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     
 

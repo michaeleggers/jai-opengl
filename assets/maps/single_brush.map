@@ -8,7 +8,8 @@
 # Player entity
 {
     "classname" "info_player_start"
-    "origin" "-56 224 4"
+    "origin" "1 -1 -2"
     "texture" "vines.tga"
     # "angle" 270
 }
+
