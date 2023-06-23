@@ -32,27 +32,13 @@ ToCString :: (s : string) -> *u8 {
 }
 
 MouseState :: struct {
-    x, y : s32;
-    oldX, oldY : s32;
+    x, y            : s32;
+    oldX, oldY      : s32;
+    dX, dY          : s32;
+    leftButtonDown  := false;
 }
 
 keyState : [#run enum_highest_value(SDL_Keycode)] bool;
-
-UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
-    RotateAroundUp(camera, -dX * 0.01);
-    RotateAroundSide(camera, -dY * 0.01);
-}
-
-UpdateCameraOnKeys :: (camera : *Camera) {
-    if keyState[SDLK_RIGHT]     RotateAroundUp(camera, -0.0001);
-    if keyState[SDLK_LEFT]      RotateAroundUp(camera,  0.0001);
-    if keyState[SDLK_UP]        RotateAroundSide(camera,  0.0001);
-    if keyState[SDLK_DOWN]      RotateAroundSide(camera, -0.0001);
-    if keyState[SDLK_d]         MoveSide(camera,  0.01);
-    if keyState[SDLK_a]         MoveSide(camera, -0.01);
-    if keyState[SDLK_w]         MoveForward(camera,  0.01);
-    if keyState[SDLK_s]         MoveForward(camera, -0.01);
-}
 
 main :: () {
 
@@ -123,10 +109,12 @@ main :: () {
         buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
         mouseState.oldX = mouseX;
         mouseState.oldY = mouseY;
+        mouseState.leftButtonDown = false;
 
         // SDL Event Loop
         event : SDL_Event;
         while SDL_PollEvent(*event) {         
+
 
             if event.type == {
                 case SDL_QUIT;
@@ -168,9 +156,10 @@ main :: () {
                     mouseX = event.motion.x;
                     mouseY = event.motion.y;
                     if event.motion.state & SDL_BUTTON(3) {
-                        dX := mouseX - mouseState.oldX;
-                        dY := mouseY - mouseState.oldY;
-                        UpdateCameraOnMouse(*refdef.camera, dX, dY); // TODO: Move this down, out of the event loop
+                        mouseState.dX = mouseX - mouseState.oldX;
+                        mouseState.dY = mouseY - mouseState.oldY;                        
+                        mouseState.leftButtonDown = true;
+                        // UpdateCameraOnMouse(*refdef.camera, dX, dY); // TODO: Move this down, out of the event loop
                         //print("Mouse delta %, %\n", dX, dY);
                         mouseState.oldX = mouseX;
                         mouseState.oldY = mouseY;
@@ -179,6 +168,7 @@ main :: () {
                 case SDL_MOUSEBUTTONUP;
                     mouseState.oldX = 0;
                     mouseState.oldY = 0;
+                    mouseState.leftButtonDown = false;
 
                 case SDL_WINDOWEVENT;
                     if event.window.event == SDL_WINDOWEVENT_RESIZED {
@@ -192,9 +182,9 @@ main :: () {
 
         // Update stuff
         // Camera    
-        UpdateCameraOnKeys(*refdef.camera);
+        //UpdateCameraOnKeys(*refdef.camera);
 
-        UpdateWorld(*refdef, *world);
+        UpdateWorld(keyState, mouseState, *refdef, *world);
 
         // Test triangle picking
         hitFound, tri, rayLength := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world.models);

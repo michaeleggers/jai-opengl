@@ -19,12 +19,40 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
     }
 }
 
+UpdateCameraOnKeys :: (keyState : [] bool, camera : *Camera) {
+    if keyState[SDLK_RIGHT]     RotateAroundUp(camera, -0.0001);
+    if keyState[SDLK_LEFT]      RotateAroundUp(camera,  0.0001);
+    if keyState[SDLK_UP]        RotateAroundSide(camera,  0.0001);
+    if keyState[SDLK_DOWN]      RotateAroundSide(camera, -0.0001);
+    if keyState[SDLK_d]         MoveSide(camera,  0.01);
+    if keyState[SDLK_a]         MoveSide(camera, -0.01);
+    if keyState[SDLK_w]         MoveForward(camera,  0.01);
+    if keyState[SDLK_s]         MoveForward(camera, -0.01);
+}
+
+UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
+    RotateAroundUp(camera, -dX * 0.01);
+    RotateAroundSide(camera, -dY * 0.01);
+}
+
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
 //       and just set a flag in refdef if AABBs should be drawn or not.
 AABBlines : [12] Line;
 
-UpdateWorld :: (refdef : *RefDef, world : *World) {
+UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, world : *World) {
     updateEntity(*world.player);
+    
+    // TODO: Make a polymorphic function that accepts entities and the camera.
+    //       This function could be called something like 'ProcessKeyboardInput' and 'ProcessMouseInput'.
+    //       The passed entity (or camera) brings a control-scheme, that defines what happens to this
+    //       entity on certain key- (and mouse-) presses. So in the end, UpdateCameraOnKeys and
+    //       UpdateCameraOnMouse are gone. Something like that.
+
+    UpdateCameraOnKeys(keyState, *refdef.camera);
+    if mouseState.leftButtonDown {
+        print("mouse button down\n");
+        UpdateCameraOnMouse(*refdef.camera, mouseState.dX, mouseState.dY);
+    }
 
     aabb := world.player.currentAABB;
     minX := aabb.minXYZ.x;
