@@ -35,7 +35,7 @@ MouseState :: struct {
     x, y            : s32;
     oldX, oldY      : s32;
     dX, dY          : s32;
-    leftButtonDown  := false;
+    rightButtonDown  := false;
 }
 
 keyState : [#run enum_highest_value(SDL_Keycode)] bool;
@@ -109,7 +109,7 @@ main :: () {
         buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
         mouseState.oldX = mouseX;
         mouseState.oldY = mouseY;
-        mouseState.leftButtonDown = false;
+        mouseState.rightButtonDown = false;
 
         // SDL Event Loop
         event : SDL_Event;
@@ -158,7 +158,7 @@ main :: () {
                     if event.motion.state & SDL_BUTTON(3) {
                         mouseState.dX = mouseX - mouseState.oldX;
                         mouseState.dY = mouseY - mouseState.oldY;                        
-                        mouseState.leftButtonDown = true;
+                        mouseState.rightButtonDown = true;
                         // UpdateCameraOnMouse(*refdef.camera, dX, dY); // TODO: Move this down, out of the event loop
                         //print("Mouse delta %, %\n", dX, dY);
                         mouseState.oldX = mouseX;
@@ -168,7 +168,7 @@ main :: () {
                 case SDL_MOUSEBUTTONUP;
                     mouseState.oldX = 0;
                     mouseState.oldY = 0;
-                    mouseState.leftButtonDown = false;
+                    mouseState.rightButtonDown = false;
 
                 case SDL_WINDOWEVENT;
                     if event.window.event == SDL_WINDOWEVENT_RESIZED {

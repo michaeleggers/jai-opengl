@@ -49,8 +49,7 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     //       UpdateCameraOnMouse are gone. Something like that.
 
     UpdateCameraOnKeys(keyState, *refdef.camera);
-    if mouseState.leftButtonDown {
-        print("mouse button down\n");
+    if mouseState.rightButtonDown {    
         UpdateCameraOnMouse(*refdef.camera, mouseState.dX, mouseState.dY);
     }
 
