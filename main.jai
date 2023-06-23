@@ -113,8 +113,7 @@ main :: () {
 
         // SDL Event Loop
         event : SDL_Event;
-        while SDL_PollEvent(*event) {         
-
+        while SDL_PollEvent(*event) {
 
             if event.type == {
                 case SDL_QUIT;
@@ -130,6 +129,12 @@ main :: () {
                     if event.key.keysym.sym == SDLK_a   keyState[SDLK_a] = true;
                     if event.key.keysym.sym == SDLK_w   keyState[SDLK_w] = true;
                     if event.key.keysym.sym == SDLK_s   keyState[SDLK_s] = true;
+
+                    if event.key.keysym.sym == SDLK_h   keyState[SDLK_h] = true;
+                    if event.key.keysym.sym == SDLK_f   keyState[SDLK_f] = true;
+                    if event.key.keysym.sym == SDLK_t   keyState[SDLK_t] = true;
+                    if event.key.keysym.sym == SDLK_g   keyState[SDLK_g] = true;
+
                     if event.key.keysym.sym == SDLK_TAB keyState[SDLK_TAB] = !keyState[SDLK_TAB];
             
                 case SDL_KEYUP;
@@ -141,6 +146,11 @@ main :: () {
                     if event.key.keysym.sym == SDLK_a   keyState[SDLK_a] = false;
                     if event.key.keysym.sym == SDLK_w   keyState[SDLK_w] = false;
                     if event.key.keysym.sym == SDLK_s   keyState[SDLK_s] = false;
+
+                    if event.key.keysym.sym == SDLK_h   keyState[SDLK_h] = false;
+                    if event.key.keysym.sym == SDLK_f   keyState[SDLK_f] = false;
+                    if event.key.keysym.sym == SDLK_t   keyState[SDLK_t] = false;
+                    if event.key.keysym.sym == SDLK_g   keyState[SDLK_g] = false;
 
                 // case SDL_MOUSEBUTTONDOWN;
                 //     // if event.button.state == SDL_PRESSED {
