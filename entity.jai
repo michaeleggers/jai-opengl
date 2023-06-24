@@ -4,6 +4,16 @@ EntityType :: enum u32 {
 }
 
 Entity :: struct {
+    #as using base := BaseEntity.{
+        VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
+            using cast(*Entity)baseEntity;
+            if keyState[SDLK_h] pos.x += 0.01;
+            if keyState[SDLK_f] pos.x -= 0.01;
+            if keyState[SDLK_t] pos.z -= 0.01;
+            if keyState[SDLK_g] pos.z += 0.01;
+            print("pos: %\n", pos);
+        }
+    };
     type        : EntityType;
     pos         : Vector3;
     orientation : Quaternion;
@@ -12,7 +22,7 @@ Entity :: struct {
     modelID     : u32; // ID into entity model array in render.jai
     textureID   : u32;
     texture     : string; // TODO: actually when processing entities in a loop, I don't really want that here!
-    transform   := Matrix4_Identity; // Holds the current transformation matrix
+    transform   := Matrix4_Identity; // Holds the current transformation matrix    
 }
 
 AABB :: struct {

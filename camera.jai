@@ -6,6 +6,24 @@
 
 
 Camera :: struct {
+    #as using base := BaseEntity.{
+        VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
+            using cast(*Camera)baseEntity;
+            // if keyState[SDLK_h] pos.x += 0.01;
+            // if keyState[SDLK_f] pos.x -= 0.01;
+            // if keyState[SDLK_t] pos.z -= 0.01;
+            // if keyState[SDLK_g] pos.z += 0.01;
+ 
+            if keyState[SDLK_RIGHT]     RotateAroundUp(cast(*Camera)baseEntity, -0.0001);
+            if keyState[SDLK_LEFT]      RotateAroundUp(cast(*Camera)baseEntity,  0.0001);
+            if keyState[SDLK_UP]        RotateAroundSide(cast(*Camera)baseEntity,  0.0001);
+            if keyState[SDLK_DOWN]      RotateAroundSide(cast(*Camera)baseEntity, -0.0001);
+            if keyState[SDLK_d]         MoveSide(cast(*Camera)baseEntity,  0.01);
+            if keyState[SDLK_a]         MoveSide(cast(*Camera)baseEntity, -0.01);
+            if keyState[SDLK_w]         MoveForward(cast(*Camera)baseEntity,  0.01);
+            if keyState[SDLK_s]         MoveForward(cast(*Camera)baseEntity, -0.01);
+        }
+    };
     pos     := Vector3.{ 0.0, 0.0, 3.0 };
     center  := Vector3.{ 0.0, 0.0, 0.0 };
     up      := Vector3.{ 0.0, 1.0, 0.0 };   

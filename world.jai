@@ -19,28 +19,6 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
     }
 }
 
-UpdateCameraOnKeys :: (keyState : [] bool, camera : *Camera) {
-    if keyState[SDLK_RIGHT]     RotateAroundUp(camera, -0.0001);
-    if keyState[SDLK_LEFT]      RotateAroundUp(camera,  0.0001);
-    if keyState[SDLK_UP]        RotateAroundSide(camera,  0.0001);
-    if keyState[SDLK_DOWN]      RotateAroundSide(camera, -0.0001);
-    if keyState[SDLK_d]         MoveSide(camera,  0.01);
-    if keyState[SDLK_a]         MoveSide(camera, -0.01);
-    if keyState[SDLK_w]         MoveForward(camera,  0.01);
-    if keyState[SDLK_s]         MoveForward(camera, -0.01);
-}
-
-UpdatePlayerOnKeys :: (keyState : [] bool, entity : *Entity) {
-    if keyState[SDLK_h]         entity.pos.x += 0.01;
-    if keyState[SDLK_f]         entity.pos.x -= 0.01;
-    if keyState[SDLK_t]         entity.pos.z -= 0.01;
-    if keyState[SDLK_g]         entity.pos.z += 0.01;
-}
-
-UpdateOnKeys :: (update : (keyState : [] bool, entity : $T), keyState : [] bool, entity : $E) {
-    update(keyState, entity);    
-}
-
 UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
     RotateAroundUp(camera, -dX * 0.01);
     RotateAroundSide(camera, -dY * 0.01);
@@ -51,17 +29,18 @@ UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
 AABBlines : [12] Line;
 
 UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, world : *World) {
-    UpdateOnKeys(UpdatePlayerOnKeys, keyState, *world.player);
+
+    UpdateOnKeys(*world.player, keyState);
     updateEntity(*world.player);
     
+    #run print("type_of(world.player): %\n", type_of(world.player));
+
     // TODO: Make a polymorphic function that accepts entities and the camera.
     //       This function could be called something like 'ProcessKeyboardInput' and 'ProcessMouseInput'.
     //       The passed entity (or camera) brings a control-scheme, that defines what happens to this
     //       entity on certain key- (and mouse-) presses. So in the end, UpdateCameraOnKeys and
     //       UpdateCameraOnMouse are gone. Something like that.
-
-    // UpdateCameraOnKeys(keyState, *refdef.camera);
-    UpdateOnKeys(UpdateCameraOnKeys, keyState, *refdef.camera);
+    UpdateOnKeys(*refdef.camera, keyState);
     if mouseState.rightButtonDown {    
         UpdateCameraOnMouse(*refdef.camera, mouseState.dX, mouseState.dY);
     }

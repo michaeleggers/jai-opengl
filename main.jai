@@ -12,6 +12,7 @@
 #load "graphics_math.jai";
 #load "geometry.jai";
 #load "hud.jai";
+#load "base_entity.jai";
 #load "entity.jai";
 #load "world.jai";
 
