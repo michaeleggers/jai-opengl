@@ -86,6 +86,10 @@ Mat4XVec4 :: (m: Matrix4, v: Vector4) -> Vector4 {
     return result;
 }
 
+vec3toVec4 :: (v : Vector3) -> Vector4 {
+    return .{v.x, v.y, v.z, 1.0};
+}
+
 PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientHeight : u32, world : [] Model) -> bool, Tri, float {
     // Get Worldspace coordinates of target
     viewMat := CreateView(camera);

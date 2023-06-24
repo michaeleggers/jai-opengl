@@ -31,7 +31,7 @@ AABBlines : [12] Line;
 UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, world : *World) {
 
     UpdateOnKeys(*world.player, keyState);
-    updateEntity(*world.player);
+    UpdateEntity(*world.player);
     
     #run print("type_of(world.player): %\n", type_of(world.player));
 
