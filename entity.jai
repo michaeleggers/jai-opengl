@@ -4,16 +4,16 @@ EntityType :: enum u32 {
 }
 
 Entity :: struct {
-    #as using base := BaseEntity.{
+    #as using base := BaseEntity.{    
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
             using cast(*Entity)baseEntity;
             if keyState[SDLK_h] pos.x += 0.01;
             if keyState[SDLK_f] pos.x -= 0.01;
             if keyState[SDLK_t] pos.z -= 0.01;
-            if keyState[SDLK_g] pos.z += 0.01;      
+            if keyState[SDLK_g] pos.z += 0.01;   
         }
     };
-    type        : EntityType;
+    entityType        : EntityType;
     pos         : Vector3;
     orientation : Quaternion;
     aabb        : AABB;    

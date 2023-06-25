@@ -19,7 +19,8 @@ Camera :: struct {
             if keyState[SDLK_s]         MoveForward(cast(*Camera)baseEntity, -0.01);
         }
     };
-    pos     := Vector3.{ 0.0, 0.0, 3.0 };
+    type    : Type = Camera;
+    pos     := Vector3.{ 0.0, 0.0, 5.0 };
     center  := Vector3.{ 0.0, 0.0, 0.0 };
     up      := Vector3.{ 0.0, 1.0, 0.0 };   
     forward : Vector3;
@@ -29,20 +30,37 @@ Camera :: struct {
 
 FollowCamera :: struct {
     #as using camera : Camera;
+    type = FollowCamera;
     base = BaseEntity.{
         VirtualUpdateOnKeys = null
     };
     target  : *Entity = null;
+    distance := 5.0;
 }
 
 CreateFollowCamera :: (camera : Camera, target : *Entity) -> FollowCamera {
-    result : FollowCamera;
-    result.camera = camera;
-    result.camera.forward = normalize(result.camera.center - result.camera.pos);    
-    SetOrientation(*result.camera);
+    result : FollowCamera;    
+    result.pos = camera.pos;
+    result.center = target.pos;
+    result.up = camera.up;
+    result.fov = camera.fov;
+    print("target.pos: %\n", target.pos);
+    result.forward = normalize(target.pos - result.pos);
+    SetOrientation(*result);
     result.target = target;
 
     return result;
+}
+
+UpdateFollowCamera :: (using followCamera : *FollowCamera) {
+    d := length(pos - target.pos);
+    if d != distance {
+        pos = target.pos + distance*(-forward);
+    }
+    
+    // TODO: Set orientation to target orientation
+
+
 }
 
 CreateCamera :: (camera : Camera) -> Camera {

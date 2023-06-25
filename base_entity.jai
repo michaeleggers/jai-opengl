@@ -1,5 +1,5 @@
 
-BaseEntity :: struct {
+BaseEntity :: struct {    
     VirtualUpdateOnKeys : (*BaseEntity, [] bool) -> () = null; 
 }
 

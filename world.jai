@@ -8,7 +8,7 @@ World :: struct {
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
     for entity : entities {
-        if entity.type == .PLAYER { // TODO: Actually load model data from disk and compute necessary stuff as AABB.
+        if entity.entityType == .PLAYER { // TODO: Actually load model data from disk and compute necessary stuff as AABB.
             world.player = entity;
             world.player.textureID = RegisterTexture(entity.texture);
             world.player.modelID = CreateEntityModel(GEOM_UNIT_CUBE);
@@ -40,9 +40,13 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     //       The passed entity (or camera) brings a control-scheme, that defines what happens to this
     //       entity on certain key- (and mouse-) presses. So in the end, UpdateCameraOnKeys and
     //       UpdateCameraOnMouse are gone. Something like that.    
-    UpdateOnKeys(refdef.camera, keyState);
-    if mouseState.rightButtonDown {    
-        UpdateCameraOnMouse(refdef.camera, mouseState.dX, mouseState.dY);
+    if refdef.camera.type == Camera {
+        UpdateOnKeys(refdef.camera, keyState);
+        if mouseState.rightButtonDown {    
+                UpdateCameraOnMouse(refdef.camera, mouseState.dX, mouseState.dY);
+        }
+    } else if refdef.camera.type == FollowCamera {
+        UpdateFollowCamera(cast(*FollowCamera)refdef.camera);        
     }
 
     aabb := world.player.currentAABB;

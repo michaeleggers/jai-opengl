@@ -98,17 +98,21 @@ main :: () {
     // world.textureID = RegisterTexture("wood_planks_01.tga");
     // modelID := RegisterModel(*world);
 
-    debugCamera := CreateCamera(.{ pos = .{0.0, 0.0, 5.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    debugCamera := CreateCamera(.{ pos = .{0.0, 0.0, 20.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
     refdef.camera = *debugCamera;
-    followCamera := CreateFollowCamera(.{ pos = .{0.0, 0.0, 5.0}, fov = 50.0 }, *world.player);
+    followCamera := CreateFollowCamera(.{ pos = .{4.0, -5.0, 10.0}, fov = 50.0 }, *world.player);
     world.player.followCamera = *followCamera;
+    followCamera2 := FollowCamera.{};
     refdef.camera = *followCamera;
+    print("debugCamera.type: %\n", debugCamera.type);
+    print("followCamera2.type: %\n", followCamera2.type);
+    print("followCamera.type: %\n", followCamera.type);
     print("type_of(followCamera): %\n", type_of(followCamera));
     print("type_of(refdef.camera): %\n", type_of(refdef.camera));
-    print("type_of(cast(*FollowCamera)refdef.camera): %\n", type_of(cast(*FollowCamera)(refdef.camera)));
+    print("type_of(cast(*FollowCamera)refdef.camera): %\n", type_of(cast(*FollowCamera)refdef.camera));
     thingy := cast(*FollowCamera)refdef.camera;
     print("thingy.target: %\n", type_of(thingy.target));
-
+    print("refdef.camera.type: %\n", refdef.camera.type);
 
     // Safe mouse state, so we can get a delta
     mouseState : MouseState;
