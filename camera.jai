@@ -38,8 +38,9 @@ FollowCamera :: struct {
     distance := 5.0;
 }
 
-CreateFollowCamera :: (camera : Camera, target : *Entity) -> FollowCamera {
+CreateFollowCamera :: (camera : Camera, target : *Entity, distance : float) -> FollowCamera {
     result : FollowCamera;    
+    result.distance = distance;
     result.pos = camera.pos;
     result.center = target.pos;
     result.up = camera.up;
@@ -53,14 +54,8 @@ CreateFollowCamera :: (camera : Camera, target : *Entity) -> FollowCamera {
 }
 
 UpdateFollowCamera :: (using followCamera : *FollowCamera) {
-    d := length(pos - target.pos);
-    if d != distance {
-        pos = target.pos + distance*(-forward);
-    }
-    
-    // TODO: Set orientation to target orientation
-
-
+    pos = target.pos + distance*(-forward);
+    center = target.pos;
 }
 
 CreateCamera :: (camera : Camera) -> Camera {
