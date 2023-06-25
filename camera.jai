@@ -9,11 +9,6 @@ Camera :: struct {
     #as using base := BaseEntity.{
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
             using cast(*Camera)baseEntity;
-            // if keyState[SDLK_h] pos.x += 0.01;
-            // if keyState[SDLK_f] pos.x -= 0.01;
-            // if keyState[SDLK_t] pos.z -= 0.01;
-            // if keyState[SDLK_g] pos.z += 0.01;
- 
             if keyState[SDLK_RIGHT]     RotateAroundUp(cast(*Camera)baseEntity, -0.0001);
             if keyState[SDLK_LEFT]      RotateAroundUp(cast(*Camera)baseEntity,  0.0001);
             if keyState[SDLK_UP]        RotateAroundSide(cast(*Camera)baseEntity,  0.0001);
@@ -30,6 +25,24 @@ Camera :: struct {
     forward : Vector3;
     orientation : Quaternion;    
     fov     := 90.0;
+}
+
+FollowCamera :: struct {
+    #as using camera : Camera;
+    base = BaseEntity.{
+        VirtualUpdateOnKeys = null
+    };
+    target  : *Entity = null;
+}
+
+CreateFollowCamera :: (camera : Camera, target : *Entity) -> FollowCamera {
+    result : FollowCamera;
+    result.camera = camera;
+    result.camera.forward = normalize(result.camera.center - result.camera.pos);    
+    SetOrientation(*result.camera);
+    result.target = target;
+
+    return result;
 }
 
 CreateCamera :: (camera : Camera) -> Camera {

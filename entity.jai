@@ -10,8 +10,7 @@ Entity :: struct {
             if keyState[SDLK_h] pos.x += 0.01;
             if keyState[SDLK_f] pos.x -= 0.01;
             if keyState[SDLK_t] pos.z -= 0.01;
-            if keyState[SDLK_g] pos.z += 0.01;
-            print("pos: %\n", pos);
+            if keyState[SDLK_g] pos.z += 0.01;      
         }
     };
     type        : EntityType;
@@ -23,6 +22,7 @@ Entity :: struct {
     textureID   : u32;
     texture     : string; // TODO: actually when processing entities in a loop, I don't really want that here!
     transform   := Matrix4_Identity; // Holds the current transformation matrix    
+    followCamera : *FollowCamera = null;
 }
 
 AABB :: struct {

@@ -39,10 +39,10 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     //       This function could be called something like 'ProcessKeyboardInput' and 'ProcessMouseInput'.
     //       The passed entity (or camera) brings a control-scheme, that defines what happens to this
     //       entity on certain key- (and mouse-) presses. So in the end, UpdateCameraOnKeys and
-    //       UpdateCameraOnMouse are gone. Something like that.
-    UpdateOnKeys(*refdef.camera, keyState);
+    //       UpdateCameraOnMouse are gone. Something like that.    
+    UpdateOnKeys(refdef.camera, keyState);
     if mouseState.rightButtonDown {    
-        UpdateCameraOnMouse(*refdef.camera, mouseState.dX, mouseState.dY);
+        UpdateCameraOnMouse(refdef.camera, mouseState.dX, mouseState.dY);
     }
 
     aabb := world.player.currentAABB;

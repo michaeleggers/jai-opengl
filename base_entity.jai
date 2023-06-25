@@ -1,6 +1,6 @@
 
 BaseEntity :: struct {
-    VirtualUpdateOnKeys : (*BaseEntity, [] bool) -> () = null;
+    VirtualUpdateOnKeys : (*BaseEntity, [] bool) -> () = null; 
 }
 
 UpdateOnKeys :: (baseEntity : *BaseEntity, keyState : [] bool) {

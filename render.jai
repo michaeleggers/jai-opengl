@@ -44,7 +44,7 @@ RefDef :: struct {
     clientWidth         : u32 = 1024;
     clientHeight        : u32 = 768;
     window              : *SDL_Window;
-    camera              : Camera;
+    camera              : *Camera;
     wireframe           := false;
 
     HUDDrawList         : [MAX_HUD_DRAW_CMDS] HUDDrawCmd;
