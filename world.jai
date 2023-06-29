@@ -61,7 +61,7 @@ ApplyGravity :: (world : *World, entity : *Entity) {
     hitList : [8] HitRecord;
     hitList[0] = Trace(startBA, endBA, max, world.models);
     hitList[1] = Trace(startBB, endBB, max, world.models);
-    hitList[2] = Trace(startBD, endBC, max, world.models);
+    hitList[2] = Trace(startBC, endBC, max, world.models);
     hitList[3] = Trace(startBD, endBD, max, world.models);
     hitList[4] = Trace(startTA, endTA, max, world.models);
     hitList[5] = Trace(startTB, endTB, max, world.models);
