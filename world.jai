@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{0.0, -1.0, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{0.0, -0.01, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -25,6 +25,7 @@ UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
     RotateAroundSide(camera, -dY * 0.01);
 }
 
+// TODO: Do I need a physics.jai?
 ApplyGravity :: (world : *World, entity : *Entity) {
     start := entity.pos;
     end := entity.pos + world.gravity;
@@ -39,18 +40,21 @@ ApplyGravity :: (world : *World, entity : *Entity) {
         b = .{pos = end, color = noHitColor}
     };
 
+    movement := world.gravity;
     doesHit, tri, distance := Trace(start, end, max, world.models);
     if doesHit {
-        print("hit!, distance: %\n", distance);       
+        //print("hit!\n");       
         rayVis[0] = .{
             a = .{pos = start, color = hitColor},
             b = .{pos = start + dir, color = hitColor}
         };
-        // entity.pos += distance*normalize(world.gravity);
+        movement = distance*dir;
     } else {
-        // entity.pos += world.gravity;
+        print("distance: %\n", distance);
     }
     Draw3DImmediateLines(rayVis);
+
+    entity.pos += movement;
 }
 
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
