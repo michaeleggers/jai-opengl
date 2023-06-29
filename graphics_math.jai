@@ -91,7 +91,7 @@ vec3toVec4 :: (v : Vector3) -> Vector4 {
 }
 
 // TODO: Use Trace in collision.jai when the proc is hardened
-PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientHeight : u32, world : [] Model) -> bool, Tri, float {
+PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientHeight : u32, world : [] Model) -> HitRecord {
     // Get Worldspace coordinates of target
     viewMat := CreateView(camera);
     // viewMat = make_look_at_matrix(camera.pos, camera.center, camera.up, x_is_forward=false);
@@ -183,7 +183,7 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
     // print("bestTri: %\n", bestTri);
     // print("canera.pos: % || shortestT: %\n", camera.pos, shortestT);
 
-    return success, bestTri, shortestT;
+    return HitRecord.{success, bestTri, shortestT};
     
     // return .{Xnd, Ynd, 0.0, 0.0};
 }

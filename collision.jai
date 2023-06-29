@@ -1,5 +1,12 @@
+HitRecord :: struct {
+    success : bool;
+    tri : Tri;
+    distance : float;
+}
+
+
 // TODO: The PickTri proc in graphics_math.jai should use this proc as it does the same just with the cam as starting point
-Trace :: (start : Vector3, end : Vector3, maxT : float, world : [] Model) -> bool, Tri, float {
+Trace :: (start : Vector3, end : Vector3, maxT : float, world : [] Model) -> HitRecord {
     
     r := normalize(end - start);
     shortestT := maxT;    
@@ -47,5 +54,5 @@ Trace :: (start : Vector3, end : Vector3, maxT : float, world : [] Model) -> boo
 
     hitPoint := start + (shortestT*r);
     
-    return success, bestTri, shortestT;    
+    return .{success, bestTri, shortestT};    
 }

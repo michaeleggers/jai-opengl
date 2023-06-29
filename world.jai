@@ -26,31 +26,62 @@ UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
 }
 
 // TODO: Do I need a physics.jai?
+// TODO: This stuff is probably very expensive!!!
 ApplyGravity :: (world : *World, entity : *Entity) {
-    start := entity.pos;
-    end := entity.pos + world.gravity;
-    max := length(world.gravity); 
-    dir := normalize(end - start);    
+    startBA := entity.currentAABB.bottomA;
+    startBB := entity.currentAABB.bottomB;
+    startBC := entity.currentAABB.bottomC;
+    startBD := entity.currentAABB.bottomD;
+    startTA := entity.currentAABB.topA;
+    startTB := entity.currentAABB.topB;
+    startTC := entity.currentAABB.topC;
+    startTD := entity.currentAABB.topD;
+    endBA := startBA + world.gravity;
+    endBB := startBB + world.gravity;
+    endBC := startBC + world.gravity;
+    endBD := startBD + world.gravity;
+    endTA := startTA + world.gravity;
+    endTB := startTB + world.gravity;
+    endTC := startTC + world.gravity;
+    endTD := startTD + world.gravity;
+    
+    print("startTA: %\n", startTA);
+
+    max := length(world.gravity);
+    dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
 
     rayVis : [1] Line;
     noHitColor := Vector3.{1.0, 1.0, 1.0};
     hitColor   := Vector3.{0.0, 1.0, 0.0};
     rayVis[0] = .{
-        a = .{pos = start, color = noHitColor},
-        b = .{pos = end, color = noHitColor}
+        a = .{pos = startBA, color = noHitColor},
+        b = .{pos = endBA, color = noHitColor}
     };
 
+    hitList : [8] HitRecord;
+    hitList[0] = Trace(startBA, endBA, max, world.models);
+    hitList[1] = Trace(startBB, endBB, max, world.models);
+    hitList[2] = Trace(startBD, endBC, max, world.models);
+    hitList[3] = Trace(startBD, endBD, max, world.models);
+    hitList[4] = Trace(startTA, endTA, max, world.models);
+    hitList[5] = Trace(startTB, endTB, max, world.models);
+    hitList[6] = Trace(startTC, endTC, max, world.models);
+    hitList[7] = Trace(startTD, endTD, max, world.models);
+
     movement := world.gravity;
-    doesHit, tri, distance := Trace(start, end, max, world.models);
-    if doesHit {
-        //print("hit!\n");       
-        rayVis[0] = .{
-            a = .{pos = start, color = hitColor},
-            b = .{pos = start + dir, color = hitColor}
-        };
-        movement = distance*dir;
-    } else {
-        print("distance: %\n", distance);
+    shortestDistance := max;
+    for hitList {        
+        if it.success {
+            //print("hit!\n");       
+            rayVis[0] = .{
+                a = .{pos = startBA, color = hitColor},
+                b = .{pos = startBA + dir, color = hitColor}
+            };
+            if it.distance < shortestDistance {
+                movement = it.distance*dir;
+                shortestDistance = it.distance;
+            }
+        }        
     }
     Draw3DImmediateLines(rayVis);
 
@@ -62,9 +93,9 @@ ApplyGravity :: (world : *World, entity : *Entity) {
 AABBlines : [12] Line;
 UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, world : *World) {
 
-    ApplyGravity(world, *world.player);
     UpdateOnKeys(*world.player, keyState);
     UpdateEntity(*world.player);
+    ApplyGravity(world, *world.player);
     
     // TODO: Make a polymorphic function that accepts entities and the camera.
     //       This function could be called something like 'ProcessKeyboardInput' and 'ProcessMouseInput'.

@@ -101,7 +101,7 @@ main :: () {
 
     debugCamera := CreateCamera(.{ pos = .{0.0, 0.0, 20.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
     refdef.camera = *debugCamera;
-    followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z + 1}, fov = 50.0 }, *world.player, 20.0);
+    followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z + 1}, fov = 50.0 }, *world.player, 10.0);
     world.player.followCamera = *followCamera;
     followCamera2 := FollowCamera.{};
     // refdef.camera = *followCamera;
@@ -224,9 +224,11 @@ main :: () {
         UpdateWorld(keyState, mouseState, *refdef, *world);
 
         // Test triangle picking
-        hitFound, tri, rayLength := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world.models);
-        if hitFound {
+        hitRecord := PickTri(refdef.camera, .{cast(float)mouseX, cast(float)(cast(s32)refdef.clientHeight - mouseY)}, refdef.clientWidth, refdef.clientHeight, world.models);
+        if hitRecord.success {
             // print("t: %\n", rayLength);
+            tri := hitRecord.tri;
+
             tri.a.color = .{1.0, 0.95, 0.0};
             tri.b.color = .{1.0, 0.95, 0.0};
             tri.c.color = .{1.0, 0.95, 0.0};
@@ -238,7 +240,7 @@ main :: () {
             tris : [1]Tri;
             tris[0] = tri;
             Draw3DImmediateTris(tris, depthTest = true);
-            hudScaleFactor := clamp(3.0 - rayLength, 1.0, 3.0);
+            hudScaleFactor := clamp(3.0 - hitRecord.distance, 1.0, 3.0);
             hudScale := 10*hudScaleFactor;
             DrawHUD(*refdef, crosshairHUD, 
                 xPos = cast(float)refdef.clientWidth/2.0 - hudScale/2.0, 
