@@ -103,7 +103,7 @@ main :: () {
     followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z + 1}, fov = 50.0 }, *world.player, 20.0);
     world.player.followCamera = *followCamera;
     followCamera2 := FollowCamera.{};
-    refdef.camera = *followCamera;
+    // refdef.camera = *followCamera;
     print("debugCamera.type: %\n", debugCamera.type);
     print("followCamera2.type: %\n", followCamera2.type);
     print("followCamera.type: %\n", followCamera.type);
@@ -151,6 +151,10 @@ main :: () {
                     if event.key.keysym.sym == SDLK_t   keyState[SDLK_t] = true;
                     if event.key.keysym.sym == SDLK_g   keyState[SDLK_g] = true;
 
+                    if event.key.keysym.sym == SDLK_1   keyState[SDLK_1] = true;
+                    if event.key.keysym.sym == SDLK_2   keyState[SDLK_2] = true;
+
+
                     if event.key.keysym.sym == SDLK_TAB keyState[SDLK_TAB] = !keyState[SDLK_TAB];
             
                 case SDL_KEYUP;
@@ -167,6 +171,9 @@ main :: () {
                     if event.key.keysym.sym == SDLK_f   keyState[SDLK_f] = false;
                     if event.key.keysym.sym == SDLK_t   keyState[SDLK_t] = false;
                     if event.key.keysym.sym == SDLK_g   keyState[SDLK_g] = false;
+
+                    if event.key.keysym.sym == SDLK_1   keyState[SDLK_1] = false;
+                    if event.key.keysym.sym == SDLK_2   keyState[SDLK_2] = false;
 
                 // case SDL_MOUSEBUTTONDOWN;
                 //     // if event.button.state == SDL_PRESSED {
@@ -207,9 +214,8 @@ main :: () {
         }
 
         // Update stuff
-        // Camera    
-        //UpdateCameraOnKeys(*refdef.camera);
-
+        if keyState[SDLK_1] refdef.camera = *debugCamera;
+        if keyState[SDLK_2] refdef.camera = *followCamera;
         UpdateWorld(keyState, mouseState, *refdef, *world);
 
         // Test triangle picking

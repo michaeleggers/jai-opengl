@@ -4,6 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
+    gravity := Vector3.{0.0, -0.01, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -14,7 +15,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             world.player.modelID = CreateEntityModel(GEOM_UNIT_CUBE);
             world.player.aabb = ComputeAABB(GEOM_UNIT_CUBE);
             world.player.currentAABB = world.player.aabb;
-            world.player.pos = entity.pos;
+            world.player.pos = entity.pos;            
         }
     }
 }
@@ -24,17 +25,19 @@ UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
     RotateAroundSide(camera, -dY * 0.01);
 }
 
+ApplyGravity :: (world : *World, entity : *Entity) {
+    entity.pos += world.gravity;
+}
+
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
 //       and just set a flag in refdef if AABBs should be drawn or not.
 AABBlines : [12] Line;
-
 UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, world : *World) {
 
+    ApplyGravity(world, *world.player);
     UpdateOnKeys(*world.player, keyState);
     UpdateEntity(*world.player);
     
-    #run print("type_of(world.player): %\n", type_of(world.player));
-
     // TODO: Make a polymorphic function that accepts entities and the camera.
     //       This function could be called something like 'ProcessKeyboardInput' and 'ProcessMouseInput'.
     //       The passed entity (or camera) brings a control-scheme, that defines what happens to this

@@ -13,16 +13,17 @@ Entity :: struct {
             if keyState[SDLK_g] pos.z += 0.01;   
         }
     };
-    entityType        : EntityType;
-    pos         : Vector3;
-    orientation : Quaternion;
-    aabb        : AABB;    
-    currentAABB : AABB;
-    modelID     : u32; // ID into entity model array in render.jai
-    textureID   : u32;
-    texture     : string; // TODO: actually when processing entities in a loop, I don't really want that here!
-    transform   := Matrix4_Identity; // Holds the current transformation matrix    
+    entityType   : EntityType;
+    pos          : Vector3;
+    orientation  : Quaternion;
+    aabb         : AABB;    
+    currentAABB  : AABB;
+    modelID      : u32; // ID into entity model array in render.jai
+    textureID    : u32;
+    texture      : string; // TODO: actually when processing entities in a loop, I don't really want that here!
+    transform    := Matrix4_Identity; // Holds the current transformation matrix    
     followCamera : *FollowCamera = null;
+    applyGravity := true; // By default the world's gravity force is applied every frame.
 }
 
 AABB :: struct {
