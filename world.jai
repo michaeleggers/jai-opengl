@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{0.0, -0.01, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{0.0, -1.0, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -26,7 +26,31 @@ UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
 }
 
 ApplyGravity :: (world : *World, entity : *Entity) {
-    entity.pos += world.gravity;
+    start := entity.pos;
+    end := entity.pos + world.gravity;
+    max := length(world.gravity); 
+    dir := normalize(end - start);    
+
+    rayVis : [1] Line;
+    noHitColor := Vector3.{1.0, 1.0, 1.0};
+    hitColor   := Vector3.{0.0, 1.0, 0.0};
+    rayVis[0] = .{
+        a = .{pos = start, color = noHitColor},
+        b = .{pos = end, color = noHitColor}
+    };
+
+    doesHit, tri, distance := Trace(start, end, max, world.models);
+    if doesHit {
+        print("hit!, distance: %\n", distance);       
+        rayVis[0] = .{
+            a = .{pos = start, color = hitColor},
+            b = .{pos = start + dir, color = hitColor}
+        };
+        // entity.pos += distance*normalize(world.gravity);
+    } else {
+        // entity.pos += world.gravity;
+    }
+    Draw3DImmediateLines(rayVis);
 }
 
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
@@ -46,7 +70,7 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     if refdef.camera.type == Camera {
         UpdateOnKeys(refdef.camera, keyState);
         if mouseState.rightButtonDown {    
-                UpdateCameraOnMouse(refdef.camera, mouseState.dX, mouseState.dY);
+            UpdateCameraOnMouse(refdef.camera, mouseState.dX, mouseState.dY);
         }
     } else if refdef.camera.type == FollowCamera {
         UpdateFollowCamera(cast(*FollowCamera)refdef.camera);        

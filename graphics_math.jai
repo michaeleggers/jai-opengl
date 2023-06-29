@@ -90,6 +90,7 @@ vec3toVec4 :: (v : Vector3) -> Vector4 {
     return .{v.x, v.y, v.z, 1.0};
 }
 
+// TODO: Use Trace in collision.jai when the proc is hardened
 PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientHeight : u32, world : [] Model) -> bool, Tri, float {
     // Get Worldspace coordinates of target
     viewMat := CreateView(camera);
@@ -145,7 +146,7 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
             nDotC := dot(n, c);
             if nDotC >= 0 { // Is camera pos on the positive (front side) of the plane?
                 nDotR := dot(n, r);
-                if nDotR <= 0.0 { // Is the ray looking to the front face of the plane?
+                if nDotR < 0.0 { // Is the ray looking to the front face of the plane? Must be *really* smaller than 0 because later we divide by  nDotR!
                     // if nDotR >= -0.00001 && nDotR <= 0.00001 continue;
                     // compute the hitpoint p between ray and plane
                     d := -dot(n, tri.a.pos);

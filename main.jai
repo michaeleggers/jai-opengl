@@ -15,6 +15,7 @@
 #load "base_entity.jai";
 #load "entity.jai";
 #load "world.jai";
+#load "collision.jai";
 #load "input.jai";
 
 AllocString :: (count : u32) -> string {
@@ -150,6 +151,8 @@ main :: () {
                     if event.key.keysym.sym == SDLK_f   keyState[SDLK_f] = true;
                     if event.key.keysym.sym == SDLK_t   keyState[SDLK_t] = true;
                     if event.key.keysym.sym == SDLK_g   keyState[SDLK_g] = true;
+                    if event.key.keysym.sym == SDLK_i   keyState[SDLK_i] = true;
+                    if event.key.keysym.sym == SDLK_k   keyState[SDLK_k] = true;
 
                     if event.key.keysym.sym == SDLK_1   keyState[SDLK_1] = true;
                     if event.key.keysym.sym == SDLK_2   keyState[SDLK_2] = true;
@@ -171,6 +174,8 @@ main :: () {
                     if event.key.keysym.sym == SDLK_f   keyState[SDLK_f] = false;
                     if event.key.keysym.sym == SDLK_t   keyState[SDLK_t] = false;
                     if event.key.keysym.sym == SDLK_g   keyState[SDLK_g] = false;
+                    if event.key.keysym.sym == SDLK_i   keyState[SDLK_i] = false;
+                    if event.key.keysym.sym == SDLK_k   keyState[SDLK_k] = false;
 
                     if event.key.keysym.sym == SDLK_1   keyState[SDLK_1] = false;
                     if event.key.keysym.sym == SDLK_2   keyState[SDLK_2] = false;

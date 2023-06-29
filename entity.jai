@@ -11,6 +11,9 @@ Entity :: struct {
             if keyState[SDLK_f] pos.x -= 0.01;
             if keyState[SDLK_t] pos.z -= 0.01;
             if keyState[SDLK_g] pos.z += 0.01;   
+            if keyState[SDLK_i] pos.y += 0.01;   
+            if keyState[SDLK_k] pos.y -= 0.01;   
+
         }
     };
     entityType   : EntityType;
