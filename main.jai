@@ -39,6 +39,7 @@ MouseState :: struct {
     oldX, oldY      : s32;
     dX, dY          : s32;
     rightButtonDown  := false;
+    rightButtonWentUp := false;
 }
 
 keyState : [#run enum_highest_value(SDL_Keycode)] bool;
@@ -126,8 +127,8 @@ main :: () {
         buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
         mouseState.oldX = mouseX;
         mouseState.oldY = mouseY;
-        mouseState.rightButtonDown = false;
-
+        mouseState.rightButtonDown = false;        
+        mouseState.rightButtonWentUp = false;
         // SDL Event Loop
         event : SDL_Event;
         while SDL_PollEvent(*event) {
@@ -207,6 +208,9 @@ main :: () {
                     mouseState.oldX = 0;
                     mouseState.oldY = 0;
                     mouseState.rightButtonDown = false;
+                    if event.button.button & SDL_BUTTON_RIGHT == SDL_BUTTON_RIGHT {
+                        mouseState.rightButtonWentUp = true;
+                    }
 
                 case SDL_WINDOWEVENT;
                     if event.window.event == SDL_WINDOWEVENT_RESIZED {

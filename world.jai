@@ -45,8 +45,6 @@ ApplyGravity :: (world : *World, entity : *Entity) {
     endTC := startTC + world.gravity;
     endTD := startTD + world.gravity;
     
-    print("startTA: %\n", startTA);
-
     max := length(world.gravity);
     dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
 
@@ -105,7 +103,11 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     if refdef.camera.type == Camera {
         UpdateOnKeys(refdef.camera, keyState);
         if mouseState.rightButtonDown {    
+            SDL_ShowCursor(0); // TODO: Should be SDL_ENABLE -> Can we fix this in SDL2 module of jai?
             UpdateCameraOnMouse(refdef.camera, mouseState.dX, mouseState.dY);
+        }
+        if mouseState.rightButtonWentUp {
+            SDL_ShowCursor(1);
         }
     } else if refdef.camera.type == FollowCamera {
         UpdateFollowCamera(cast(*FollowCamera)refdef.camera);        
