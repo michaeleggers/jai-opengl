@@ -47,12 +47,14 @@ ApplyGravity :: (world : *World, entity : *Entity) {
     endTD := startTD + world.gravity;
     
     // check AABB overlap with world geometry    
+    worldCollisionModels : [..] Model;
     for world.models {    
         if CheckAABB(world.player.currentAABB, it.aabb) {
-            print("intersection with world model which is at: %\n", it.position); break;
-        } else {
-            print("No intersection.\n");
+            array_add(*worldCollisionModels, it);            
         }
+    }
+    for worldCollisionModels {
+        Draw3DAABB(it.aabb);
     }
 
     max := length(world.gravity);
@@ -94,6 +96,29 @@ ApplyGravity :: (world : *World, entity : *Entity) {
     Draw3DImmediateLines(rayVis);
 
     entity.pos += movement;
+}
+
+Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
+    boxTris : [12] Tri;
+    translate := transpose(make_translation_matrix4(aabb.minXYZ));
+    for GEOM_UNIT_CUBE {    
+        // TODO: All of those vector conversions between v3 and v4 is kinda annoying!
+        //       Is there a good way in jai to do this? like in glm: glm::vec4(myVec3, 1.0); ?
+        a := Mat4XVec4(translate, vec3toVec4(it.a.pos));
+        b := Mat4XVec4(translate, vec3toVec4(it.b.pos));
+        c := Mat4XVec4(translate, vec3toVec4(it.c.pos));
+        a3 := Vector3.{a.x, a.y, a.z};
+        b3 := Vector3.{b.x, b.y, b.z};
+        c3 := Vector3.{c.x, c.y, c.z};
+        boxTris[it_index].a.pos = a3 + 0.0001*it.a.normal;
+        boxTris[it_index].b.pos = b3 + 0.0001*it.b.normal;
+        boxTris[it_index].c.pos = c3 + 0.0001*it.c.normal;
+        boxTris[it_index].a.color = color;
+        boxTris[it_index].b.color = color;
+        boxTris[it_index].c.color = color;
+
+    }
+    Draw3DImmediateTris(boxTris);
 }
 
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
