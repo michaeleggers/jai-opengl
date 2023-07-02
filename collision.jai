@@ -61,7 +61,7 @@ AABB :: struct {
     maxXYZ := Vector3.{1.0, 1.0, 1.0};
     width : float = 2;
     height : float = 2;
-    depth : float = 2;    
+    depth : float = 2;
 
     // All 8 points of the box, not sure if this is a waste of memory...
     // but makes collision detection easier. TODO: How does Quake do it?
@@ -74,6 +74,61 @@ AABB :: struct {
     topB := Vector3.{-1.0, 1.0,  1.0};
     topC := Vector3.{ 1.0, 1.0,  1.0}; // maxXYZ, TODO: Alias  in structs?
     topD := Vector3.{ 1.0, 1.0, -1.0};
+}
+
+ComputeAABB :: (tris : [] Tri) -> AABB {
+    minX, minY, minZ : float = 999.99;
+    maxX, maxY, maxZ : float = -999.99;
+    for tri : tris {
+        pos := tri.a.pos;
+        if      pos.x < minX minX = pos.x;
+        else if pos.x > maxX maxX = pos.x;
+        if      pos.y < minY minY = pos.y;
+        else if pos.y > maxY maxY = pos.y;
+        if      pos.z < minZ minZ = pos.z;
+        else if pos.z > maxZ maxZ = pos.z;        
+
+        pos = tri.b.pos;
+        if      pos.x < minX minX = pos.x;
+        else if pos.x > maxX maxX = pos.x;
+        if      pos.y < minY minY = pos.y;
+        else if pos.y > maxY maxY = pos.y;
+        if      pos.z < minZ minZ = pos.z;
+        else if pos.z > maxZ maxZ = pos.z;        
+
+        pos = tri.c.pos;
+        if      pos.x < minX minX = pos.x;
+        else if pos.x > maxX maxX = pos.x;
+        if      pos.y < minY minY = pos.y;
+        else if pos.y > maxY maxY = pos.y;
+        if      pos.z < minZ minZ = pos.z;
+        else if pos.z > maxZ maxZ = pos.z;
+    }
+    width := abs(maxX - minX);
+    height := abs(maxY - minY);
+    depth := abs(maxZ - minZ);
+
+    X := Vector3.{1.0, 0.0, 0.0};
+    Y := Vector3.{0.0, 1.0, 0.0};
+    Z := Vector3.{0.0, 0.0, 1.0};
+    minXYZ := Vector3.{minX, minY, minZ};
+    maxXYZ := Vector3.{maxX, maxY, maxZ};
+    bottomA := minXYZ;
+    bottomB := minXYZ + Z*depth;
+    bottomC := bottomB + X*width;
+    bottomD := bottomA + X*width;
+    topA := maxXYZ;
+    topB := bottomB + Y*height;
+    topC := bottomC + Y*height;
+    topD := bottomD + Y*height;
+    
+    return .{
+        minXYZ,
+        maxXYZ,
+        width, height, depth,
+        bottomA, bottomB, bottomC, bottomD,
+        topA, topB, topC, topD
+    };
 }
 
 CheckAABB :: (a : AABB, b : AABB) -> bool {

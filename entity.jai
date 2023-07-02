@@ -29,62 +29,6 @@ Entity :: struct {
     applyGravity := true; // By default the world's gravity force is applied every frame.
 }
 
-// Should maybe be in math graphics or collision.jai or something...
-ComputeAABB :: (tris : [] Tri) -> AABB {
-    minX, minY, minZ : float = 999.99;
-    maxX, maxY, maxZ : float = -999.99;
-    for tri : tris {
-        pos := tri.a.pos;
-        if      pos.x < minX minX = pos.x;
-        else if pos.x > maxX maxX = pos.x;
-        if      pos.y < minY minY = pos.y;
-        else if pos.y > maxY maxY = pos.y;
-        if      pos.z < minZ minZ = pos.z;
-        else if pos.z > maxZ maxZ = pos.z;        
-
-        pos = tri.b.pos;
-        if      pos.x < minX minX = pos.x;
-        else if pos.x > maxX maxX = pos.x;
-        if      pos.y < minY minY = pos.y;
-        else if pos.y > maxY maxY = pos.y;
-        if      pos.z < minZ minZ = pos.z;
-        else if pos.z > maxZ maxZ = pos.z;        
-
-        pos = tri.c.pos;
-        if      pos.x < minX minX = pos.x;
-        else if pos.x > maxX maxX = pos.x;
-        if      pos.y < minY minY = pos.y;
-        else if pos.y > maxY maxY = pos.y;
-        if      pos.z < minZ minZ = pos.z;
-        else if pos.z > maxZ maxZ = pos.z;
-    }
-    width := abs(maxX - minX);
-    height := abs(maxY - minY);
-    depth := abs(maxZ - minZ);
-
-    X := Vector3.{1.0, 0.0, 0.0};
-    Y := Vector3.{0.0, 1.0, 0.0};
-    Z := Vector3.{0.0, 0.0, 1.0};
-    minXYZ := Vector3.{minX, minY, minZ};
-    maxXYZ := Vector3.{maxX, maxY, maxZ};
-    bottomA := minXYZ;
-    bottomB := minXYZ + Z*depth;
-    bottomC := bottomB + X*width;
-    bottomD := bottomA + X*width;
-    topA := maxXYZ;
-    topB := bottomB + Y*height;
-    topC := bottomC + Y*height;
-    topD := bottomD + Y*height;
-    
-    return .{
-        minXYZ,
-        maxXYZ,
-        width, height, depth,
-        bottomA, bottomB, bottomC, bottomD,
-        topA, topB, topC, topD
-    };
-}
-
 // TODO: THIS IS REALLY UGLY!!!
 UpdateEntity :: (entity : *Entity) { // TODO: Find out how to do namespaces (if they exist or if there is something like it)
     // update transform matrix
@@ -93,6 +37,8 @@ UpdateEntity :: (entity : *Entity) { // TODO: Find out how to do namespaces (if 
     // apply that transform to AABB. We need it on CPU side for collision detection
     minXYZ := Mat4XVec4(entity.transform, vec3toVec4(entity.aabb.minXYZ));
     maxXYZ := Mat4XVec4(entity.transform, vec3toVec4(entity.aabb.maxXYZ));
+
+    // NOTE: The extents *could* change. Account for that in the future...
     width := entity.aabb.width;
     height := entity.aabb.height;
     depth := entity.aabb.depth;

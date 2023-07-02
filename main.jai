@@ -160,6 +160,7 @@ main :: () {
                     if event.key.keysym.sym == SDLK_1   keyState[SDLK_1] = true;
                     if event.key.keysym.sym == SDLK_2   keyState[SDLK_2] = true;
 
+                    if event.key.keysym.sym == SDLK_SPACE   keyState[SDLK_SPACE] = true;
 
                     if event.key.keysym.sym == SDLK_TAB keyState[SDLK_TAB] = !keyState[SDLK_TAB];
             
@@ -179,6 +180,8 @@ main :: () {
                     if event.key.keysym.sym == SDLK_g   keyState[SDLK_g] = false;
                     if event.key.keysym.sym == SDLK_i   keyState[SDLK_i] = false;
                     if event.key.keysym.sym == SDLK_k   keyState[SDLK_k] = false;
+
+                    if event.key.keysym.sym == SDLK_SPACE   keyState[SDLK_SPACE] = false;
 
                     if event.key.keysym.sym == SDLK_1   keyState[SDLK_1] = false;
                     if event.key.keysym.sym == SDLK_2   keyState[SDLK_2] = false;

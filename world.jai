@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{0.0, -0.01, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{0.0, -2.1, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -27,7 +27,7 @@ UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
 
 // TODO: Do I need a physics.jai?
 // TODO: This stuff is probably very expensive!!!
-ApplyGravity :: (world : *World, entity : *Entity) {
+ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     // Sweep bounding box
     startBA := entity.currentAABB.bottomA;
     startBB := entity.currentAABB.bottomB;
@@ -45,20 +45,39 @@ ApplyGravity :: (world : *World, entity : *Entity) {
     endTB := startTB + world.gravity;
     endTC := startTC + world.gravity;
     endTD := startTD + world.gravity;
-    
+
+    minXYZ := entity.currentAABB.minXYZ;
+    minXYZ.y += world.gravity.y;
+
+    sweptAABB := AABB.{
+        minXYZ = minXYZ,
+        maxXYZ = entity.currentAABB.maxXYZ
+    };
+
     // check AABB overlap with world geometry    
     worldCollisionModels : [..] Model;
     for world.models {    
-        if CheckAABB(world.player.currentAABB, it.aabb) {
+        if CheckAABB(sweptAABB, it.aabb) {
             array_add(*worldCollisionModels, it);            
         }
     }
+    // Draw all world models that the player collided with
     for worldCollisionModels {
-        Draw3DAABB(it.aabb);
+        Draw3DAABB(it.aabb, pos = it.aabb.minXYZ);
     }
 
+    // Draw the swept AABB of the player to see where applied gravity is putting her
+    playerAABBcolor := Vector3.{0.0, 1.0, 1.0}; // no hit
+    if worldCollisionModels.count > 0 {  
+        playerAABBcolor = Vector3.{1.0, 0.95, 0.0}; // hit
+    } 
+    aabbDrawPos := entity.currentAABB.minXYZ;
+    aabbDrawPos.y += entity.currentAABB.height;    
+    Draw3DAABB(sweptAABB, color = playerAABBcolor, scaleDir = .{0.0, -1.0, 0.0}, pos = aabbDrawPos);
+    
     max := length(world.gravity);
     dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
+
 
     rayVis : [1] Line;
     noHitColor := Vector3.{1.0, 1.0, 1.0};
@@ -95,18 +114,32 @@ ApplyGravity :: (world : *World, entity : *Entity) {
     }
     Draw3DImmediateLines(rayVis);
 
-    entity.pos += movement;
+    // Only apply movement when space is pressed. TODO: Remove later or map a key to pause or something.
+    if keyState[SDLK_SPACE] {
+        entity.pos += movement;
+    }
 }
 
-Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
+Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}, scaleDir := Vector3.{1.0, 1.0, 1.0}, pos := Vector3.{0.0, 0.0, 0.0}) {
     boxTris : [12] Tri;
-    translate := transpose(make_translation_matrix4(aabb.minXYZ));
+    
+    scaleExtents := abs(aabb.maxXYZ - aabb.minXYZ);
+    print("scaleExtents: %\n", scaleExtents);
+    boxScale := Vector3.{1.0, 1.0, 1.0};
+    if scaleDir.x > 0.0 boxScale.x *= scaleExtents.x;
+    if scaleDir.y > 0.0 boxScale.y *= scaleExtents.y;
+    if scaleDir.z > 0.0 boxScale.z *= scaleExtents.z;
+    if scaleDir.x < 0.0 boxScale.x *= -scaleExtents.x;
+    if scaleDir.y < 0.0 boxScale.y *= -scaleExtents.y;
+    if scaleDir.z < 0.0 boxScale.z *= -scaleExtents.z;
+    transform := translate(Matrix4_Identity, pos);
+    transform = transpose(scale(transform, boxScale));
     for GEOM_UNIT_CUBE {    
         // TODO: All of those vector conversions between v3 and v4 is kinda annoying!
         //       Is there a good way in jai to do this? like in glm: glm::vec4(myVec3, 1.0); ?
-        a := Mat4XVec4(translate, vec3toVec4(it.a.pos));
-        b := Mat4XVec4(translate, vec3toVec4(it.b.pos));
-        c := Mat4XVec4(translate, vec3toVec4(it.c.pos));
+        a := Mat4XVec4(transform, vec3toVec4(it.a.pos));
+        b := Mat4XVec4(transform, vec3toVec4(it.b.pos));
+        c := Mat4XVec4(transform, vec3toVec4(it.c.pos));
         a3 := Vector3.{a.x, a.y, a.z};
         b3 := Vector3.{b.x, b.y, b.z};
         c3 := Vector3.{c.x, c.y, c.z};
@@ -128,7 +161,7 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
 
     UpdateOnKeys(*world.player, keyState);
     UpdateEntity(*world.player);
-    ApplyGravity(world, *world.player);
+    ApplyGravity(keyState, world, *world.player);
     
     // TODO: Make a polymorphic function that accepts entities and the camera.
     //       This function could be called something like 'ProcessKeyboardInput' and 'ProcessMouseInput'.
