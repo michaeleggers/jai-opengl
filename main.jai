@@ -90,6 +90,8 @@ main :: () {
             t.c.pos += brushOffset;
             array_add(*model.tris, t);
         }
+        model.aabb = ComputeAABB(model.tris);
+        model.position = Vector3.{brush.xPos, brush.yPos, brush.zPos};
         array_add(*world.models, model);
         RegisterModel(*model); // Upload to GPU
     }

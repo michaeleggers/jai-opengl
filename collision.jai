@@ -4,7 +4,6 @@ HitRecord :: struct {
     distance : float;
 }
 
-
 // TODO: The PickTri proc in graphics_math.jai should use this proc as it does the same just with the cam as starting point
 Trace :: (start : Vector3, end : Vector3, maxT : float, world : [] Model) -> HitRecord {
     
@@ -55,4 +54,30 @@ Trace :: (start : Vector3, end : Vector3, maxT : float, world : [] Model) -> Hit
     hitPoint := start + (shortestT*r);
     
     return .{success, bestTri, shortestT};    
+}
+
+AABB :: struct {
+    minXYZ := Vector3.{-1.0, -1.0, -1.0};
+    maxXYZ := Vector3.{1.0, 1.0, 1.0};
+    width : float = 2;
+    height : float = 2;
+    depth : float = 2;    
+
+    // All 8 points of the box, not sure if this is a waste of memory...
+    // but makes collision detection easier. TODO: How does Quake do it?
+    bottomA := Vector3.{-1.0, -1.0, -1.0}; // minXYZ, TODO: Alias in structs?
+    bottomB := Vector3.{-1.0, -1.0, 1.0};
+    bottomC := Vector3.{ 1.0, -1.0, 1.0};
+    bottomD := Vector3. {1.0, -1.0, -1.0};
+
+    topA := Vector3.{-1.0, 1.0, -1.0};
+    topB := Vector3.{-1.0, 1.0,  1.0};
+    topC := Vector3.{ 1.0, 1.0,  1.0}; // maxXYZ, TODO: Alias  in structs?
+    topD := Vector3.{ 1.0, 1.0, -1.0};
+}
+
+CheckAABB :: (a : AABB, b : AABB) -> bool {
+    return !((a.maxXYZ.x  < b.minXYZ.x) || (b.maxXYZ.x < a.minXYZ.x) ||
+    (a.maxXYZ.y  < b.minXYZ.y) || (b.maxXYZ.y < a.minXYZ.y) ||
+    (a.maxXYZ.z  < b.minXYZ.z) || (b.maxXYZ.z < a.minXYZ.z));
 }

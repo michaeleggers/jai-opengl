@@ -29,26 +29,6 @@ Entity :: struct {
     applyGravity := true; // By default the world's gravity force is applied every frame.
 }
 
-AABB :: struct {
-    minXYZ := Vector3.{-1.0, -1.0, -1.0};
-    maxXYZ := Vector3.{1.0, 1.0, 1.0};
-    width : float = 2;
-    height : float = 2;
-    depth : float = 2;    
-
-    // All 8 points of the box, not sure if this is a waste of memory...
-    // but makes collision detection easier. TODO: How does Quake do it?
-    bottomA := Vector3.{-1.0, -1.0, -1.0}; // minXYZ, TODO: Alias in structs?
-    bottomB := Vector3.{-1.0, -1.0, 1.0};
-    bottomC := Vector3.{ 1.0, -1.0, 1.0};
-    bottomD := Vector3. {1.0, -1.0, -1.0};
-
-    topA := Vector3.{-1.0, 1.0, -1.0};
-    topB := Vector3.{-1.0, 1.0,  1.0};
-    topC := Vector3.{ 1.0, 1.0,  1.0}; // maxXYZ, TODO: Alias  in structs?
-    topD := Vector3.{ 1.0, 1.0, -1.0};
-}
-
 // Should maybe be in math graphics or collision.jai or something...
 ComputeAABB :: (tris : [] Tri) -> AABB {
     minX, minY, minZ : float = 999.99;

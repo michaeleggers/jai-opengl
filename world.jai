@@ -28,6 +28,7 @@ UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
 // TODO: Do I need a physics.jai?
 // TODO: This stuff is probably very expensive!!!
 ApplyGravity :: (world : *World, entity : *Entity) {
+    // Sweep bounding box
     startBA := entity.currentAABB.bottomA;
     startBB := entity.currentAABB.bottomB;
     startBC := entity.currentAABB.bottomC;
@@ -45,6 +46,15 @@ ApplyGravity :: (world : *World, entity : *Entity) {
     endTC := startTC + world.gravity;
     endTD := startTD + world.gravity;
     
+    // check AABB overlap with world geometry    
+    for world.models {    
+        if CheckAABB(world.player.currentAABB, it.aabb) {
+            print("intersection with world model which is at: %\n", it.position); break;
+        } else {
+            print("No intersection.\n");
+        }
+    }
+
     max := length(world.gravity);
     dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
 
