@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{2.0, -2.0, 4.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{-0.2, 0.0, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -95,7 +95,7 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     //     maxXYZ = maxXYZ_x
     // };
 
-    // check AABB overlap with world geometry    
+    // check AABB overlap with world geometry        
     worldCollisionModels : [..] Model;
     for world.models {    
         if CheckAABB(sweptAABB_x, it.aabb) {
@@ -108,9 +108,48 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
             array_add(*worldCollisionModels, it);            
         }
     }
-    // Draw all world models that the player collided with
-    for worldCollisionModels {
-        Draw3DAABB(it.aabb);
+
+    // Trace rays
+    start := entity.currentAABB.maxXYZ;
+    if world.gravity.x < 0 {
+        start.x = entity.currentAABB.minXYZ.x;
+    }
+    if world.gravity.y < 0 {
+        start.y = entity.currentAABB.minXYZ.y;
+    }
+    if world.gravity.z < 0 {
+        start.z = entity.currentAABB.minXYZ.z;
+    }
+    end := start + world.gravity;
+    dir := normalize(world.gravity);
+    max := length(world.gravity);
+    rayVis : [1] Line;
+    rayVis[0] = .{
+        a = .{pos = start, color = .{1.0, 1.0, 1.0}},
+        b = .{pos = start + max*dir, color = .{1.0, 1.0, 1.0}}
+    };
+    Draw3DImmediateLines(rayVis);
+
+    print("start: %, end: %\n", start, end);
+    hitList : [1] HitRecord;
+    hitList[0] = Trace(start, end, max, worldCollisionModels);
+
+    shortestDistance := max;
+    movement := world.gravity;
+    for hitList {        
+        if it.success {
+            print("YEEES\n");
+            if it.distance < shortestDistance {
+                movement = it.distance*dir;
+                shortestDistance = it.distance;
+            }
+        }
+    }
+    // print("shortestDistance: %\n", shortestDistance);
+
+    // Draw all world models that the player collided with     
+    for worldCollisionModels { 
+        Draw3DAABB(it.aabb);        
     }
 
     // Draw the swept AABB of the player to see where applied gravity is putting her
@@ -118,49 +157,48 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     if worldCollisionModels.count > 0 {  
         playerAABBcolor = Vector3.{1.0, 0.95, 0.0}; // hit
     } 
-
-    Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
     Draw3DAABB(sweptAABB_x, color = playerAABBcolor);
+    Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
     Draw3DAABB(sweptAABB_z, color = playerAABBcolor);
     
-    max := length(world.gravity);
-    dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
+    // max := length(world.gravity);
+    // dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
 
 
-    rayVis : [1] Line;
-    noHitColor := Vector3.{1.0, 1.0, 1.0};
-    hitColor   := Vector3.{0.0, 1.0, 0.0};
-    rayVis[0] = .{
-        a = .{pos = startBA, color = noHitColor},
-        b = .{pos = endBA, color = noHitColor}
-    };
+    // rayVis : [1] Line;
+    // noHitColor := Vector3.{1.0, 1.0, 1.0};
+    // hitColor   := Vector3.{0.0, 1.0, 0.0};
+    // rayVis[0] = .{
+    //     a = .{pos = startBA, color = noHitColor},
+    //     b = .{pos = endBA, color = noHitColor}
+    // };
 
-    hitList : [8] HitRecord;
-    hitList[0] = Trace(startBA, endBA, max, world.models);
-    hitList[1] = Trace(startBB, endBB, max, world.models);
-    hitList[2] = Trace(startBC, endBC, max, world.models);
-    hitList[3] = Trace(startBD, endBD, max, world.models);
-    hitList[4] = Trace(startTA, endTA, max, world.models);
-    hitList[5] = Trace(startTB, endTB, max, world.models);
-    hitList[6] = Trace(startTC, endTC, max, world.models);
-    hitList[7] = Trace(startTD, endTD, max, world.models);
+    // hitList : [8] HitRecord;
+    // hitList[0] = Trace(startBA, endBA, max, world.models);
+    // hitList[1] = Trace(startBB, endBB, max, world.models);
+    // hitList[2] = Trace(startBC, endBC, max, world.models);
+    // hitList[3] = Trace(startBD, endBD, max, world.models);
+    // hitList[4] = Trace(startTA, endTA, max, world.models);
+    // hitList[5] = Trace(startTB, endTB, max, world.models);
+    // hitList[6] = Trace(startTC, endTC, max, world.models);
+    // hitList[7] = Trace(startTD, endTD, max, world.models);
 
-    movement := world.gravity;
-    shortestDistance := max;
-    for hitList {        
-        if it.success {
-            //print("hit!\n");       
-            rayVis[0] = .{
-                a = .{pos = startBA, color = hitColor},
-                b = .{pos = startBA + dir, color = hitColor}
-            };
-            if it.distance < shortestDistance {
-                movement = it.distance*dir;
-                shortestDistance = it.distance;
-            }
-        }        
-    }
-    Draw3DImmediateLines(rayVis);
+    // movement := world.gravity;
+    // shortestDistance := max;
+    // for hitList {        
+    //     if it.success {
+    //         //print("hit!\n");       
+    //         rayVis[0] = .{
+    //             a = .{pos = startBA, color = hitColor},
+    //             b = .{pos = startBA + dir, color = hitColor}
+    //         };
+    //         if it.distance < shortestDistance {
+    //             movement = it.distance*dir;
+    //             shortestDistance = it.distance;
+    //         }
+    //     }        
+    // }
+    // Draw3DImmediateLines(rayVis);
 
     // Only apply movement when space is pressed. TODO: Remove later or map a key to pause or something.
     if keyState[SDLK_SPACE] {
