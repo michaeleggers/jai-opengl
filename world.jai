@@ -63,7 +63,7 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     }
     // Draw all world models that the player collided with
     for worldCollisionModels {
-        Draw3DAABB(it.aabb, pos = it.aabb.minXYZ);
+        Draw3DAABB(it.aabb);
     }
 
     // Draw the swept AABB of the player to see where applied gravity is putting her
@@ -73,7 +73,7 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     } 
     aabbDrawPos := entity.currentAABB.minXYZ;
     aabbDrawPos.y += entity.currentAABB.height;    
-    Draw3DAABB(sweptAABB, color = playerAABBcolor, scaleDir = .{0.0, -1.0, 0.0}, pos = aabbDrawPos);
+    Draw3DAABB(sweptAABB, color = playerAABBcolor);
     
     max := length(world.gravity);
     dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
@@ -120,21 +120,15 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     }
 }
 
-Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}, scaleDir := Vector3.{1.0, 1.0, 1.0}, pos := Vector3.{0.0, 0.0, 0.0}) {
+Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
     boxTris : [12] Tri;
     
     scaleExtents := abs(aabb.maxXYZ - aabb.minXYZ);
-    print("scaleExtents: %\n", scaleExtents);
-    boxScale := Vector3.{1.0, 1.0, 1.0};
-    if scaleDir.x > 0.0 boxScale.x *= scaleExtents.x;
-    if scaleDir.y > 0.0 boxScale.y *= scaleExtents.y;
-    if scaleDir.z > 0.0 boxScale.z *= scaleExtents.z;
-    if scaleDir.x < 0.0 boxScale.x *= -scaleExtents.x;
-    if scaleDir.y < 0.0 boxScale.y *= -scaleExtents.y;
-    if scaleDir.z < 0.0 boxScale.z *= -scaleExtents.z;
-    transform := translate(Matrix4_Identity, pos);
-    transform = transpose(scale(transform, boxScale));
-    for GEOM_UNIT_CUBE {    
+    centerPos := aabb.minXYZ + (scaleExtents / 2.0);
+
+    transform := translate(Matrix4_Identity, centerPos);
+    transform = transpose(scale(transform, scaleExtents));
+    for GEOM_UNIT_CUBE_CENTER {    
         // TODO: All of those vector conversions between v3 and v4 is kinda annoying!
         //       Is there a good way in jai to do this? like in glm: glm::vec4(myVec3, 1.0); ?
         a := Mat4XVec4(transform, vec3toVec4(it.a.pos));
