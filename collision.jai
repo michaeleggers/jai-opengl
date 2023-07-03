@@ -117,7 +117,7 @@ ComputeAABB :: (tris : [] Tri) -> AABB {
     bottomB := minXYZ + Z*depth;
     bottomC := bottomB + X*width;
     bottomD := bottomA + X*width;
-    topA := maxXYZ;
+    topA := bottomA + Y*height;
     topB := bottomB + Y*height;
     topC := bottomC + Y*height;
     topD := bottomD + Y*height;

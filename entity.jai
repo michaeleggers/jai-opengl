@@ -54,7 +54,7 @@ UpdateEntity :: (entity : *Entity) { // TODO: Find out how to do namespaces (if 
     entity.currentAABB.bottomB = minXYZ3 + Z*depth;
     entity.currentAABB.bottomC = entity.currentAABB.bottomB + X*width;
     entity.currentAABB.bottomD = entity.currentAABB.bottomA + X*width;
-    entity.currentAABB.topA = maxXYZ3;
+    entity.currentAABB.topA = entity.currentAABB.bottomA + Y*height;
     entity.currentAABB.topB = entity.currentAABB.bottomB + Y*height;
     entity.currentAABB.topC = entity.currentAABB.bottomC + Y*height;
     entity.currentAABB.topD = entity.currentAABB.bottomD + Y*height;
