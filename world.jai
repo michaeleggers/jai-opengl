@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{2.0, -2.0, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{-2.0, -2.0, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -23,6 +23,49 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
 UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
     RotateAroundUp(camera, -dX * 0.01);
     RotateAroundSide(camera, -dY * 0.01);
+}
+
+SweepAABB :: (aabb : AABB, sweep : Vector3) -> AABB, AABB, AABB {
+    maxXYZ_x := aabb.maxXYZ;
+    maxXYZ_x.x += sweep.x;
+    sweptAABB_x : AABB;
+    if sweep.x > 0 {
+        sweptAABB_x.minXYZ = aabb.minXYZ;
+        sweptAABB_x.maxXYZ = maxXYZ_x;
+    } else {
+        maxXYZ_x = aabb.minXYZ;
+        maxXYZ_x.x += sweep.x;
+        sweptAABB_x.minXYZ = maxXYZ_x;
+        sweptAABB_x.maxXYZ = aabb.maxXYZ;
+    }
+
+    maxXYZ_y := aabb.maxXYZ;
+    maxXYZ_y.y += sweep.y;
+    sweptAABB_y : AABB;
+    if sweep.y > 0 {
+        sweptAABB_y.minXYZ = aabb.minXYZ;
+        sweptAABB_y.maxXYZ = maxXYZ_y;
+    } else {
+        maxXYZ_y = aabb.minXYZ;
+        maxXYZ_y.y += sweep.y;
+        sweptAABB_y.minXYZ = maxXYZ_y;
+        sweptAABB_y.maxXYZ = aabb.maxXYZ;
+    }
+
+    maxXYZ_z := aabb.maxXYZ;
+    maxXYZ_z.z += sweep.z;
+    sweptAABB_z : AABB;
+    if sweep.z > 0 {
+        sweptAABB_z.minXYZ = aabb.minXYZ;
+        sweptAABB_z.maxXYZ = maxXYZ_z;
+    } else {
+        maxXYZ_z = aabb.minXYZ;
+        maxXYZ_z.z += sweep.z;
+        sweptAABB_z.minXYZ = maxXYZ_z;
+        sweptAABB_z.maxXYZ = aabb.maxXYZ;
+    }
+
+    return sweptAABB_x, sweptAABB_y, sweptAABB_z;
 }
 
 // TODO: Do I need a physics.jai?
@@ -48,17 +91,30 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
 
     minXYZ_y := entity.currentAABB.minXYZ;
     minXYZ_y.y += world.gravity.y;
-    maxXYZ_x := entity.currentAABB.maxXYZ;
-    maxXYZ_x.x += world.gravity.x;
+
+
 
     sweptAABB_y := AABB.{
         minXYZ = minXYZ_y,
         maxXYZ = entity.currentAABB.maxXYZ
     };
-    sweptAABB_x := AABB.{
-        minXYZ = entity.currentAABB.minXYZ,
-        maxXYZ = maxXYZ_x
-    };
+
+    maxXYZ_x := entity.currentAABB.maxXYZ;
+    maxXYZ_x.x += world.gravity.x;
+    sweptAABB_x : AABB;
+    if world.gravity.x > 0 {
+        sweptAABB_x.minXYZ = entity.currentAABB.minXYZ;
+        sweptAABB_x.maxXYZ = maxXYZ_x;
+    } else {
+        maxXYZ_x = entity.currentAABB.minXYZ;
+        maxXYZ_x.x += world.gravity.x;
+        sweptAABB_x.minXYZ = maxXYZ_x;
+        sweptAABB_x.maxXYZ = entity.currentAABB.maxXYZ;
+    }
+    // sweptAABB_x := AABB.{
+    //     minXYZ = entity.currentAABB.minXYZ,
+    //     maxXYZ = maxXYZ_x
+    // };
 
     // check AABB overlap with world geometry    
     worldCollisionModels : [..] Model;
