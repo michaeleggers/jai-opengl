@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{-2.0, -2.0, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{2.0, -2.0, 4.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -89,28 +89,7 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     endTC := startTC + world.gravity;
     endTD := startTD + world.gravity;
 
-    minXYZ_y := entity.currentAABB.minXYZ;
-    minXYZ_y.y += world.gravity.y;
-
-
-
-    sweptAABB_y := AABB.{
-        minXYZ = minXYZ_y,
-        maxXYZ = entity.currentAABB.maxXYZ
-    };
-
-    maxXYZ_x := entity.currentAABB.maxXYZ;
-    maxXYZ_x.x += world.gravity.x;
-    sweptAABB_x : AABB;
-    if world.gravity.x > 0 {
-        sweptAABB_x.minXYZ = entity.currentAABB.minXYZ;
-        sweptAABB_x.maxXYZ = maxXYZ_x;
-    } else {
-        maxXYZ_x = entity.currentAABB.minXYZ;
-        maxXYZ_x.x += world.gravity.x;
-        sweptAABB_x.minXYZ = maxXYZ_x;
-        sweptAABB_x.maxXYZ = entity.currentAABB.maxXYZ;
-    }
+    sweptAABB_x, sweptAABB_y, sweptAABB_z := SweepAABB(entity.currentAABB, world.gravity);
     // sweptAABB_x := AABB.{
     //     minXYZ = entity.currentAABB.minXYZ,
     //     maxXYZ = maxXYZ_x
@@ -119,10 +98,13 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     // check AABB overlap with world geometry    
     worldCollisionModels : [..] Model;
     for world.models {    
+        if CheckAABB(sweptAABB_x, it.aabb) {
+            array_add(*worldCollisionModels, it);            
+        }
         if CheckAABB(sweptAABB_y, it.aabb) {
             array_add(*worldCollisionModels, it);            
         }
-        if CheckAABB(sweptAABB_x, it.aabb) {
+        if CheckAABB(sweptAABB_z, it.aabb) {
             array_add(*worldCollisionModels, it);            
         }
     }
@@ -139,6 +121,7 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
 
     Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
     Draw3DAABB(sweptAABB_x, color = playerAABBcolor);
+    Draw3DAABB(sweptAABB_z, color = playerAABBcolor);
     
     max := length(world.gravity);
     dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
