@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{0.0, -2.1, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{2.0, -2.0, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -46,18 +46,27 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     endTC := startTC + world.gravity;
     endTD := startTD + world.gravity;
 
-    minXYZ := entity.currentAABB.minXYZ;
-    minXYZ.y += world.gravity.y;
+    minXYZ_y := entity.currentAABB.minXYZ;
+    minXYZ_y.y += world.gravity.y;
+    maxXYZ_x := entity.currentAABB.maxXYZ;
+    maxXYZ_x.x += world.gravity.x;
 
-    sweptAABB := AABB.{
-        minXYZ = minXYZ,
+    sweptAABB_y := AABB.{
+        minXYZ = minXYZ_y,
         maxXYZ = entity.currentAABB.maxXYZ
+    };
+    sweptAABB_x := AABB.{
+        minXYZ = entity.currentAABB.minXYZ,
+        maxXYZ = maxXYZ_x
     };
 
     // check AABB overlap with world geometry    
     worldCollisionModels : [..] Model;
     for world.models {    
-        if CheckAABB(sweptAABB, it.aabb) {
+        if CheckAABB(sweptAABB_y, it.aabb) {
+            array_add(*worldCollisionModels, it);            
+        }
+        if CheckAABB(sweptAABB_x, it.aabb) {
             array_add(*worldCollisionModels, it);            
         }
     }
@@ -71,9 +80,9 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     if worldCollisionModels.count > 0 {  
         playerAABBcolor = Vector3.{1.0, 0.95, 0.0}; // hit
     } 
-    aabbDrawPos := entity.currentAABB.minXYZ;
-    aabbDrawPos.y += entity.currentAABB.height;    
-    Draw3DAABB(sweptAABB, color = playerAABBcolor);
+
+    Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
+    Draw3DAABB(sweptAABB_x, color = playerAABBcolor);
     
     max := length(world.gravity);
     dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
@@ -120,14 +129,14 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     }
 }
 
-Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
+Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}, offset := Vector3.{0.0, 0.0, 0.0}) {
     boxTris : [12] Tri;
     
-    scaleExtents := abs(aabb.maxXYZ - aabb.minXYZ);
-    centerPos := aabb.minXYZ + (scaleExtents / 2.0);
+    scaleExtents := aabb.maxXYZ - aabb.minXYZ;
+    centerPos := aabb.minXYZ + scaleExtents/2.0;
 
     transform := translate(Matrix4_Identity, centerPos);
-    transform = transpose(scale(transform, scaleExtents));
+    transform = transpose(scale(transform, abs(scaleExtents)));
     for GEOM_UNIT_CUBE_CENTER {    
         // TODO: All of those vector conversions between v3 and v4 is kinda annoying!
         //       Is there a good way in jai to do this? like in glm: glm::vec4(myVec3, 1.0); ?
