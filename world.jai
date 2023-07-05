@@ -131,25 +131,31 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     Draw3DImmediateLines(rayVis);
 
     // print("start: %, end: %\n", start, end);
+    foo := world.gravity;
+    foo.x = 0;
+    foo.z = 0;
+    dir = normalize(foo);
     hitList : [8] HitRecord;
-    hitList[0] = Trace(startBA, startBA + world.gravity, max, worldCollisionModels);
-    hitList[1] = Trace(startBB, startBB + world.gravity, max, worldCollisionModels);
-    hitList[2] = Trace(startBC, startBC + world.gravity, max, worldCollisionModels);
-    hitList[3] = Trace(startBD, startBD + world.gravity, max, worldCollisionModels);
-    hitList[4] = Trace(startTA, startTA + world.gravity, max, worldCollisionModels);
-    hitList[5] = Trace(startTB, startTB + world.gravity, max, worldCollisionModels);
-    hitList[6] = Trace(startTC, startTC + world.gravity, max, worldCollisionModels);
-    hitList[7] = Trace(startTD, startTD + world.gravity, max, worldCollisionModels);
+    hitList[0] = Trace(startBA, startBA + foo, max, worldCollisionModels);
+    hitList[1] = Trace(startBB, startBB + foo, max, worldCollisionModels);
+    hitList[2] = Trace(startBC, startBC + foo, max, worldCollisionModels);
+    hitList[3] = Trace(startBD, startBD + foo, max, worldCollisionModels);
+    hitList[4] = Trace(startTA, startTA + foo, max, worldCollisionModels);
+    hitList[5] = Trace(startTB, startTB + foo, max, worldCollisionModels);
+    hitList[6] = Trace(startTC, startTC + foo, max, worldCollisionModels);
+    hitList[7] = Trace(startTD, startTD + foo, max, worldCollisionModels);
 
     shortestDistance := max;
     for hitList {
         if it.success {                        
+            print("hit!\n");
             if it.distance < shortestDistance {
                 shortestDistance = it.distance;
             }
         }
     }
     movement := shortestDistance*dir;
+    movement.x = world.gravity.x;
     print("shortestDistance: %\n", shortestDistance);
 
     // Draw all world models that the player collided with     
