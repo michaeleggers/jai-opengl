@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{-0.2, -0.2, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{-0.01, -3.01, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -130,7 +130,7 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     };
     Draw3DImmediateLines(rayVis);
 
-    print("start: %, end: %\n", start, end);
+    // print("start: %, end: %\n", start, end);
     hitList : [8] HitRecord;
     hitList[0] = Trace(startBA, startBA + world.gravity, max, worldCollisionModels);
     hitList[1] = Trace(startBB, startBB + world.gravity, max, worldCollisionModels);
@@ -142,17 +142,15 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     hitList[7] = Trace(startTD, startTD + world.gravity, max, worldCollisionModels);
 
     shortestDistance := max;
-    movement := world.gravity;
-    for hitList {        
-        if it.success {
-            print("YEEES\n");
+    for hitList {
+        if it.success {                        
             if it.distance < shortestDistance {
-                movement = it.distance*dir;
                 shortestDistance = it.distance;
             }
         }
     }
-    // print("shortestDistance: %\n", shortestDistance);
+    movement := shortestDistance*dir;
+    print("shortestDistance: %\n", shortestDistance);
 
     // Draw all world models that the player collided with     
     for worldCollisionModels { 
