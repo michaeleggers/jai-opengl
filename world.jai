@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{-0.01, -3.01, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{-0.001, -3.01, 0.001}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -66,6 +66,57 @@ SweepAABB :: (aabb : AABB, sweep : Vector3) -> AABB, AABB, AABB {
     }
 
     return sweptAABB_x, sweptAABB_y, sweptAABB_z;
+}
+
+MoveAABB :: (aabb : AABB, velocity : Vector3, models : [] Model) -> Vector3 {
+    startBA := aabb.bottomA;
+    startBB := aabb.bottomB;
+    startBC := aabb.bottomC;
+    startBD := aabb.bottomD;
+    startTA := aabb.topA;
+    startTB := aabb.topB;
+    startTC := aabb.topC;
+    startTD := aabb.topD;
+    endBA := startBA + velocity;
+    endBB := startBB + velocity;
+    endBC := startBC + velocity;
+    endBD := startBD + velocity;
+    endTA := startTA + velocity;
+    endTB := startTB + velocity;
+    endTC := startTC + velocity;
+    endTD := startTD + velocity;
+    max := length(velocity);
+
+    hitList : [8] HitRecord;
+    hitList[0] = Trace(startBA, startBA + velocity, max, models);
+    hitList[1] = Trace(startBB, startBB + velocity, max, models);
+    hitList[2] = Trace(startBC, startBC + velocity, max, models);
+    hitList[3] = Trace(startBD, startBD + velocity, max, models);
+    hitList[4] = Trace(startTA, startTA + velocity, max, models);
+    hitList[5] = Trace(startTB, startTB + velocity, max, models);
+    hitList[6] = Trace(startTC, startTC + velocity, max, models);
+    hitList[7] = Trace(startTD, startTD + velocity, max, models);
+
+    dir := normalize(velocity);
+    shortestDistance := max;        
+    for hitList {
+        if it.success {                                    
+            if it.distance < shortestDistance {
+                shortestDistance = it.distance;
+            }
+        }
+    }    
+    // Avoid to penetrate completely so we don't get stuck in geometry.
+    bias := 0.00001;
+    correction : Vector3;
+    if shortestDistance < bias {
+        correction = bias*(-dir);
+    }
+
+    movement := shortestDistance*dir + correction;    
+    print("correction: %\n", correction);
+
+    return movement;
 }
 
 // TODO: Do I need a physics.jai?
@@ -131,32 +182,10 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     Draw3DImmediateLines(rayVis);
 
     // print("start: %, end: %\n", start, end);
-    foo := world.gravity;
-    foo.x = 0;
-    foo.z = 0;
-    dir = normalize(foo);
-    hitList : [8] HitRecord;
-    hitList[0] = Trace(startBA, startBA + foo, max, worldCollisionModels);
-    hitList[1] = Trace(startBB, startBB + foo, max, worldCollisionModels);
-    hitList[2] = Trace(startBC, startBC + foo, max, worldCollisionModels);
-    hitList[3] = Trace(startBD, startBD + foo, max, worldCollisionModels);
-    hitList[4] = Trace(startTA, startTA + foo, max, worldCollisionModels);
-    hitList[5] = Trace(startTB, startTB + foo, max, worldCollisionModels);
-    hitList[6] = Trace(startTC, startTC + foo, max, worldCollisionModels);
-    hitList[7] = Trace(startTD, startTD + foo, max, worldCollisionModels);
+    movement := MoveAABB(entity.currentAABB, Vector3.{1.0, 0.0, 0.0} * world.gravity, worldCollisionModels);    
+    movement += MoveAABB(entity.currentAABB, Vector3.{0.0, 1.0, 0.0} * world.gravity, worldCollisionModels);
+    movement += MoveAABB(entity.currentAABB, Vector3.{0.0, 0.0, 1.0} * world.gravity, worldCollisionModels);
 
-    shortestDistance := max;
-    for hitList {
-        if it.success {                        
-            print("hit!\n");
-            if it.distance < shortestDistance {
-                shortestDistance = it.distance;
-            }
-        }
-    }
-    movement := shortestDistance*dir;
-    movement.x = world.gravity.x;
-    print("shortestDistance: %\n", shortestDistance);
 
     // Draw all world models that the player collided with     
     for worldCollisionModels { 
@@ -168,9 +197,9 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     if worldCollisionModels.count > 0 {  
         playerAABBcolor = Vector3.{1.0, 0.95, 0.0}; // hit
     } 
-    Draw3DAABB(sweptAABB_x, color = playerAABBcolor);
-    Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
-    Draw3DAABB(sweptAABB_z, color = playerAABBcolor);
+    // Draw3DAABB(sweptAABB_x, color = playerAABBcolor);
+    // Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
+    // Draw3DAABB(sweptAABB_z, color = playerAABBcolor);
     
     // max := length(world.gravity);
     // dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
