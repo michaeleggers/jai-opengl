@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{-0.001, -0.07, 0.001}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{-0.001, -2.0, 0.001}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -113,10 +113,17 @@ MoveAABB :: (aabb : AABB, velocity : Vector3, models : [] Model) -> Vector3 {
         correction = bias*(-dir);
     }
 
-    movement := shortestDistance*dir + correction;    
-    print("correction: %\n", correction);
+    movement := shortestDistance*dir + correction;        
 
     return movement;
+}
+
+// grow b by a
+MinkowskiAABB :: (a : AABB, b : AABB) -> AABB {
+    return AABB.{
+        minXYZ = a.minXYZ + b.minXYZ,
+        maxXYZ = a.maxXYZ + b.maxXYZ
+    };
 }
 
 // TODO: Do I need a physics.jai?
@@ -160,32 +167,27 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
         }
     }
 
-    // Trace rays
-    start := entity.currentAABB.maxXYZ;
-    if world.gravity.x < 0 {
-        start.x = entity.currentAABB.minXYZ.x;
-    }
-    if world.gravity.y < 0 {
-        start.y = entity.currentAABB.minXYZ.y;
-    }
-    if world.gravity.z < 0 {
-        start.z = entity.currentAABB.minXYZ.z;
-    }
-    end := start + world.gravity;
-    dir := normalize(world.gravity);
+    start := entity.pos;
+    end := entity.pos + world.gravity;
     max := length(world.gravity);
-    rayVis : [1] Line;
-    rayVis[0] = .{
-        a = .{pos = start, color = .{1.0, 1.0, 1.0}},
-        b = .{pos = start + max*dir, color = .{1.0, 1.0, 1.0}}
-    };
-    Draw3DImmediateLines(rayVis);
-
-    // print("start: %, end: %\n", start, end);
-    movement := MoveAABB(entity.currentAABB, Vector3.{1.0, 0.0, 0.0} * world.gravity, worldCollisionModels);    
-    movement += MoveAABB(entity.currentAABB, Vector3.{0.0, 1.0, 0.0} * world.gravity, worldCollisionModels);
-    movement += MoveAABB(entity.currentAABB, Vector3.{0.0, 0.0, 1.0} * world.gravity, worldCollisionModels);
-
+    dir := normalize(world.gravity);
+    shortestDistance := max;
+    for worldCollisionModels {
+        minkowskiAABB := MinkowskiAABB(entity.currentAABB, it.aabb);
+        print("%\n", it.aabb.minXYZ);
+        model := CreateModelFromAABB(minkowskiAABB);
+        Draw3DImmediateTris(model.tris);
+        test : [1] Model;
+        test[0] = model;
+        hit := Trace(start, end, max, test);
+        if hit.success {
+            // print("HIT\n");
+            if hit.distance < shortestDistance {
+                shortestDistance = hit.distance;
+            }
+        }
+    }
+    movement := shortestDistance*dir;
 
     // Draw all world models that the player collided with     
     for worldCollisionModels { 
@@ -197,9 +199,9 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     if worldCollisionModels.count > 0 {  
         playerAABBcolor = Vector3.{1.0, 0.95, 0.0}; // hit
     } 
-    // Draw3DAABB(sweptAABB_x, color = playerAABBcolor);
-    // Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
-    // Draw3DAABB(sweptAABB_z, color = playerAABBcolor);
+    Draw3DAABB(sweptAABB_x, color = playerAABBcolor);
+    Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
+    Draw3DAABB(sweptAABB_z, color = playerAABBcolor);
     
     // max := length(world.gravity);
     // dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
@@ -246,7 +248,43 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     }
 }
 
-Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}, offset := Vector3.{0.0, 0.0, 0.0}) {
+CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model {
+    result : Model;
+
+    // TODO: The following is the same as in Draw3DAABB!
+    boxTris : [12] Tri;
+    
+    scaleExtents := aabb.maxXYZ - aabb.minXYZ;
+    centerPos := aabb.minXYZ + scaleExtents/2.0;
+
+    transform := translate(Matrix4_Identity, centerPos);
+    transform = transpose(scale(transform, abs(scaleExtents)));
+    for GEOM_UNIT_CUBE_CENTER {    
+        // TODO: All of those vector conversions between v3 and v4 is kinda annoying!
+        //       Is there a good way in jai to do this? like in glm: glm::vec4(myVec3, 1.0); ?
+        a := Mat4XVec4(transform, vec3toVec4(it.a.pos));
+        b := Mat4XVec4(transform, vec3toVec4(it.b.pos));
+        c := Mat4XVec4(transform, vec3toVec4(it.c.pos));
+        a3 := Vector3.{a.x, a.y, a.z};
+        b3 := Vector3.{b.x, b.y, b.z};
+        c3 := Vector3.{c.x, c.y, c.z};
+        boxTris[it_index].a.pos = a3;
+        boxTris[it_index].b.pos = b3;
+        boxTris[it_index].c.pos = c3;
+        boxTris[it_index].a.color = color;
+        boxTris[it_index].b.color = color;
+        boxTris[it_index].c.color = color;
+    }
+
+    result.aabb = aabb;
+    for boxTris {
+        array_add(*result.tris, it);
+    }    
+
+    return result;
+}
+
+Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
     boxTris : [12] Tri;
     
     scaleExtents := aabb.maxXYZ - aabb.minXYZ;
@@ -269,7 +307,6 @@ Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}, offset := Vector3.
         boxTris[it_index].a.color = color;
         boxTris[it_index].b.color = color;
         boxTris[it_index].c.color = color;
-
     }
     Draw3DImmediateTris(boxTris);
 }
