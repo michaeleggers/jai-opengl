@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{-0.001, -3.01, 0.001}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{-0.001, -0.07, 0.001}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -107,7 +107,7 @@ MoveAABB :: (aabb : AABB, velocity : Vector3, models : [] Model) -> Vector3 {
         }
     }    
     // Avoid to penetrate completely so we don't get stuck in geometry.
-    bias := 0.00001;
+    bias := 0.000001;
     correction : Vector3;
     if shortestDistance < bias {
         correction = bias*(-dir);
