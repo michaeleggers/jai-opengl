@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{0.0, -.05, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{-0.00002, -.007, 0.00002}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -110,6 +110,7 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     max := length(world.gravity);
     dir := normalize(world.gravity);
     shortestDistance := max;
+    hitTri : Tri;    
     for worldCollisionModels {
         minkowskiAABB := MinkowskiAABB(entity.currentAABB, it.aabb);
         model := CreateModelFromAABB(minkowskiAABB);
@@ -119,11 +120,18 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
         if hit.success {
             // Draw3DImmediateTris(model.tris);
             if hit.distance < shortestDistance {
-                shortestDistance = hit.distance;
+                shortestDistance = hit.distance;                
+                hitTri = hit.tri;
             }
         }
     }
     movement := shortestDistance*dir;
+    if shortestDistance < 0.000001 {
+        slideFactor := dot(-dir, hitTri.a.normal);
+        // print("slideFactor: %\n", slideFactor);
+        slide := hitTri.a.normal + dir; // Vector from inversed dir towards tip of tris normal
+        movement += slide;
+    }
 
     // Visualize movement
     rayVis : [1] Line;
