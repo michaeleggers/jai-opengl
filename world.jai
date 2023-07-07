@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{-0.02, -0.3, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{0.0, -.05, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -68,56 +68,6 @@ SweepAABB :: (aabb : AABB, sweep : Vector3) -> AABB, AABB, AABB {
     return sweptAABB_x, sweptAABB_y, sweptAABB_z;
 }
 
-MoveAABB :: (aabb : AABB, velocity : Vector3, models : [] Model) -> Vector3 {
-    startBA := aabb.bottomA;
-    startBB := aabb.bottomB;
-    startBC := aabb.bottomC;
-    startBD := aabb.bottomD;
-    startTA := aabb.topA;
-    startTB := aabb.topB;
-    startTC := aabb.topC;
-    startTD := aabb.topD;
-    endBA := startBA + velocity;
-    endBB := startBB + velocity;
-    endBC := startBC + velocity;
-    endBD := startBD + velocity;
-    endTA := startTA + velocity;
-    endTB := startTB + velocity;
-    endTC := startTC + velocity;
-    endTD := startTD + velocity;
-    max := length(velocity);
-
-    hitList : [8] HitRecord;
-    hitList[0] = Trace(startBA, startBA + velocity, max, models);
-    hitList[1] = Trace(startBB, startBB + velocity, max, models);
-    hitList[2] = Trace(startBC, startBC + velocity, max, models);
-    hitList[3] = Trace(startBD, startBD + velocity, max, models);
-    hitList[4] = Trace(startTA, startTA + velocity, max, models);
-    hitList[5] = Trace(startTB, startTB + velocity, max, models);
-    hitList[6] = Trace(startTC, startTC + velocity, max, models);
-    hitList[7] = Trace(startTD, startTD + velocity, max, models);
-
-    dir := normalize(velocity);
-    shortestDistance := max;        
-    for hitList {
-        if it.success {                                    
-            if it.distance < shortestDistance {
-                shortestDistance = it.distance;
-            }
-        }
-    }    
-    // Avoid to penetrate completely so we don't get stuck in geometry.
-    bias := 0.000001;
-    correction : Vector3;
-    if shortestDistance < bias {
-        correction = bias*(-dir);
-    }
-
-    movement := shortestDistance*dir + correction;        
-
-    return movement;
-}
-
 // grow b by a
 MinkowskiAABB :: (a : AABB, b : AABB) -> AABB {
     aHalfExtents := Vector3.{
@@ -136,28 +86,7 @@ MinkowskiAABB :: (a : AABB, b : AABB) -> AABB {
 // TODO: This stuff is probably very expensive!!!
 ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     // Sweep bounding box
-    startBA := entity.currentAABB.bottomA;
-    startBB := entity.currentAABB.bottomB;
-    startBC := entity.currentAABB.bottomC;
-    startBD := entity.currentAABB.bottomD;
-    startTA := entity.currentAABB.topA;
-    startTB := entity.currentAABB.topB;
-    startTC := entity.currentAABB.topC;
-    startTD := entity.currentAABB.topD;
-    endBA := startBA + world.gravity;
-    endBB := startBB + world.gravity;
-    endBC := startBC + world.gravity;
-    endBD := startBD + world.gravity;
-    endTA := startTA + world.gravity;
-    endTB := startTB + world.gravity;
-    endTC := startTC + world.gravity;
-    endTD := startTD + world.gravity;
-
     sweptAABB_x, sweptAABB_y, sweptAABB_z := SweepAABB(entity.currentAABB, world.gravity);
-    // sweptAABB_x := AABB.{
-    //     minXYZ = entity.currentAABB.minXYZ,
-    //     maxXYZ = maxXYZ_x
-    // };
 
     // check AABB overlap with world geometry        
     worldCollisionModels : [..] Model;
@@ -194,9 +123,6 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
             }
         }
     }
-    if shortestDistance <= 0.0001 {
-        print("shortestDistance: %\n", shortestDistance);
-    }
     movement := shortestDistance*dir;
 
     // Visualize movement
@@ -222,49 +148,13 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     // Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
     // Draw3DAABB(sweptAABB_z, color = playerAABBcolor);
     
-    // max := length(world.gravity);
-    // dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
-
-
-    // rayVis : [1] Line;
-    // noHitColor := Vector3.{1.0, 1.0, 1.0};
-    // hitColor   := Vector3.{0.0, 1.0, 0.0};
-    // rayVis[0] = .{
-    //     a = .{pos = startBA, color = noHitColor},
-    //     b = .{pos = endBA, color = noHitColor}
-    // };
-
-    // hitList : [8] HitRecord;
-    // hitList[0] = Trace(startBA, endBA, max, world.models);
-    // hitList[1] = Trace(startBB, endBB, max, world.models);
-    // hitList[2] = Trace(startBC, endBC, max, world.models);
-    // hitList[3] = Trace(startBD, endBD, max, world.models);
-    // hitList[4] = Trace(startTA, endTA, max, world.models);
-    // hitList[5] = Trace(startTB, endTB, max, world.models);
-    // hitList[6] = Trace(startTC, endTC, max, world.models);
-    // hitList[7] = Trace(startTD, endTD, max, world.models);
-
-    // movement := world.gravity;
-    // shortestDistance := max;
-    // for hitList {        
-    //     if it.success {
-    //         //print("hit!\n");       
-    //         rayVis[0] = .{
-    //             a = .{pos = startBA, color = hitColor},
-    //             b = .{pos = startBA + dir, color = hitColor}
-    //         };
-    //         if it.distance < shortestDistance {
-    //             movement = it.distance*dir;
-    //             shortestDistance = it.distance;
-    //         }
-    //     }        
-    // }
-    // Draw3DImmediateLines(rayVis);
-
+ 
     // Only apply movement when space is pressed. TODO: Remove later or map a key to pause or something.
-    if keyState[SDLK_SPACE] {        
-        entity.pos += movement;
-    }
+    // if keyState[SDLK_SPACE] {        
+    //     entity.pos += movement;
+    // }
+    entity.pos += movement;
+
 }
 
 CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model {
