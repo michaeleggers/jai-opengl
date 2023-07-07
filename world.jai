@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{-0.001, -2.0, 0.001}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{-0.02, -0.3, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -120,10 +120,16 @@ MoveAABB :: (aabb : AABB, velocity : Vector3, models : [] Model) -> Vector3 {
 
 // grow b by a
 MinkowskiAABB :: (a : AABB, b : AABB) -> AABB {
-    return AABB.{
-        minXYZ = a.minXYZ + b.minXYZ,
-        maxXYZ = a.maxXYZ + b.maxXYZ
+    aHalfExtents := Vector3.{
+        abs(a.maxXYZ.x - a.minXYZ.x)/2.0,
+        abs(a.maxXYZ.y - a.minXYZ.y)/2.0,
+        abs(a.maxXYZ.z - a.minXYZ.z)/2.0
     };
+
+    return .{
+        minXYZ = b.minXYZ - aHalfExtents,
+        maxXYZ = b.maxXYZ + aHalfExtents
+    };    
 }
 
 // TODO: Do I need a physics.jai?
@@ -167,27 +173,40 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
         }
     }
 
-    start := entity.pos;
-    end := entity.pos + world.gravity;
+    start : Vector3;
+    start.x = entity.currentAABB.minXYZ.x + entity.aabb.width/2.0;
+    start.y = entity.currentAABB.minXYZ.y + entity.aabb.height/2.0;
+    start.z = entity.currentAABB.minXYZ.z + entity.aabb.depth/2.0;
+    end := start + world.gravity;
     max := length(world.gravity);
     dir := normalize(world.gravity);
     shortestDistance := max;
     for worldCollisionModels {
         minkowskiAABB := MinkowskiAABB(entity.currentAABB, it.aabb);
-        print("%\n", it.aabb.minXYZ);
         model := CreateModelFromAABB(minkowskiAABB);
-        Draw3DImmediateTris(model.tris);
         test : [1] Model;
         test[0] = model;
         hit := Trace(start, end, max, test);
         if hit.success {
-            // print("HIT\n");
+            // Draw3DImmediateTris(model.tris);
             if hit.distance < shortestDistance {
                 shortestDistance = hit.distance;
             }
         }
     }
+    if shortestDistance <= 0.0001 {
+        print("shortestDistance: %\n", shortestDistance);
+    }
     movement := shortestDistance*dir;
+
+    // Visualize movement
+    rayVis : [1] Line;
+    rayVis[0] = .{
+        a = .{pos = entity.currentAABB.minXYZ, color = .{1.0, 1.0, 1.0}},
+        b = .{pos = entity.currentAABB.minXYZ + movement, color = .{1.0, 1.0, 1.0}}
+    };
+    Draw3DImmediateLines(rayVis);
+
 
     // Draw all world models that the player collided with     
     for worldCollisionModels { 
@@ -199,9 +218,9 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     if worldCollisionModels.count > 0 {  
         playerAABBcolor = Vector3.{1.0, 0.95, 0.0}; // hit
     } 
-    Draw3DAABB(sweptAABB_x, color = playerAABBcolor);
-    Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
-    Draw3DAABB(sweptAABB_z, color = playerAABBcolor);
+    // Draw3DAABB(sweptAABB_x, color = playerAABBcolor);
+    // Draw3DAABB(sweptAABB_y, color = playerAABBcolor);
+    // Draw3DAABB(sweptAABB_z, color = playerAABBcolor);
     
     // max := length(world.gravity);
     // dir := normalize(endBA - startBA); // we just need the direction. Any pair of the AABB will do!
@@ -243,7 +262,7 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     // Draw3DImmediateLines(rayVis);
 
     // Only apply movement when space is pressed. TODO: Remove later or map a key to pause or something.
-    if keyState[SDLK_SPACE] {
+    if keyState[SDLK_SPACE] {        
         entity.pos += movement;
     }
 }
@@ -271,6 +290,9 @@ CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model 
         boxTris[it_index].a.pos = a3;
         boxTris[it_index].b.pos = b3;
         boxTris[it_index].c.pos = c3;
+        boxTris[it_index].a.normal = it.a.normal;
+        boxTris[it_index].b.normal = it.b.normal;
+        boxTris[it_index].c.normal = it.c.normal;
         boxTris[it_index].a.color = color;
         boxTris[it_index].b.color = color;
         boxTris[it_index].c.color = color;
