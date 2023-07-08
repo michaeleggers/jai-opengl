@@ -6,4 +6,5 @@ jai main.jai
 ```
 Done.
 
-Using jai-beta-1-063
+# Changes
+- 8.7.2023: switched to compiler version jai-beta-1-070
