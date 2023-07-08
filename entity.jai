@@ -7,17 +7,18 @@ Entity :: struct {
     #as using base := BaseEntity.{    
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
             using cast(*Entity)baseEntity;
-            if keyState[SDLK_h] pos.x += 0.01;
-            if keyState[SDLK_f] pos.x -= 0.01;
-            if keyState[SDLK_t] pos.z -= 0.01;
-            if keyState[SDLK_g] pos.z += 0.01;   
-            if keyState[SDLK_i] pos.y += 0.1;  // A bit more than gravity force so we can "jump"
-            if keyState[SDLK_k] pos.y -= 0.01;   
+            if keyState[SDLK_h] predict.x += 0.01;
+            if keyState[SDLK_f] predict.x -= 0.01;
+            if keyState[SDLK_t] predict.z -= 0.01;
+            if keyState[SDLK_g] predict.z += 0.01;   
+            if keyState[SDLK_i] predict.y += 0.1;  // A bit more than gravity force so we can "jump"
+            if keyState[SDLK_k] predict.y -= 0.01;   
 
         }
     };
     entityType   : EntityType;
     pos          : Vector3;
+    predict      : Vector3;
     orientation  : Quaternion;
     aabb         : AABB;    
     currentAABB  : AABB;
@@ -58,5 +59,7 @@ UpdateEntity :: (entity : *Entity) { // TODO: Find out how to do namespaces (if 
     entity.currentAABB.topB = entity.currentAABB.bottomB + Y*height;
     entity.currentAABB.topC = entity.currentAABB.bottomC + Y*height;
     entity.currentAABB.topD = entity.currentAABB.bottomD + Y*height;
+
+    entity.predict = .{0.0, 0.0, 0.0};
 }
 

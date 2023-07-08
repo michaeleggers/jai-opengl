@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{-0.00002, -.007, 0.00002}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{-0.00001, -0.0007, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -85,8 +85,11 @@ MinkowskiAABB :: (a : AABB, b : AABB) -> AABB {
 // TODO: Do I need a physics.jai?
 // TODO: This stuff is probably very expensive!!!
 ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
+
+    velocity := entity.predict + world.gravity;
+    
     // Sweep bounding box
-    sweptAABB_x, sweptAABB_y, sweptAABB_z := SweepAABB(entity.currentAABB, world.gravity);
+    sweptAABB_x, sweptAABB_y, sweptAABB_z := SweepAABB(entity.currentAABB, velocity);
 
     // check AABB overlap with world geometry        
     worldCollisionModels : [..] Model;
@@ -106,31 +109,36 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     start.x = entity.currentAABB.minXYZ.x + entity.aabb.width/2.0;
     start.y = entity.currentAABB.minXYZ.y + entity.aabb.height/2.0;
     start.z = entity.currentAABB.minXYZ.z + entity.aabb.depth/2.0;
-    end := start + world.gravity;
-    max := length(world.gravity);
-    dir := normalize(world.gravity);
+    end := start + velocity;
+    max := length(velocity);
+    dir := normalize(velocity);
     shortestDistance := max;
     hitTri : Tri;    
-    for worldCollisionModels {
+    for worldCollisionModels {        
         minkowskiAABB := MinkowskiAABB(entity.currentAABB, it.aabb);
         model := CreateModelFromAABB(minkowskiAABB);
         test : [1] Model;
         test[0] = model;
-        hit := Trace(start, end, max, test);
+        hit := Trace(start, end, max, test);        
         if hit.success {
-            // Draw3DImmediateTris(model.tris);
-            if hit.distance < shortestDistance {
+            // Draw3DImmediateTris(model.tris);            
+            if hit.distance < shortestDistance {                             
                 shortestDistance = hit.distance;                
-                hitTri = hit.tri;
+                hitTri = hit.tri;                              
             }
         }
     }
+    if shortestDistance < 0.000001 {
+        shortestDistance = -0.0001;
+    }
+    
     movement := shortestDistance*dir;
+    
     if shortestDistance < 0.000001 {
         slideFactor := dot(-dir, hitTri.a.normal);
         // print("slideFactor: %\n", slideFactor);
         slide := hitTri.a.normal + dir; // Vector from inversed dir towards tip of tris normal
-        movement += slide;
+        // movement += slide;
     }
 
     // Visualize movement
@@ -237,8 +245,8 @@ AABBlines : [12] Line;
 UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, world : *World) {
 
     UpdateOnKeys(*world.player, keyState);
-    UpdateEntity(*world.player);
     ApplyGravity(keyState, world, *world.player);
+    UpdateEntity(*world.player);
     
     // TODO: Make a polymorphic function that accepts entities and the camera.
     //       This function could be called something like 'ProcessKeyboardInput' and 'ProcessMouseInput'.
