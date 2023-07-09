@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{-0.00001, -0.0007, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{0.0, -0.1007, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -26,42 +26,42 @@ UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
 }
 
 SweepAABB :: (aabb : AABB, sweep : Vector3) -> AABB, AABB, AABB {
-    maxXYZ_x := aabb.maxXYZ;
-    maxXYZ_x.x += sweep.x;
     sweptAABB_x : AABB;
     if sweep.x > 0 {
+        maxXYZ_x := aabb.maxXYZ;
+        maxXYZ_x.x += sweep.x;
         sweptAABB_x.minXYZ = aabb.minXYZ;
         sweptAABB_x.maxXYZ = maxXYZ_x;
     } else {
-        maxXYZ_x = aabb.minXYZ;
-        maxXYZ_x.x += sweep.x;
-        sweptAABB_x.minXYZ = maxXYZ_x;
+        minXYZ_x := aabb.minXYZ;
+        minXYZ_x.x += sweep.x;
+        sweptAABB_x.minXYZ = minXYZ_x;
         sweptAABB_x.maxXYZ = aabb.maxXYZ;
     }
 
-    maxXYZ_y := aabb.maxXYZ;
-    maxXYZ_y.y += sweep.y;
     sweptAABB_y : AABB;
     if sweep.y > 0 {
+        maxXYZ_y := aabb.maxXYZ;
+        maxXYZ_y.y += sweep.y;
         sweptAABB_y.minXYZ = aabb.minXYZ;
         sweptAABB_y.maxXYZ = maxXYZ_y;
     } else {
-        maxXYZ_y = aabb.minXYZ;
-        maxXYZ_y.y += sweep.y;
-        sweptAABB_y.minXYZ = maxXYZ_y;
+        minXYZ_y := aabb.minXYZ;
+        minXYZ_y.y += sweep.y;
+        sweptAABB_y.minXYZ = minXYZ_y;
         sweptAABB_y.maxXYZ = aabb.maxXYZ;
     }
 
-    maxXYZ_z := aabb.maxXYZ;
-    maxXYZ_z.z += sweep.z;
     sweptAABB_z : AABB;
     if sweep.z > 0 {
+        maxXYZ_z := aabb.maxXYZ;
+        maxXYZ_z.z += sweep.z;
         sweptAABB_z.minXYZ = aabb.minXYZ;
         sweptAABB_z.maxXYZ = maxXYZ_z;
     } else {
-        maxXYZ_z = aabb.minXYZ;
-        maxXYZ_z.z += sweep.z;
-        sweptAABB_z.minXYZ = maxXYZ_z;
+        minXYZ_z := aabb.minXYZ;
+        minXYZ_z.z += sweep.z;
+        sweptAABB_z.minXYZ = minXYZ_z;
         sweptAABB_z.maxXYZ = aabb.maxXYZ;
     }
 
@@ -87,7 +87,7 @@ MinkowskiAABB :: (a : AABB, b : AABB) -> AABB {
 ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
 
     velocity := entity.predict + world.gravity;
-    
+
     // Sweep bounding box
     sweptAABB_x, sweptAABB_y, sweptAABB_z := SweepAABB(entity.currentAABB, velocity);
 
@@ -98,7 +98,7 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
             array_add(*worldCollisionModels, it);            
         }
         if CheckAABB(sweptAABB_y, it.aabb) {
-            array_add(*worldCollisionModels, it);            
+            array_add(*worldCollisionModels, it);               
         }
         if CheckAABB(sweptAABB_z, it.aabb) {
             array_add(*worldCollisionModels, it);            
@@ -108,31 +108,48 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     start : Vector3;
     start.x = entity.currentAABB.minXYZ.x + entity.aabb.width/2.0;
     start.y = entity.currentAABB.minXYZ.y + entity.aabb.height/2.0;
-    start.z = entity.currentAABB.minXYZ.z + entity.aabb.depth/2.0;
+    start.z = entity.currentAABB.minXYZ.z + entity.aabb.depth/2.0;    
     end := start + velocity;
     max := length(velocity);
     dir := normalize(velocity);
     shortestDistance := max;
     hitTri : Tri;    
-    for worldCollisionModels {        
+    doesCollide := false;
+    for world.models {        
         minkowskiAABB := MinkowskiAABB(entity.currentAABB, it.aabb);
         model := CreateModelFromAABB(minkowskiAABB);
         test : [1] Model;
         test[0] = model;
         hit := Trace(start, end, max, test);        
-        if hit.success {
+        if hit.success { // Collision happened!
             // Draw3DImmediateTris(model.tris);            
             if hit.distance < shortestDistance {                             
+                doesCollide = true;
                 shortestDistance = hit.distance;                
                 hitTri = hit.tri;                              
             }
         }
     }
-    if shortestDistance < 0.000001 {
-        shortestDistance = -0.0001;
-    }
-    
+
     movement := shortestDistance*dir;
+    if doesCollide {
+        // It could happen that shortestDistance*dir results in a position *inside* the world geometry!
+        p := start + shortestDistance*dir; // hitpoint
+        aToP := normalize(p - hitTri.a.pos);
+        result := dot(aToP, hitTri.a.normal);
+        if result <= 0 {
+            print("shortestDistance: %\n", shortestDistance);
+            offset := abs(result) + 0.001;
+            p = p + 0.0001*(-dir);
+            sToP := p - start;            
+            movement += offset*(hitTri.a.normal); // move away along the normal so we are outside the thing
+            print("shortestDistance corrected: %\n", shortestDistance);
+            print("offset: %\n", offset);
+        } else {            
+            // shortestDistance = 0;
+            // print("Point outside geometry.\n");
+        }
+    }
     
     if shortestDistance < 0.000001 {
         slideFactor := dot(-dir, hitTri.a.normal);
@@ -170,6 +187,8 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     //     entity.pos += movement;
     // }
     entity.pos += movement;
+
+    
 
 }
 
