@@ -11,7 +11,7 @@ Entity :: struct {
             if keyState[SDLK_f] predict.x -= 0.01;
             if keyState[SDLK_t] predict.z -= 0.01;
             if keyState[SDLK_g] predict.z += 0.01;   
-            if keyState[SDLK_i] predict.y += 0.07;  // A bit more than gravity force so we can "jump"
+            if keyState[SDLK_i] predict.y += 0.1080;  // A bit more than gravity force so we can "jump"
             if keyState[SDLK_k] predict.y -= 0.07;   
 
         }

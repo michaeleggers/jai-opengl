@@ -137,17 +137,11 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
         p := start + shortestDistance*dir; // hitpoint
         aToP := normalize(p - hitTri.a.pos);
         result := dot(aToP, hitTri.a.normal);
-        if result <= 0 {
-            print("shortestDistance: %\n", shortestDistance);
+        if result <= 0 { // <= is important because result could be -0 or 0 which is on the plane. And -0 < 0 evals to false. But we want -0 to be treated as 0!            
             offset := abs(result) + 0.001;
             p = p + 0.0001*(-dir);
             sToP := p - start;            
-            movement += offset*(hitTri.a.normal); // move away along the normal so we are outside the thing
-            print("shortestDistance corrected: %\n", shortestDistance);
-            print("offset: %\n", offset);
-        } else {            
-            // shortestDistance = 0;
-            // print("Point outside geometry.\n");
+            movement += offset*(hitTri.a.normal); // move away along the normal so we are outside the level geometry
         }
     }
     
