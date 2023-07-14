@@ -75,7 +75,7 @@ main :: () {
 
     crosshairHUD := CreateHUD("crosshair_point.png");
 
-    brushes, entities := LoadMapFile("assets/maps/starter.map");
+    brushes, entities := LoadMapFile("assets/maps/simpleroom.map");
     // Init world and upload the world geometry to GPU
     world : World;
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
