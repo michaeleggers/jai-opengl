@@ -7,10 +7,10 @@ Entity :: struct {
     #as using base := BaseEntity.{    
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
             using cast(*Entity)baseEntity;
-            if keyState[SDLK_h] predict.x += 0.01;
-            if keyState[SDLK_f] predict.x -= 0.01;
-            if keyState[SDLK_t] predict.z -= 0.01;
-            if keyState[SDLK_g] predict.z += 0.01;   
+            if keyState[SDLK_h] predict.x -= 0.06;
+            if keyState[SDLK_f] predict.x += 0.06;
+            if keyState[SDLK_t] predict.z += 0.06;
+            if keyState[SDLK_g] predict.z -= 0.06;   
             if keyState[SDLK_i] predict.y += 0.1080;  // A bit more than gravity force so we can "jump"
             if keyState[SDLK_k] predict.y -= 0.07;   
 
@@ -60,7 +60,7 @@ UpdateEntity :: (entity : *Entity) { // TODO: Find out how to do namespaces (if 
     entity.currentAABB.topC = entity.currentAABB.bottomC + Y*height;
     entity.currentAABB.topD = entity.currentAABB.bottomD + Y*height;
 
-    Draw3DAABB(entity.currentAABB);
+    // Draw3DAABB(entity.currentAABB);
     
     entity.predict = .{0.0, 0.0, 0.0};
 }

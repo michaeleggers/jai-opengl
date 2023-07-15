@@ -4,7 +4,7 @@ gEntities : [..] Entity; // TODO: What is this?
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{0.0, -0.1007, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{0.0, -0.01, 0.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -84,9 +84,7 @@ MinkowskiAABB :: (a : AABB, b : AABB) -> AABB {
 
 // TODO: Do I need a physics.jai?
 // TODO: This stuff is probably very expensive!!!
-ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
-
-    velocity := entity.predict + world.gravity;
+PredictMovement :: (world : *World, entity : *Entity, velocity : Vector3) -> Vector3 {
 
     // Sweep bounding box
     sweptAABB_x, sweptAABB_y, sweptAABB_z := SweepAABB(entity.currentAABB, velocity);
@@ -180,10 +178,9 @@ ApplyGravity :: (keyState : [] bool, world : *World, entity : *Entity) {
     // if keyState[SDLK_SPACE] {        
     //     entity.pos += movement;
     // }
-    entity.pos += movement;
+    // entity.pos += movement;
 
-    
-
+    return movement;
 }
 
 CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model {
@@ -257,8 +254,13 @@ Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
 AABBlines : [12] Line;
 UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, world : *World) {
 
+    // ApplyGravity(keyState, world, *world.player);
     UpdateOnKeys(*world.player, keyState);
-    ApplyGravity(keyState, world, *world.player);
+
+    gravityVector := PredictMovement(world, *world.player, world.gravity);    
+    movementVector := PredictMovement(world, *world.player, world.player.predict + gravityVector);
+    world.player.pos += (movementVector);
+    
     UpdateEntity(*world.player);
     
     // TODO: Make a polymorphic function that accepts entities and the camera.

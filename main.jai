@@ -79,12 +79,17 @@ main :: () {
     // Init world and upload the world geometry to GPU
     world : World;
     //world := Model.{ position = .{0.0, 0.0, 0.0}};
-    for brush : brushes {
+    for brush : brushes {        
+        height := brush.height;
         model : Model;
         model.textureID = RegisterTexture(brush.texture);
+        heightScale := transpose(scale(Matrix3_Identity, Vector3.{1.0, height, 1.0}));
         for tri : GEOM_UNIT_CUBE {
             t := tri;
             brushOffset := Vector3.{brush.xPos, brush.yPos, brush.zPos};
+            t.a.pos = heightScale*t.a.pos;
+            t.b.pos = heightScale*t.b.pos;
+            t.c.pos = heightScale*t.c.pos;
             t.a.pos += brushOffset;
             t.b.pos += brushOffset; 
             t.c.pos += brushOffset;
@@ -104,7 +109,7 @@ main :: () {
 
     debugCamera := CreateCamera(.{ pos = .{0.0, 5.0, 5.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
     refdef.camera = *debugCamera;
-    followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z + 1}, fov = 50.0 }, *world.player, 10.0);
+    followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z - 1}, fov = 50.0 }, *world.player, 10.0);
     world.player.followCamera = *followCamera;
     followCamera2 := FollowCamera.{};
     // refdef.camera = *followCamera;
