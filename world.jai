@@ -1,3 +1,7 @@
+// TODO: array_add currently fills up the heap! We need to find a way to safely add per frame data to the heap
+//       and clear it before the next frame starts. Have to look up how all the array_ functions and the memory
+//       allocator behind them works.
+
 
 gEntities : [..] Entity; // TODO: What is this?
 
@@ -257,8 +261,10 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     // ApplyGravity(keyState, world, *world.player);
     UpdateOnKeys(*world.player, keyState);
 
-    gravityVector := PredictMovement(world, *world.player, world.gravity);    
-    movementVector := PredictMovement(world, *world.player, world.player.predict + gravityVector);
+    // gravityVector := PredictMovement(world, *world.player, world.gravity);    
+    velocity := world.player.predict;
+    velocity.y += world.gravity.y;
+    movementVector := PredictMovement(world, *world.player, velocity);
     world.player.pos += (movementVector);
     
     UpdateEntity(*world.player);
