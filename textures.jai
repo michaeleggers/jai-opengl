@@ -11,6 +11,25 @@ Texture :: struct {
 
 textures : [..] Texture;
 
+FlipImageVert :: (data : *u8, width : s32, height : s32, channels : s32) {
+    bytesPerRow := width*channels;
+    saveBottomRow := cast(*u8)alloc(bytesPerRow);
+    start := 0;
+    end := height-1;
+    flips : u32 = cast(u32)height / 2 - 2;
+    for 0..flips {
+        startTop := data + start*bytesPerRow;
+        startBottom := data + end*bytesPerRow;
+        memcpy(saveBottomRow, startBottom, bytesPerRow);
+        memcpy(startBottom, startTop, bytesPerRow);
+        memcpy(startTop, saveBottomRow, bytesPerRow);
+        start += 1;
+        end -= 1;
+
+    }
+    free(saveBottomRow);
+}
+
 RegisterTexture :: (fileName : string) -> u32 {
 
     for textures {
@@ -26,6 +45,7 @@ RegisterTexture :: (fileName : string) -> u32 {
         log("Failed to load texture: %\n", fileName, flags=.ERROR);
         exit(-1);
     }
+    FlipImageVert(data, texture.width, texture.height, texture.comp); // Open GL UV y is bottom left...
 
     glGenTextures(1, *texture.handle);
     glBindTexture(GL_TEXTURE_2D, texture.handle);
