@@ -1,9 +1,3 @@
-// TODO: array_add currently fills up the heap! We need to find a way to safely add per frame data to the heap
-//       and clear it before the next frame starts. Have to look up how all the array_ functions and the memory
-//       allocator behind them works.
-
-
-gEntities : [..] Entity; // TODO: What is this?
 
 World :: struct {
     models : [..] Model; // World geometry
@@ -95,6 +89,7 @@ PredictMovement :: (world : *World, entity : *Entity, velocity : Vector3) -> Vec
 
     // check AABB overlap with world geometry        
     worldCollisionModels : [..] Model;
+    worldCollisionModels.allocator = temp;
     for world.models {    
         if CheckAABB(sweptAABB_x, it.aabb) {
             array_add(*worldCollisionModels, it);            
@@ -190,7 +185,7 @@ PredictMovement :: (world : *World, entity : *Entity, velocity : Vector3) -> Vec
 CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model {
     result : Model;
     result.tris.allocator = temp;
-    
+
     // TODO: The following is the same as in Draw3DAABB!
     boxTris : [12] Tri;
     
