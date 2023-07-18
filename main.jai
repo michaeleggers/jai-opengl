@@ -294,6 +294,9 @@ main :: () {
 
         // Rendition
         DrawFrame(refdef);
+
+        // Clear per-frame allocations
+        reset_temporary_storage();
     }
 
     SDL_DestroyWindow(refdef.window);

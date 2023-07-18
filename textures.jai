@@ -25,7 +25,6 @@ FlipImageVert :: (data : *u8, width : s32, height : s32, channels : s32) {
         memcpy(startTop, saveBottomRow, bytesPerRow);
         start += 1;
         end -= 1;
-
     }
     free(saveBottomRow);
 }

@@ -189,7 +189,8 @@ PredictMovement :: (world : *World, entity : *Entity, velocity : Vector3) -> Vec
 
 CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model {
     result : Model;
-
+    result.tris.allocator = temp;
+    
     // TODO: The following is the same as in Draw3DAABB!
     boxTris : [12] Tri;
     
@@ -220,7 +221,7 @@ CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model 
 
     result.aabb = aabb;
     for boxTris {
-        array_add(*result.tris, it);
+        array_add(*result.tris, it);        
     }    
 
     return result;
