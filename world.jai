@@ -80,6 +80,69 @@ MinkowskiAABB :: (a : AABB, b : AABB) -> AABB {
     };    
 }
 
+CheckGround :: (world : *World, entity : *Entity) -> bool, Vector3 #must {
+    // Sweep bounding box
+    sweptAABB_x, sweptAABB_y, sweptAABB_z := SweepAABB(entity.currentAABB, world.gravity);
+
+    // check AABB overlap with world geometry        
+    worldCollisionModels : [..] Model;
+    worldCollisionModels.allocator = temp;
+    for world.models {    
+        if CheckAABB(sweptAABB_x, it.aabb) {
+            array_add(*worldCollisionModels, it);            
+        }
+        if CheckAABB(sweptAABB_y, it.aabb) {
+            array_add(*worldCollisionModels, it);               
+        }
+        if CheckAABB(sweptAABB_z, it.aabb) {
+            array_add(*worldCollisionModels, it);            
+        }
+    }
+
+    start : Vector3;
+    start.x = entity.currentAABB.minXYZ.x + entity.aabb.width/2.0;
+    start.y = entity.currentAABB.minXYZ.y + entity.aabb.height/2.0;
+    start.z = entity.currentAABB.minXYZ.z + entity.aabb.depth/2.0;    
+    end := start + world.gravity;
+    max := length(world.gravity);
+    dir := normalize(world.gravity);
+    shortestDistance := max;
+    hitTri : Tri;    
+    doesCollide := false;
+    for world.models {        
+        minkowskiAABB := MinkowskiAABB(entity.currentAABB, it.aabb);
+        model := CreateModelFromAABB(minkowskiAABB);
+        test : [1] Model;
+        test[0] = model;
+        hit := Trace(start, end, max, test);        
+        if hit.success { // Collision happened!
+            // Draw3DImmediateTris(model.tris);            
+            if hit.distance < shortestDistance {                             
+                doesCollide = true;
+                shortestDistance = hit.distance;                
+                hitTri = hit.tri;  
+                return true, .{0.0, 0.0, 0.0};
+            }
+        }
+    }
+
+    movement := shortestDistance*dir;
+    if doesCollide {
+        // It could happen that shortestDistance*dir results in a position *inside* the world geometry!
+        p := start + shortestDistance*dir; // hitpoint
+        aToP := normalize(p - hitTri.a.pos);
+        result := dot(aToP, hitTri.a.normal);
+        if result <= 0 { // <= is important because result could be -0 or 0 which is on the plane. And -0 < 0 evals to false. But we want -0 to be treated as 0!            
+            offset := abs(result) + 0.001;
+            p = p + 0.0001*(-dir);
+            sToP := p - start;            
+            movement += offset*(hitTri.a.normal); // move away along the normal so we are outside the level geometry
+        }
+    }
+
+    return false, movement;
+}
+
 // TODO: Do I need a physics.jai?
 // TODO: This stuff is probably very expensive!!!
 PredictMovement :: (world : *World, entity : *Entity, velocity : Vector3) -> Vector3 {
@@ -258,8 +321,15 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     UpdateOnKeys(*world.player, keyState);
 
     // gravityVector := PredictMovement(world, *world.player, world.gravity);    
+    // velocity.y += world.gravity.y;
+    hitGround, gravity := CheckGround(world, *world.player);
+    if hitGround {
+        print("Hit ground. Don't apply gravity...\n");
+    } else {
+        print("Didn't hit ground. Apply gravity...\n");
+        world.player.pos += gravity;
+    }
     velocity := world.player.predict;
-    velocity.y += world.gravity.y;
     movementVector := PredictMovement(world, *world.player, velocity);
     world.player.pos += (movementVector);
     
