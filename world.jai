@@ -322,16 +322,18 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
 
     // gravityVector := PredictMovement(world, *world.player, world.gravity);    
     // velocity.y += world.gravity.y;
+    movementVector : Vector3;
     velocity := world.player.predict;
     hitGround, gravity := CheckGround(world, *world.player);
     if hitGround {
         print("Hit ground. Don't apply gravity...\n");
+        movementVector = PredictMovement(world, *world.player, velocity);
     } else {
         print("Didn't hit ground. Apply gravity...\n");
-        velocity += gravity;
+        movementVector = gravity;
+        movementVector.y += velocity.y;
     }
-    movementVector := PredictMovement(world, *world.player, velocity);
-    world.player.pos += (movementVector);
+    world.player.pos += movementVector;
     
     UpdateEntity(*world.player);
     
