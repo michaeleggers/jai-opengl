@@ -12,6 +12,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             tris : [..] Tri;
             world.player = entity;
             world.player.textureID = RegisterTexture(entity.texture);
+            print("SpawnEntities: Texture: %\n", entity.texture);
             i := 0;
             while i < iqmModel.vertices.count {
                 tri : Tri;
@@ -21,6 +22,9 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                 tri.a.pos = Vector3.{a.pos[0], a.pos[2], a.pos[1]};
                 tri.b.pos = Vector3.{b.pos[0], b.pos[2], b.pos[1]};
                 tri.c.pos = Vector3.{c.pos[0], c.pos[2], c.pos[1]};
+                tri.a.uv = Vector2.{a.texCoord[0], a.texCoord[1]};
+                tri.b.uv = Vector2.{b.texCoord[0], b.texCoord[1]};
+                tri.c.uv = Vector2.{c.texCoord[0], c.texCoord[1]};
                 tri.a.bc = Vector3.{1.0, 0.0, 0.0};
                 tri.b.bc = Vector3.{0.0, 1.0, 0.0};
                 tri.c.bc = Vector3.{0.0, 0.0, 1.0};
@@ -345,10 +349,10 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     velocity := world.player.predict;
     hitGround, gravity := CheckGround(world, *world.player);
     if hitGround {
-        print("Hit ground. Don't apply gravity...\n");
+        // print("Hit ground. Don't apply gravity...\n");
         movementVector = PredictMovement(world, *world.player, velocity);
     } else {
-        print("Didn't hit ground. Apply gravity...\n");
+        // print("Didn't hit ground. Apply gravity...\n");
         movementVector = gravity;
         movementVector.y += velocity.y;
     }

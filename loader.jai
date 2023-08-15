@@ -134,6 +134,8 @@ LoadIQM :: (file : string) -> IQMData {
     print("Vertex Arrays:\n");
     positions := null;
     positionStride := 0;
+    texCoords := null;
+    texCoordStride := 0;
     for i : 0..pHeader.numVertArrays-1 {
         vertArray := cast(*IQMVertArray)(pVertArrays + i*size_of(IQMVertArray));
         type : IQMVertArrayType = cast(IQMVertArrayType)vertArray.type;
@@ -142,12 +144,20 @@ LoadIQM :: (file : string) -> IQMData {
         offset := vertArray.offset;
         if type == .POSITION {
             print("type is POSITION!\n");
-            positions = cast(*u8)(iqmFile.data + offset);
+            positions = iqmFile.data + offset;
             dataSize := 0;
             if format == .FLOAT {
                 dataSize = size_of(float);
             }
             positionStride = numComponents * dataSize;
+        } else if type == .TEXCOORD {
+            texCoords = iqmFile.data + offset;
+            dataSize := 0;
+            if format == .FLOAT {
+                print("UV format is FLOAT\n");
+                dataSize = size_of(float);
+            }
+            texCoordStride = numComponents * dataSize;
         }
         print("type: %, format: %, numComponents: %, offset: %\n", type, format, numComponents, offset);
         print("%\n", <<vertArray);       
@@ -161,14 +171,17 @@ LoadIQM :: (file : string) -> IQMData {
         a := cast([3] float)(positions + tri.vertex[0] * positionStride);
         b := cast([3] float)(positions + tri.vertex[1] * positionStride);
         c := cast([3] float)(positions + tri.vertex[2] * positionStride);
+        aUV := cast([2] float)(texCoords + tri.vertex[0] * texCoordStride);
+        bUV := cast([2] float)(texCoords + tri.vertex[1] * texCoordStride);
+        cUV := cast([2] float)(texCoords + tri.vertex[2] * texCoordStride);
 
         // print("a: %\n", a);
         // print("b: %\n", b);
         // print("c: %\n\n", c);
 
-        vertA : IQMVertex = .{pos = a};
-        vertB : IQMVertex = .{pos = b};
-        vertC : IQMVertex = .{pos = c};
+        vertA : IQMVertex = .{pos = a, texCoord = aUV};
+        vertB : IQMVertex = .{pos = b, texCoord = bUV};
+        vertC : IQMVertex = .{pos = c, texCoord = cUV};
 
         array_add(*result.vertices, vertA);
         array_add(*result.vertices, vertB);

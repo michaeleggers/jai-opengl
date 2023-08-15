@@ -95,7 +95,7 @@
 {
     "classname" "info_player_start"
     "origin" "1.6 3 1.2"
-    "texture" "vines.tga"
+    "texture" "Body.tga"
     # "angle" 270
 }
         

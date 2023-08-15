@@ -329,6 +329,6 @@
 {
     "classname" "info_player_start"
     "origin" "3 10 3"
-    "texture" "stone_texture_v2_plane.tga"
+    "texture" "Body.tga"
     # "angle" 270
 }
