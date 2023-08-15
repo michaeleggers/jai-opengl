@@ -15,15 +15,16 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             i := 0;
             while i < iqmModel.vertices.count {
                 tri : Tri;
-                tri.a.pos.x = iqmModel.vertices[i].pos[0];
-                tri.a.pos.y = iqmModel.vertices[i].pos[2];
-                tri.a.pos.z = iqmModel.vertices[i].pos[1];
-                tri.b.pos.x = iqmModel.vertices[i + 1].pos[0];
-                tri.b.pos.y = iqmModel.vertices[i + 1].pos[2];
-                tri.b.pos.z = iqmModel.vertices[i + 1].pos[1];
-                tri.c.pos.x = iqmModel.vertices[i + 2].pos[0];
-                tri.c.pos.y = iqmModel.vertices[i + 2].pos[2];
-                tri.c.pos.z = iqmModel.vertices[i + 2].pos[1];
+                a := iqmModel.vertices[i + 0];
+                b := iqmModel.vertices[i + 1];
+                c := iqmModel.vertices[i + 2];
+                tri.a.pos = Vector3.{a.pos[0], a.pos[2], a.pos[1]};
+                tri.b.pos = Vector3.{b.pos[0], b.pos[2], b.pos[1]};
+                tri.c.pos = Vector3.{c.pos[0], c.pos[2], c.pos[1]};
+                tri.a.bc = Vector3.{1.0, 0.0, 0.0};
+                tri.b.bc = Vector3.{0.0, 1.0, 0.0};
+                tri.c.bc = Vector3.{0.0, 0.0, 1.0};
+
                 array_add(*tris, tri);
                 i += 3;
             }
