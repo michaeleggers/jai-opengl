@@ -17,6 +17,7 @@
 #load "world.jai";
 #load "collision.jai";
 #load "input.jai";
+#load "loader.jai";
 
 AllocString :: (count : u32) -> string {
     s : string;

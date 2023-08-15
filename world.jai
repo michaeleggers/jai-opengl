@@ -7,11 +7,29 @@ World :: struct {
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
     for entity : entities {
+        iqmModel := LoadIQM("assets/models/mrfixit/mrfixit.iqm");
         if entity.entityType == .PLAYER { // TODO: Actually load model data from disk and compute necessary stuff as AABB.
+            tris : [..] Tri;
             world.player = entity;
             world.player.textureID = RegisterTexture(entity.texture);
-            world.player.modelID = CreateEntityModel(GEOM_UNIT_CUBE);
-            world.player.aabb = ComputeAABB(GEOM_UNIT_CUBE);
+            i := 0;
+            while i < iqmModel.vertices.count {
+                tri : Tri;
+                tri.a.pos.x = iqmModel.vertices[i].pos[0];
+                tri.a.pos.y = iqmModel.vertices[i].pos[2];
+                tri.a.pos.z = iqmModel.vertices[i].pos[1];
+                tri.b.pos.x = iqmModel.vertices[i + 1].pos[0];
+                tri.b.pos.y = iqmModel.vertices[i + 1].pos[2];
+                tri.b.pos.z = iqmModel.vertices[i + 1].pos[1];
+                tri.c.pos.x = iqmModel.vertices[i + 2].pos[0];
+                tri.c.pos.y = iqmModel.vertices[i + 2].pos[2];
+                tri.c.pos.z = iqmModel.vertices[i + 2].pos[1];
+                array_add(*tris, tri);
+                i += 3;
+            }
+
+            world.player.modelID = CreateEntityModel(tris);            
+            world.player.aabb = ComputeAABB(tris);
             world.player.currentAABB = world.player.aabb;
             world.player.pos = entity.pos;            
         }
