@@ -9,32 +9,34 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
     for entity : entities {
         iqmModel := LoadIQM("assets/models/mrfixit/mrfixit.iqm");
         if entity.entityType == .PLAYER { // TODO: Actually load model data from disk and compute necessary stuff as AABB.
-            tris : [..] Tri;
             world.player = entity;
             world.player.textureID = RegisterTexture(entity.texture);
             print("SpawnEntities: Texture: %\n", entity.texture);
-            i := 0;
-            while i < iqmModel.vertices.count {
-                tri : Tri;
-                a := iqmModel.vertices[i + 0];
-                b := iqmModel.vertices[i + 1];
-                c := iqmModel.vertices[i + 2];
-                tri.a.pos = Vector3.{a.pos[0], a.pos[2], a.pos[1]};
-                tri.b.pos = Vector3.{b.pos[0], b.pos[2], b.pos[1]};
-                tri.c.pos = Vector3.{c.pos[0], c.pos[2], c.pos[1]};
-                tri.a.uv = Vector2.{a.texCoord[0], a.texCoord[1]};
-                tri.b.uv = Vector2.{b.texCoord[0], b.texCoord[1]};
-                tri.c.uv = Vector2.{c.texCoord[0], c.texCoord[1]};
-                tri.a.bc = Vector3.{1.0, 0.0, 0.0};
-                tri.b.bc = Vector3.{0.0, 1.0, 0.0};
-                tri.c.bc = Vector3.{0.0, 0.0, 1.0};
+            for iqmModel.meshes {
+                i := 0;
+                tris : [..] Tri;
+                while i < it.vertices.count {
+                    tri : Tri;
+                    a := it.vertices[i + 0];
+                    b := it.vertices[i + 1];
+                    c := it.vertices[i + 2];
+                    tri.a.pos = Vector3.{a.pos[0], a.pos[2], a.pos[1]};
+                    tri.b.pos = Vector3.{b.pos[0], b.pos[2], b.pos[1]};
+                    tri.c.pos = Vector3.{c.pos[0], c.pos[2], c.pos[1]};
+                    tri.a.uv = Vector2.{a.texCoord[0], a.texCoord[1]};
+                    tri.b.uv = Vector2.{b.texCoord[0], b.texCoord[1]};
+                    tri.c.uv = Vector2.{c.texCoord[0], c.texCoord[1]};
+                    tri.a.bc = Vector3.{1.0, 0.0, 0.0};
+                    tri.b.bc = Vector3.{0.0, 1.0, 0.0};
+                    tri.c.bc = Vector3.{0.0, 0.0, 1.0};
 
-                array_add(*tris, tri);
-                i += 3;
+                    array_add(*tris, tri);
+                    i += 3;
+                }
+                array_add(*world.player.modelIDs, CreateEntityModel(tris, world.player.textureID));
+                world.player.aabb = ComputeAABB(tris);
             }
-
-            array_add(*world.player.modelIDs, CreateEntityModel(tris, world.player.textureID));
-            world.player.aabb = ComputeAABB(tris);
+        
             world.player.currentAABB = world.player.aabb;
             world.player.pos = entity.pos;            
         }

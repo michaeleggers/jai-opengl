@@ -25,8 +25,12 @@ IQMMesh :: struct {
     firstTri, numTris : u32;
 }
 
-IQMData :: struct {
+Mesh :: struct {
     vertices : [..] IQMVertex;
+}
+
+IQMData :: struct {
+    meshes : [..] Mesh;    
 }
 
 IQMVertArray :: struct {
@@ -165,32 +169,37 @@ LoadIQM :: (file : string) -> IQMData {
     }
 
     result : IQMData;
-    print("Tris:\n");
-    for i : 0..pHeader.numTris-1 {
-        tri := cast(*IQMTri)(pTris + i*size_of(IQMTri));
-        a := cast([3] float)(positions + tri.vertex[0] * positionStride);
-        b := cast([3] float)(positions + tri.vertex[1] * positionStride);
-        c := cast([3] float)(positions + tri.vertex[2] * positionStride);
-        aUV := cast([2] float)(texCoords + tri.vertex[0] * texCoordStride);
-        bUV := cast([2] float)(texCoords + tri.vertex[1] * texCoordStride);
-        cUV := cast([2] float)(texCoords + tri.vertex[2] * texCoordStride);
 
-        // print("a: %\n", a);
-        // print("b: %\n", b);
-        // print("c: %\n\n", c);
+    for i : 0..pHeader.numMeshes-1 {    
+        iqmMesh := cast(*IQMMesh)(pMeshes + i*size_of(IQMMesh));
+        firstTri := iqmMesh.firstTri;     
+        print("first tri: %\n", firstTri);   
+        print("num tris: %\n", iqmMesh.numTris);
+        mesh : Mesh;
+        for j : 0..iqmMesh.numTris-1 {
+            tri := cast(*IQMTri)(pTris + firstTri*size_of(IQMTri) + j*size_of(IQMTri));
+            // print("%\n", <<tri); 
+            
+            a := cast([3] float)(positions + tri.vertex[0] * positionStride);
+            b := cast([3] float)(positions + tri.vertex[1] * positionStride);
+            c := cast([3] float)(positions + tri.vertex[2] * positionStride);
+            
+            aUV := cast([2] float)(texCoords + tri.vertex[0] * texCoordStride);
+            bUV := cast([2] float)(texCoords + tri.vertex[1] * texCoordStride);
+            cUV := cast([2] float)(texCoords + tri.vertex[2] * texCoordStride);
 
-        vertA : IQMVertex = .{pos = a, texCoord = aUV};
-        vertB : IQMVertex = .{pos = b, texCoord = bUV};
-        vertC : IQMVertex = .{pos = c, texCoord = cUV};
+            vertA : IQMVertex = .{pos = a, texCoord = aUV};
+            vertB : IQMVertex = .{pos = b, texCoord = bUV};
+            vertC : IQMVertex = .{pos = c, texCoord = cUV};
 
-        array_add(*result.vertices, vertA);
-        array_add(*result.vertices, vertB);
-        array_add(*result.vertices, vertC);
-
-        // print("a: %, b: %, c: %\n", <<a, <<b, <<c);
-
-        // print("%\n", <<tris);
+            array_add(*mesh.vertices, vertA);
+            array_add(*mesh.vertices, vertB);
+            array_add(*mesh.vertices, vertC);
+        }
+        array_add(*result.meshes, mesh);
     }
+
+    // exit(1);
 
     return result;
 }
