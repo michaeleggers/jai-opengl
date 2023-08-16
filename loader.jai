@@ -1,3 +1,7 @@
+// TODO: Just setup pointers so that API functions later can directly peek into the loaded data.
+//       Currently this code loads everything into arrays and then later we copy data into
+//       another array in the client code. This is pretty dumb... For now, it is okay. Still exploring.
+
 #import "Basic";
 #import "File";
 
@@ -28,6 +32,7 @@ IQMMesh :: struct {
 Mesh :: struct {
     material : string;
     vertices : [..] IQMVertex;
+    firstTri, numTris : u32;
 }
 
 IQMData :: struct {
@@ -178,6 +183,8 @@ LoadIQM :: (file : string) -> IQMData {
         print("num tris: %\n", iqmMesh.numTris);
         mesh : Mesh;
         mesh.material = to_string(pText + iqmMesh.material);
+        mesh.firstTri = iqmMesh.firstTri;
+        mesh.numTris = iqmMesh.numTris;
         for j : 0..iqmMesh.numTris-1 {
             tri := cast(*IQMTri)(pTris + firstTri*size_of(IQMTri) + j*size_of(IQMTri));
             // print("%\n", <<tri); 
@@ -186,9 +193,9 @@ LoadIQM :: (file : string) -> IQMData {
             b := cast([3] float)(positions + tri.vertex[1] * positionStride);
             c := cast([3] float)(positions + tri.vertex[2] * positionStride);
             
-            aUV := cast([2] float)(texCoords + tri.vertex[0] * texCoordStride);
-            bUV := cast([2] float)(texCoords + tri.vertex[1] * texCoordStride);
-            cUV := cast([2] float)(texCoords + tri.vertex[2] * texCoordStride);
+            aUV := cast([2] float)(texCoords + tri.vertex[0] * texCoordStride); aUV[1] = 1 - aUV[1];
+            bUV := cast([2] float)(texCoords + tri.vertex[1] * texCoordStride); bUV[1] = 1 - bUV[1];
+            cUV := cast([2] float)(texCoords + tri.vertex[2] * texCoordStride); cUV[1] = 1 - cUV[1];
 
             vertA : IQMVertex = .{pos = a, texCoord = aUV};
             vertB : IQMVertex = .{pos = b, texCoord = bUV};

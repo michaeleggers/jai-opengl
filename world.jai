@@ -12,7 +12,11 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             world.player = entity;
             print("SpawnEntities: Texture: %\n", entity.texture);
             for iqmModel.meshes {                
+                cpuEntityModel : CPUEntityModel;
                 textureID := RegisterTexture(it.material);
+                cpuEntityModel.textureID = textureID;
+                cpuEntityModel.start = it.firstTri;
+                cpuEntityModel.triCount = it.numTris;
                 i := 0;
                 tris : [..] Tri;
                 while i < it.vertices.count {
@@ -31,13 +35,14 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                     tri.c.bc = Vector3.{0.0, 0.0, 1.0};
 
                     array_add(*tris, tri);
+                    array_add(*world.player.tris, tri);
                     i += 3;
                 }
-                array_add(*world.player.modelIDs, CreateEntityModel(tris, textureID));
-                world.player.aabb = ComputeAABB(tris);
+                cpuEntityModel.gpuID = CreateEntityModel(tris, textureID);
+                array_add(*world.player.models, cpuEntityModel);
                 array_free(tris);
             }
-        
+            world.player.aabb = ComputeAABB(world.player.tris);        
             world.player.currentAABB = world.player.aabb;
             world.player.pos = entity.pos;            
         }

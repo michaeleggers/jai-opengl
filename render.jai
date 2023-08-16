@@ -621,8 +621,8 @@ DrawFrame :: (refdef : RefDef) {
     ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     for i : 0..entityCount-1 {
         entity := refdef.entities[i];
-        for entity.modelIDs {
-            entityModel := entityModels[it];
+        for entity.models {             
+            entityModel := entityModels[it.gpuID];
             entityTransform := transpose(make_translation_matrix4(entity.pos));
             memcpy(ptr, *entityTransform, size_of(EntityTransform));
             glBindVertexArray(entityModel.VAO);

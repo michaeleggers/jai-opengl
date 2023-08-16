@@ -3,6 +3,16 @@ EntityType :: enum u32 {
     PLAYER;
 }
 
+CPUEntityModel :: struct {
+    gpuID       : u32; // ID into entity model array in render.jai
+    textureID   : u32;
+    // Start and end indices into Entity::tris
+    // TODO: Use those to index into the VBO. Currently we create a new VBO for each mesh. Yeah, and maybe we should call it mesh and not model.
+    //       We could also batch data, because many entities may share the same material, just like static geometry.
+    start       : u32;
+    triCount    : u32;
+};
+
 Entity :: struct {
     #as using base := BaseEntity.{    
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
@@ -22,8 +32,8 @@ Entity :: struct {
     orientation  : Quaternion;
     aabb         : AABB;    
     currentAABB  : AABB;
-    modelIDs     : [..] u32; // ID into entity model array in render.jai
-    textureID    : u32;
+    tris         : [..] Tri;
+    models       : [..] CPUEntityModel;
     texture      : string; // TODO: actually when processing entities in a loop, I don't really want that here!
     transform    := Matrix4_Identity; // Holds the current transformation matrix    
     followCamera : *FollowCamera = null;
