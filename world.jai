@@ -7,10 +7,11 @@ World :: struct {
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
     for entity : entities {
+        modelname := GetModelNameByClassname(entity.classname);
+        iqmModelPath := tprint("assets/models/%/%.iqm", modelname, modelname);
         iqmModel := LoadIQM("assets/models/mrfixit/mrfixit.iqm");
         if entity.entityType == .PLAYER { // TODO: Actually load model data from disk and compute necessary stuff as AABB.
-            world.player = entity;
-            print("SpawnEntities: Texture: %\n", entity.texture);
+            world.player = entity;        
             for iqmModel.meshes {                
                 cpuEntityModel : CPUEntityModel;
                 textureID := RegisterTexture(it.material);
