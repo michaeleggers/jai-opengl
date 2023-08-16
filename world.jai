@@ -35,6 +35,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                 }
                 array_add(*world.player.modelIDs, CreateEntityModel(tris, textureID));
                 world.player.aabb = ComputeAABB(tris);
+                array_free(tris);
             }
         
             world.player.currentAABB = world.player.aabb;
