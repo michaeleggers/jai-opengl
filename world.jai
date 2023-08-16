@@ -10,9 +10,9 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
         iqmModel := LoadIQM("assets/models/mrfixit/mrfixit.iqm");
         if entity.entityType == .PLAYER { // TODO: Actually load model data from disk and compute necessary stuff as AABB.
             world.player = entity;
-            world.player.textureID = RegisterTexture(entity.texture);
             print("SpawnEntities: Texture: %\n", entity.texture);
-            for iqmModel.meshes {
+            for iqmModel.meshes {                
+                textureID := RegisterTexture(it.material);
                 i := 0;
                 tris : [..] Tri;
                 while i < it.vertices.count {
@@ -33,7 +33,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                     array_add(*tris, tri);
                     i += 3;
                 }
-                array_add(*world.player.modelIDs, CreateEntityModel(tris, world.player.textureID));
+                array_add(*world.player.modelIDs, CreateEntityModel(tris, textureID));
                 world.player.aabb = ComputeAABB(tris);
             }
         

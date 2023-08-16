@@ -26,6 +26,7 @@ IQMMesh :: struct {
 }
 
 Mesh :: struct {
+    material : string;
     vertices : [..] IQMVertex;
 }
 
@@ -128,7 +129,7 @@ LoadIQM :: (file : string) -> IQMData {
     for i : 0..pHeader.numMeshes-1 {    
         mesh := cast(*IQMMesh)(pMeshes + i*size_of(IQMMesh));
         name := pText + mesh.name;     
-        material := pText + mesh.material;   
+        material := pText + mesh.material;
         print("name: %\n", to_string(name));
         print("material : %\n\n", to_string(material));
         
@@ -176,6 +177,7 @@ LoadIQM :: (file : string) -> IQMData {
         print("first tri: %\n", firstTri);   
         print("num tris: %\n", iqmMesh.numTris);
         mesh : Mesh;
+        mesh.material = to_string(pText + iqmMesh.material);
         for j : 0..iqmMesh.numTris-1 {
             tri := cast(*IQMTri)(pTris + firstTri*size_of(IQMTri) + j*size_of(IQMTri));
             // print("%\n", <<tri); 
