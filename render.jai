@@ -55,6 +55,7 @@ RefDef :: struct {
 EntityModel :: struct {
     VAO, VBO    : GLuint;
     vertices    : [..] Vertex;
+    textureID   : u32;
 }
 
 EntityTransform :: struct {
@@ -196,8 +197,9 @@ RenderAddEntity :: (refdef : *RefDef, entity : Entity) {
     entityCount += 1;
 }
 
-CreateEntityModel :: (tris : [] Tri) -> u32 {
+CreateEntityModel :: (tris : [] Tri, textureID : u32) -> u32 {
     result : EntityModel; 
+    result.textureID = textureID;
     
     for tris {
         array_add(*result.vertices, it.a);
@@ -619,12 +621,14 @@ DrawFrame :: (refdef : RefDef) {
     ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     for i : 0..entityCount-1 {
         entity := refdef.entities[i];
-        entityModel := entityModels[entity.modelID];
-        entityTransform := transpose(make_translation_matrix4(entity.pos));
-        memcpy(ptr, *entityTransform, size_of(EntityTransform));
-        glBindVertexArray(entityModel.VAO);
-        glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(entity.textureID));
-        glDrawArrays(GL_TRIANGLES, 0, xx entityModel.vertices.count);
+        for entity.modelIDs {
+            entityModel := entityModels[it];
+            entityTransform := transpose(make_translation_matrix4(entity.pos));
+            memcpy(ptr, *entityTransform, size_of(EntityTransform));
+            glBindVertexArray(entityModel.VAO);
+            glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(entityModel.textureID));
+            glDrawArrays(GL_TRIANGLES, 0, xx entityModel.vertices.count);
+        }
     }
     glUnmapBuffer(GL_UNIFORM_BUFFER);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);

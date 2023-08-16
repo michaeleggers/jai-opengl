@@ -33,7 +33,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                 i += 3;
             }
 
-            world.player.modelID = CreateEntityModel(tris);            
+            array_add(*world.player.modelIDs, CreateEntityModel(tris, world.player.textureID));
             world.player.aabb = ComputeAABB(tris);
             world.player.currentAABB = world.player.aabb;
             world.player.pos = entity.pos;            
