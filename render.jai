@@ -430,6 +430,8 @@ RenderInit :: () {
 
     glBindBuffer(GL_UNIFORM_BUFFER, entityTransformUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(EntityTransform), null, GL_DYNAMIC_DRAW);
+
+    SDL_GL_SetSwapInterval(1); // VSYNC on, please.
 }
 
 CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint {

@@ -13,10 +13,10 @@ Camera :: struct {
             if keyState[SDLK_LEFT]      RotateAroundUp(cast(*Camera)baseEntity,  0.0001);
             if keyState[SDLK_UP]        RotateAroundSide(cast(*Camera)baseEntity,  0.0001);
             if keyState[SDLK_DOWN]      RotateAroundSide(cast(*Camera)baseEntity, -0.0001);
-            if keyState[SDLK_d]         MoveSide(cast(*Camera)baseEntity,  0.01);
-            if keyState[SDLK_a]         MoveSide(cast(*Camera)baseEntity, -0.01);
-            if keyState[SDLK_w]         MoveForward(cast(*Camera)baseEntity,  0.01);
-            if keyState[SDLK_s]         MoveForward(cast(*Camera)baseEntity, -0.01);
+            if keyState[SDLK_d]         MoveSide(cast(*Camera)baseEntity,  0.1);
+            if keyState[SDLK_a]         MoveSide(cast(*Camera)baseEntity, -0.1);
+            if keyState[SDLK_w]         MoveForward(cast(*Camera)baseEntity,  0.1);
+            if keyState[SDLK_s]         MoveForward(cast(*Camera)baseEntity, -0.1);
         }
     };
     type    : Type = Camera;
