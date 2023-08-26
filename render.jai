@@ -578,11 +578,14 @@ DrawFrame :: (refdef : RefDef) {
     viewProjMatrices.proj = Perspective(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0);
     // viewProjMatrices.proj = transpose(make_projection_matrix(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0));
     
+    // TODO: Not sure if we should keep a buffer in mapped state...? Probably not worth it? Look this up in the gl-bible.
     glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
     // glBindBufferBase(GL_UNIFORM_BUFFER, 0, viewProjectionUBO);
-    ptr := glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    memcpy(ptr, *viewProjMatrices, size_of(ViewProjMatrices));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    // ptr := glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    // memcpy(ptr, *viewProjMatrices, size_of(ViewProjMatrices));
+    glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // glUnmapBuffer(GL_UNIFORM_BUFFER);
 
     // glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -595,7 +598,7 @@ DrawFrame :: (refdef : RefDef) {
         perFrameSettings.drawWireframe = 0;
     }
     glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
-    ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    ptr := glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     memcpy(ptr, *perFrameSettings, size_of(PerFrameSettings));
     glUnmapBuffer(GL_UNIFORM_BUFFER);
     // glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
@@ -617,8 +620,8 @@ DrawFrame :: (refdef : RefDef) {
 
     // Draw entities (for now just pretty much the same as world stuff)
     glUseProgram(gEntityShaderProgram);
-    glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
+    // glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
+    // glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, entityTransformUBO);
     ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     for i : 0..entityCount-1 {
