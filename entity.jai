@@ -1,3 +1,7 @@
+ClassnameToModel :: struct {
+    classname : string;
+    modelname : string;
+}
 
 EntityType :: enum u32 {
     PLAYER;
@@ -26,6 +30,7 @@ Entity :: struct {
 
         }
     };
+    classname    : string;
     entityType   : EntityType;
     pos          : Vector3;
     predict      : Vector3;
@@ -75,3 +80,16 @@ UpdateEntity :: (entity : *Entity) { // TODO: Find out how to do namespaces (if 
     entity.predict = .{0.0, 0.0, 0.0};
 }
 
+GetModelNameByClassname :: (classname : string) -> string {
+    for ENTITY_MODELS {
+        if !compare(classname, it.classname) {
+            return it.modelname;
+        }
+    }
+    assert(false, "No model found for classname: %\n", classname);
+    return "";
+}
+
+ENTITY_MODELS :: ClassnameToModel.[
+    .{"info_player_start", "mrfixit"}
+];

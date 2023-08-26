@@ -329,6 +329,6 @@
 {
     "classname" "info_player_start"
     "origin" "3 10 3"
-    "texture" "Body.tga"
+    "texture" "Body.tga" # kinda obsolete, since textures are defined in the IQM model file!
     # "angle" 270
 }

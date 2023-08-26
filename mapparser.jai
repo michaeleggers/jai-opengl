@@ -283,6 +283,9 @@ LoadMapFile :: (mapFile : string) -> [] Brush, [] Entity {
             else if !compare("texture", it.key) {
                 entity.texture = copy_string(it.value); // NOTE: it.value's data pointer is pointing to memory owned by mapFileData. This could be a problem?
             }
+            else if !compare("classname", it.key) {
+                entity.classname = copy_string(it.value);
+            }
         }
         array_add(*entities, entity);
     }
