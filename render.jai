@@ -352,7 +352,9 @@ MessageCallback :: (source : GLenum,
         if severity == GL_DEBUG_SEVERITY_MEDIUM severityString = "MEDIUM";
         if severity == GL_DEBUG_SEVERITY_LOW severityString = "LOW";
         if severity == GL_DEBUG_SEVERITY_NOTIFICATION severityString = "NOTIFICATION";
-        print("GL CALLBACK: % type = %, severity = %, message = %\n", "foo", type, severityString, to_string(message) );
+        if severity != GL_DEBUG_SEVERITY_NOTIFICATION {
+            print("GL CALLBACK: % type = %, severity = %, message = %\n", "foo", type, severityString, to_string(message) );
+        }
     }
 }
 

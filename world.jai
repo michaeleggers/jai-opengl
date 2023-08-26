@@ -361,8 +361,8 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
         movementVector = PredictMovement(world, *world.player, velocity);
     } else {
         // print("Didn't hit ground. Apply gravity...\n");
-        movementVector = gravity;
-        movementVector.y += velocity.y;
+        gravity.y += velocity.y;
+        movementVector = PredictMovement(world, *world.player, gravity);
     }
     world.player.pos += movementVector;
     
