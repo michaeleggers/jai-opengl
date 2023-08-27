@@ -34,6 +34,11 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                     tri.a.bc = Vector3.{1.0, 0.0, 0.0};
                     tri.b.bc = Vector3.{0.0, 1.0, 0.0};
                     tri.c.bc = Vector3.{0.0, 0.0, 1.0};
+                    for i : 0..2 {
+                        for j : 0..3 {
+                            tri.vertices[i].blendindices[j] = a.blendindices[j];
+                        }
+                    }
 
                     array_add(*tris, tri);
                     array_add(*world.player.tris, tri);
