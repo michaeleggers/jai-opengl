@@ -172,6 +172,8 @@ LoadIQM :: (file : string) -> IQMData {
     positionStride := 0;
     texCoords := null;
     texCoordStride := 0;
+    blendWeights := null;
+    blendWeightStride := 0;
     for i : 0..pHeader.numVertArrays-1 {
         vertArray := cast(*IQMVertArray)(pVertArrays + i*size_of(IQMVertArray));
         type : IQMVertArrayType = cast(IQMVertArrayType)vertArray.type;
@@ -194,7 +196,17 @@ LoadIQM :: (file : string) -> IQMData {
                 dataSize = size_of(float);
             }
             texCoordStride = numComponents * dataSize;
+        } else if type == .BLENDINDEXES {
+            blendWeights = iqmFile.data + offset;
+            dataSize := 0;
+            if format == .UBYTE {
+                dataSize = size_of(u8);
+            }
+            blendWeightStride = numComponents * dataSize;
+        } else if type == .BLENDWEIGHTS {
+
         }
+
         print("type: %, format: %, numComponents: %, offset: %\n", type, format, numComponents, offset);
         print("%\n", <<vertArray);       
         print("positionStride: %\n", positionStride);
