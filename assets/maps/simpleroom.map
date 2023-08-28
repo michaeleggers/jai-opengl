@@ -332,3 +332,4 @@
     "texture" "Body.tga" # kinda obsolete, since textures are defined in the IQM model file!
     # "angle" 270
 }
+

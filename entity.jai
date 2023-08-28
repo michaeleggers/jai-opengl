@@ -87,7 +87,7 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
         frameCompletion = 0.0;
     }
     
-    if currentFrame > frameCount {
+    if currentFrame >= frameCount {
         currentFrame = 0;
     }
 
@@ -108,5 +108,5 @@ GetModelNameByClassname :: (classname : string) -> string {
 }
 
 ENTITY_MODELS :: ClassnameToModel.[
-    .{"info_player_start", "mrfixit"}
+    .{"info_player_start", "cylinder"}
 ];

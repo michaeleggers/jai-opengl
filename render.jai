@@ -25,7 +25,7 @@ batches : [..] Batch;
 entityModels : [..] EntityModel;
 
 // UBO for animation matrices and some hard constraints
-MAX_SKELETON_JOINTS :: 96;
+MAX_SKELETON_JOINTS :: 128;
 poseMatrixUBO : GLuint;
 
 // Immediate 3D
@@ -65,10 +65,6 @@ EntityTransform :: struct {
     transform := Matrix4_Identity;
 }
 entityTransformUBO : GLuint;
-
-PoseMatrices :: struct {
-    palette : [MAX_SKELETON_JOINTS] Matrix4;
-}
 
 // HUD
 HUDElement :: struct {
@@ -448,7 +444,7 @@ RenderInit :: () {
     glBufferData(GL_UNIFORM_BUFFER, size_of(EntityTransform), null, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_UNIFORM_BUFFER, poseMatrixUBO);
-    glBufferData(GL_UNIFORM_BUFFER, size_of(PoseMatrices), null, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, MAX_SKELETON_JOINTS*size_of(Matrix4), null, GL_DYNAMIC_DRAW);
 
     SDL_GL_SetSwapInterval(1); // VSYNC on, please.
 }
@@ -648,7 +644,7 @@ DrawFrame :: (refdef : RefDef) {
         entity := refdef.entities[i];
         glBindBuffer(GL_UNIFORM_BUFFER, poseMatrixUBO);
         poseOffset := entity.currentFrame*entity.jointCount;
-        glBufferData(GL_UNIFORM_BUFFER, MAX_SKELETON_JOINTS*size_of(Matrix4), *entity.poseMatrices[poseOffset], GL_DYNAMIC_DRAW);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_SKELETON_JOINTS*size_of(Matrix4), *(entity.poseMatrices[poseOffset]));
         for entity.models {             
             entityModel := entityModels[it.gpuID];
             entityTransform := transpose(make_translation_matrix4(entity.pos));

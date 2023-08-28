@@ -278,7 +278,7 @@ LoadIQM :: (file : string) -> IQMData {
         scalee := Vector3.{iqmJoint.scale[0], iqmJoint.scale[1], iqmJoint.scale[2]};
         // scale: Not really interested.
         // m := Matrix4_Identity;
-        // normalize_or_identity(*rotation);
+        normalize_or_identity(*rotation);
         // // set_rotation(*m, rotation);
         // m = rotation_matrix(Matrix4, rotation);
         // scale(*m, scalee);
@@ -287,10 +287,10 @@ LoadIQM :: (file : string) -> IQMData {
         * make_scale_matrix4 (scalee)
         * rotation_matrix(Matrix4, rotation);
         bindPoses[i] = m;
-        invBindPoses[i] = Inverse(m);
+        invBindPoses[i] = inverse(m);
         if iqmJoint.parent >= 0 {
-            bindPoses[i] = bindPoses[i] * bindPoses[iqmJoint.parent]; 
-            invBindPoses[i] = invBindPoses[iqmJoint.parent] * invBindPoses[i];
+            bindPoses[i] = bindPoses[iqmJoint.parent] * bindPoses[i];
+            invBindPoses[i] = invBindPoses[i] * invBindPoses[iqmJoint.parent];
         }        
     }
     result.bindPoses = array_copy(bindPoses);
@@ -314,14 +314,15 @@ LoadIQM :: (file : string) -> IQMData {
             scalee.x = iqmPose.channeloffset[7];     if iqmPose.channelmask & 0x80 { scalee.x += <<framedata * iqmPose.channelscale[7];     framedata += 1; }
             scalee.y = iqmPose.channeloffset[8];     if iqmPose.channelmask & 0x100 { scalee.y += <<framedata * iqmPose.channelscale[8];    framedata += 1; }
             scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += <<framedata * iqmPose.channelscale[9];    framedata += 1; }            
+            normalize_or_identity(*rotation);   
             m := make_translation_matrix4 (translation)
 			* make_scale_matrix4 (scalee)
 			* rotation_matrix(Matrix4, rotation);
             poseMatrix : Matrix4;
             if iqmPose.parent >= 0 {
-                poseMatrix = invBindPoses[j] * m * bindPoses[iqmPose.parent];
+                poseMatrix = bindPoses[iqmPose.parent] * m * invBindPoses[j];
             } else {
-                poseMatrix = invBindPoses[j] * m;
+                poseMatrix = m * invBindPoses[j];
             }
             array_add(*poseMatrices, poseMatrix);
         }

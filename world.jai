@@ -9,7 +9,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
     for entity : entities {
         modelname := GetModelNameByClassname(entity.classname);
         iqmModelPath := tprint("assets/models/%/%.iqm", modelname, modelname);
-        iqmModel := LoadIQM("assets/models/mrfixit/mrfixit.iqm");
+        iqmModel := LoadIQM(iqmModelPath);
         if entity.entityType == .PLAYER { // TODO: Actually load model data from disk and compute necessary stuff as AABB.
             world.player = entity;        
             array_resize(*world.player.poseMatrices, iqmModel.poseMatrices.count);
@@ -28,9 +28,9 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                     a := it.vertices[i + 0];
                     b := it.vertices[i + 1];
                     c := it.vertices[i + 2];
-                    tri.a.pos = Vector3.{a.pos[0], a.pos[2], a.pos[1]};
-                    tri.b.pos = Vector3.{b.pos[0], b.pos[2], b.pos[1]};
-                    tri.c.pos = Vector3.{c.pos[0], c.pos[2], c.pos[1]};
+                    tri.a.pos = Vector3.{a.pos[0], a.pos[1], a.pos[2]};
+                    tri.b.pos = Vector3.{b.pos[0], b.pos[1], b.pos[2]};
+                    tri.c.pos = Vector3.{c.pos[0], c.pos[1], c.pos[2]};
                     tri.a.uv = Vector2.{a.texCoord[0], a.texCoord[1]};
                     tri.b.uv = Vector2.{b.texCoord[0], b.texCoord[1]};
                     tri.c.uv = Vector2.{c.texCoord[0], c.texCoord[1]};
