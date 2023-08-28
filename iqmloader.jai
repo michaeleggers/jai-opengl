@@ -263,6 +263,7 @@ LoadIQM :: (file : string) -> IQMData {
         array_add(*result.meshes, mesh);
     }
 
+    globalBindPoses : [..] Matrix4;
     bindPoses : [..] Matrix4;
     array_resize(*bindPoses, pHeader.numJoints);
     invBindPoses : [..] Matrix4;
@@ -271,11 +272,12 @@ LoadIQM :: (file : string) -> IQMData {
     for i : 0..pHeader.numJoints-1 {
         iqmJoint := cast(*IQMJoint)(pJoints + i*size_of(IQMJoint));
         name := to_string(pText + iqmJoint.name);
-        print("%\n", name);
-        print("translation: %\n", iqmJoint.translate);
+        print("%, ", name);
+        // print("translation: %\n", iqmJoint.translate);
         translation := Vector3.{ iqmJoint.translate[0], iqmJoint.translate[1], iqmJoint.translate[2] };
         rotation := Quaternion.{ iqmJoint.rotate[0], iqmJoint.rotate[1], iqmJoint.rotate[2], iqmJoint.rotate[3] };
         scalee := Vector3.{iqmJoint.scale[0], iqmJoint.scale[1], iqmJoint.scale[2]};
+        print("rot: %\n", rotation);
         // scale: Not really interested.
         // m := Matrix4_Identity;
         normalize_or_identity(*rotation);
@@ -292,6 +294,7 @@ LoadIQM :: (file : string) -> IQMData {
             bindPoses[i] = bindPoses[iqmJoint.parent] * bindPoses[i];
             invBindPoses[i] = invBindPoses[i] * invBindPoses[iqmJoint.parent];
         }        
+        array_add(*globalBindPoses, invBindPoses[i] * bindPoses[i]);
     }
     result.bindPoses = array_copy(bindPoses);
     result.invBindPoses = array_copy(invBindPoses);
@@ -314,11 +317,14 @@ LoadIQM :: (file : string) -> IQMData {
             scalee.x = iqmPose.channeloffset[7];     if iqmPose.channelmask & 0x80 { scalee.x += <<framedata * iqmPose.channelscale[7];     framedata += 1; }
             scalee.y = iqmPose.channeloffset[8];     if iqmPose.channelmask & 0x100 { scalee.y += <<framedata * iqmPose.channelscale[8];    framedata += 1; }
             scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += <<framedata * iqmPose.channelscale[9];    framedata += 1; }
-            normalize_or_identity(*rotation);   
-            m := make_translation_matrix4(translation)
+
+            print("rot: %\n", rotation);
+            normalize_or_identity(*rotation);
+            m := make_translation_matrix4 (translation)
 			* make_scale_matrix4 (scalee)
-            * rotation_matrix(Matrix4, rotation);
-            poseMatrix : Matrix4;
+			* rotation_matrix(Matrix4, rotation);            
+            poseMatrix : Matrix4;            
+
             if iqmPose.parent >= 0 {
                 poseMatrix = bindPoses[iqmPose.parent] * m * invBindPoses[j];
             } else {
@@ -326,8 +332,10 @@ LoadIQM :: (file : string) -> IQMData {
             }
             array_add(*poseMatrices, poseMatrix);
         }
+        break; // DELETE LATER! JUST DEBUG STUFF!
     }
-    result.poseMatrices = array_copy(poseMatrices);
+
+    result.poseMatrices = array_copy(globalBindPoses);
     result.jointCount = pHeader.numJoints;
     result.frameCount = pHeader.numFrames;
 
