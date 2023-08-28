@@ -283,9 +283,9 @@ LoadIQM :: (file : string) -> IQMData {
         // m = rotation_matrix(Matrix4, rotation);
         // scale(*m, scalee);
         // m = translate(m, translation);
-        m := make_translation_matrix4 (translation)
+        m := rotation_matrix(Matrix4, rotation)
         * make_scale_matrix4 (scalee)
-        * rotation_matrix(Matrix4, rotation);
+        * make_translation_matrix4(translation);
         bindPoses[i] = m;
         invBindPoses[i] = inverse(m);
         if iqmJoint.parent >= 0 {
@@ -298,7 +298,7 @@ LoadIQM :: (file : string) -> IQMData {
     
     poseMatrices : [..] Matrix4;
     framedata := cast(*u16)(pFrames);
-    for i : 0..pHeader.numFrames {
+    for i : 0..pHeader.numFrames-1 {
         print(" Poses, #%:\n", pHeader.numPoses);
         for j : 0..pHeader.numPoses-1 {
             iqmPose := cast(*IQMPose)(pPoses + j*size_of(IQMPose));            
@@ -313,11 +313,11 @@ LoadIQM :: (file : string) -> IQMData {
             rotation.w = iqmPose.channeloffset[6];    if iqmPose.channelmask & 0x40 { rotation.w += (<<framedata * iqmPose.channelscale[6]);    framedata += 1; }
             scalee.x = iqmPose.channeloffset[7];     if iqmPose.channelmask & 0x80 { scalee.x += <<framedata * iqmPose.channelscale[7];     framedata += 1; }
             scalee.y = iqmPose.channeloffset[8];     if iqmPose.channelmask & 0x100 { scalee.y += <<framedata * iqmPose.channelscale[8];    framedata += 1; }
-            scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += <<framedata * iqmPose.channelscale[9];    framedata += 1; }            
+            scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += <<framedata * iqmPose.channelscale[9];    framedata += 1; }
             normalize_or_identity(*rotation);   
-            m := make_translation_matrix4 (translation)
+            m := rotation_matrix(Matrix4, rotation)
 			* make_scale_matrix4 (scalee)
-			* rotation_matrix(Matrix4, rotation);
+			* make_translation_matrix4(translation);
             poseMatrix : Matrix4;
             if iqmPose.parent >= 0 {
                 poseMatrix = bindPoses[iqmPose.parent] * m * invBindPoses[j];
