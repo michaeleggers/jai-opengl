@@ -283,9 +283,9 @@ LoadIQM :: (file : string) -> IQMData {
         // m = rotation_matrix(Matrix4, rotation);
         // scale(*m, scalee);
         // m = translate(m, translation);
-        m := rotation_matrix(Matrix4, rotation)
+        m := make_translation_matrix4(translation)
         * make_scale_matrix4 (scalee)
-        * make_translation_matrix4(translation);
+        * rotation_matrix(Matrix4, rotation);
         bindPoses[i] = m;
         invBindPoses[i] = inverse(m);
         if iqmJoint.parent >= 0 {
@@ -315,9 +315,9 @@ LoadIQM :: (file : string) -> IQMData {
             scalee.y = iqmPose.channeloffset[8];     if iqmPose.channelmask & 0x100 { scalee.y += <<framedata * iqmPose.channelscale[8];    framedata += 1; }
             scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += <<framedata * iqmPose.channelscale[9];    framedata += 1; }
             normalize_or_identity(*rotation);   
-            m := rotation_matrix(Matrix4, rotation)
+            m := make_translation_matrix4(translation)
 			* make_scale_matrix4 (scalee)
-			* make_translation_matrix4(translation);
+            * rotation_matrix(Matrix4, rotation);
             poseMatrix : Matrix4;
             if iqmPose.parent >= 0 {
                 poseMatrix = bindPoses[iqmPose.parent] * m * invBindPoses[j];
