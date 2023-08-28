@@ -24,6 +24,9 @@ batches : [..] Batch;
 // VBOs, VAOs for entities
 entityModels : [..] EntityModel;
 
+// UBO for animation matrices and some hard constraints
+MAX_SKELETON_JOINTS :: 96;
+poseMatrixUBO : GLuint;
 
 // Immediate 3D
 gImmediateVBO               : GLuint;
@@ -62,6 +65,10 @@ EntityTransform :: struct {
     transform := Matrix4_Identity;
 }
 entityTransformUBO : GLuint;
+
+PoseMatrices :: struct {
+    palette : [MAX_SKELETON_JOINTS] Matrix4;
+}
 
 // HUD
 HUDElement :: struct {
@@ -228,6 +235,12 @@ CreateEntityModel :: (tris : [] Tri, textureID : u32) -> u32 {
 
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3) + size_of(Vector3)));
     glEnableVertexAttribArray(4);
+
+    glVertexAttribIPointer(5, 4, GL_UNSIGNED_INT, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3) + size_of(Vector3)) + size_of(Vector3));
+    glEnableVertexAttribArray(5);
+
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, size_of(Vertex), cast(*void)(size_of(Vector3) + size_of(Vector2) + size_of(Vector3) + size_of(Vector3)) + size_of(Vector3) + 4*size_of(u32));
+    glEnableVertexAttribArray(6);    
 
     glBufferData(GL_ARRAY_BUFFER, tris.count * 3 * size_of(Vertex), tris.data, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -406,6 +419,7 @@ RenderInit :: () {
     glGenBuffers(1, *hudTransformUBO);
     glGenBuffers(1, *hudWindowDataUBO);
     glGenBuffers(1, *entityTransformUBO);
+    glGenBuffers(1, *poseMatrixUBO);
 
     // glBindBuffer(GL_UNIFORM_BUFFER, UBO);
     // glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), *viewProjMatrices, GL_STATIC_DRAW);
@@ -417,6 +431,8 @@ RenderInit :: () {
     glBindBufferBase(GL_UNIFORM_BUFFER, 3, hudWindowDataUBO);    
 
     glBindBufferBase(GL_UNIFORM_BUFFER, 4, entityTransformUBO);
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, 5, poseMatrixUBO);
 
     glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(ViewProjMatrices), null, GL_DYNAMIC_DRAW);
@@ -430,6 +446,9 @@ RenderInit :: () {
 
     glBindBuffer(GL_UNIFORM_BUFFER, entityTransformUBO);
     glBufferData(GL_UNIFORM_BUFFER, size_of(EntityTransform), null, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, poseMatrixUBO);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(PoseMatrices), null, GL_DYNAMIC_DRAW);
 
     SDL_GL_SetSwapInterval(1); // VSYNC on, please.
 }
@@ -624,20 +643,24 @@ DrawFrame :: (refdef : RefDef) {
     glUseProgram(gEntityShaderProgram);
     // glBindBuffer(GL_UNIFORM_BUFFER, viewProjectionUBO);
     // glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, entityTransformUBO);
-    ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    // ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     for i : 0..entityCount-1 {
         entity := refdef.entities[i];
+        glBindBuffer(GL_UNIFORM_BUFFER, poseMatrixUBO);
+        poseOffset := entity.currentFrame*entity.jointCount;
+        glBufferData(GL_UNIFORM_BUFFER, MAX_SKELETON_JOINTS*size_of(Matrix4), *entity.poseMatrices[poseOffset], GL_DYNAMIC_DRAW);
         for entity.models {             
             entityModel := entityModels[it.gpuID];
             entityTransform := transpose(make_translation_matrix4(entity.pos));
-            memcpy(ptr, *entityTransform, size_of(EntityTransform));
+            // memcpy(ptr, *entityTransform, size_of(EntityTransform));
+            glBindBuffer(GL_UNIFORM_BUFFER, entityTransformUBO);
+            glBufferData(GL_UNIFORM_BUFFER, size_of(EntityTransform), *entityTransform, GL_DYNAMIC_DRAW);
             glBindVertexArray(entityModel.VAO);
             glBindTexture(GL_TEXTURE_2D, GetTextureHandleByID(entityModel.textureID));
             glDrawArrays(GL_TRIANGLES, 0, xx entityModel.vertices.count);
         }
     }
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    // glUnmapBuffer(GL_UNIFORM_BUFFER);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     
 

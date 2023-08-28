@@ -40,6 +40,8 @@ IQMData :: struct {
     bindPoses : [] Matrix4;
     invBindPoses : [] Matrix4;
     poseMatrices : [] Matrix4;
+    jointCount : u32;
+    frameCount : u32;  
 }
 
 IQMVertArray :: struct {
@@ -172,6 +174,8 @@ LoadIQM :: (file : string) -> IQMData {
     positionStride := 0;
     texCoords := null;
     texCoordStride := 0;
+    blendIndices := null;
+    blendIndexStride := 0;
     blendWeights := null;
     blendWeightStride := 0;
     for i : 0..pHeader.numVertArrays-1 {
@@ -197,14 +201,19 @@ LoadIQM :: (file : string) -> IQMData {
             }
             texCoordStride = numComponents * dataSize;
         } else if type == .BLENDINDEXES {
+            blendIndices = iqmFile.data + offset;
+            dataSize := 0;
+            if format == .UBYTE {
+                dataSize = size_of(u8);
+            }
+            blendIndexStride = numComponents * dataSize;            
+        } else if type == .BLENDWEIGHTS {
             blendWeights = iqmFile.data + offset;
             dataSize := 0;
             if format == .UBYTE {
                 dataSize = size_of(u8);
             }
             blendWeightStride = numComponents * dataSize;
-        } else if type == .BLENDWEIGHTS {
-
         }
 
         print("type: %, format: %, numComponents: %, offset: %\n", type, format, numComponents, offset);
@@ -235,9 +244,17 @@ LoadIQM :: (file : string) -> IQMData {
             bUV := cast([2] float)(texCoords + tri.vertex[1] * texCoordStride); bUV[1] = 1 - bUV[1];
             cUV := cast([2] float)(texCoords + tri.vertex[2] * texCoordStride); cUV[1] = 1 - cUV[1];
 
-            vertA : IQMVertex = .{pos = a, texCoord = aUV};
-            vertB : IQMVertex = .{pos = b, texCoord = bUV};
-            vertC : IQMVertex = .{pos = c, texCoord = cUV};
+            aBlendIdx := cast([4] u8)(blendIndices + tri.vertex[0] * blendIndexStride);
+            bBlendIdx := cast([4] u8)(blendIndices + tri.vertex[1] * blendIndexStride);
+            cBlendIdx := cast([4] u8)(blendIndices + tri.vertex[2] * blendIndexStride);
+
+            aWeights := cast([4] u8)(blendWeights + tri.vertex[0] * blendWeightStride);
+            bWeights := cast([4] u8)(blendWeights + tri.vertex[1] * blendWeightStride);
+            cWeights := cast([4] u8)(blendWeights + tri.vertex[2] * blendWeightStride);
+
+            vertA : IQMVertex = .{pos = a, texCoord = aUV, blendindices = aBlendIdx, blendweights = aWeights};
+            vertB : IQMVertex = .{pos = b, texCoord = bUV, blendindices = bBlendIdx, blendweights = bWeights};
+            vertC : IQMVertex = .{pos = c, texCoord = cUV, blendindices = cBlendIdx, blendweights = cWeights};
 
             array_add(*mesh.vertices, vertA);
             array_add(*mesh.vertices, vertB);
@@ -258,10 +275,17 @@ LoadIQM :: (file : string) -> IQMData {
         print("translation: %\n", iqmJoint.translate);
         translation := Vector3.{ iqmJoint.translate[0], iqmJoint.translate[1], iqmJoint.translate[2] };
         rotation := Quaternion.{ iqmJoint.rotate[0], iqmJoint.rotate[1], iqmJoint.rotate[2], iqmJoint.rotate[3] };
+        scalee := Vector3.{iqmJoint.scale[0], iqmJoint.scale[1], iqmJoint.scale[2]};
         // scale: Not really interested.
-        m := Matrix4_Identity;
-        m = translate(m, translation);
-        set_rotation(*m, rotation);
+        // m := Matrix4_Identity;
+        // normalize_or_identity(*rotation);
+        // // set_rotation(*m, rotation);
+        // m = rotation_matrix(Matrix4, rotation);
+        // scale(*m, scalee);
+        // m = translate(m, translation);
+        m := make_translation_matrix4 (translation)
+        * make_scale_matrix4 (scalee)
+        * rotation_matrix(Matrix4, rotation);
         bindPoses[i] = m;
         invBindPoses[i] = Inverse(m);
         if iqmJoint.parent >= 0 {
@@ -278,27 +302,33 @@ LoadIQM :: (file : string) -> IQMData {
         print(" Poses, #%:\n", pHeader.numPoses);
         for j : 0..pHeader.numPoses-1 {
             iqmPose := cast(*IQMPose)(pPoses + j*size_of(IQMPose));            
-            translation, scale : Vector3;
-            rotate : Quaternion;
-            translation.x = iqmPose.channeloffset[0]; if iqmPose.channelmask & 0x01 { translation.x += cast(float)<<framedata * iqmPose.channelscale[0]; framedata += 1; }
-            translation.y = iqmPose.channeloffset[1]; if iqmPose.channelmask & 0x02 { translation.y += cast(float)<<framedata * iqmPose.channelscale[1]; framedata += 1; }
-            translation.z = iqmPose.channeloffset[2]; if iqmPose.channelmask & 0x04 { translation.z += cast(float)<<framedata * iqmPose.channelscale[2]; framedata += 1; }
-            rotate.x = iqmPose.channeloffset[3];    if iqmPose.channelmask & 0x08 { rotate.x += cast(float)<<framedata * iqmPose.channelscale[3];    framedata += 1; }     
-            rotate.y = iqmPose.channeloffset[4];    if iqmPose.channelmask & 0x10 { rotate.y += cast(float)<<framedata * iqmPose.channelscale[4];    framedata += 1; }
-            rotate.z = iqmPose.channeloffset[5];    if iqmPose.channelmask & 0x20 { rotate.z += cast(float)<<framedata * iqmPose.channelscale[5];    framedata += 1; }
-            rotate.w = iqmPose.channeloffset[6];    if iqmPose.channelmask & 0x40 { rotate.w += cast(float)<<framedata * iqmPose.channelscale[6];    framedata += 1; }
-            scale.x = iqmPose.channeloffset[7];     if iqmPose.channelmask & 0x80 { scale.x += cast(float)<<framedata * iqmPose.channelscale[7];     framedata += 1; }
-            scale.y = iqmPose.channeloffset[8];     if iqmPose.channelmask & 0x100 { scale.y += cast(float)<<framedata * iqmPose.channelscale[8];    framedata += 1; }
-            scale.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scale.z += cast(float)<<framedata * iqmPose.channelscale[9];    framedata += 1; }
-            m := Matrix4_Identity;
-            m = translate(m, translation);
-            set_rotation(*m, rotate);
-            poseMatrix := invBindPoses[j] * m;
+            translation, scalee : Vector3;
+            rotation : Quaternion;
+            translation.x = iqmPose.channeloffset[0]; if iqmPose.channelmask & 0x01 { translation.x += <<framedata * iqmPose.channelscale[0]; framedata += 1; }
+            translation.y = iqmPose.channeloffset[1]; if iqmPose.channelmask & 0x02 { translation.y += <<framedata * iqmPose.channelscale[1]; framedata += 1; }
+            translation.z = iqmPose.channeloffset[2]; if iqmPose.channelmask & 0x04 { translation.z += <<framedata * iqmPose.channelscale[2]; framedata += 1; }
+            rotation.x = iqmPose.channeloffset[3];    if iqmPose.channelmask & 0x08 { rotation.x += (<<framedata * iqmPose.channelscale[3]);    framedata += 1; }     
+            rotation.y = iqmPose.channeloffset[4];    if iqmPose.channelmask & 0x10 { rotation.y += (<<framedata * iqmPose.channelscale[4]);    framedata += 1; }
+            rotation.z = iqmPose.channeloffset[5];    if iqmPose.channelmask & 0x20 { rotation.z += (<<framedata * iqmPose.channelscale[5]);    framedata += 1; }
+            rotation.w = iqmPose.channeloffset[6];    if iqmPose.channelmask & 0x40 { rotation.w += (<<framedata * iqmPose.channelscale[6]);    framedata += 1; }
+            scalee.x = iqmPose.channeloffset[7];     if iqmPose.channelmask & 0x80 { scalee.x += <<framedata * iqmPose.channelscale[7];     framedata += 1; }
+            scalee.y = iqmPose.channeloffset[8];     if iqmPose.channelmask & 0x100 { scalee.y += <<framedata * iqmPose.channelscale[8];    framedata += 1; }
+            scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += <<framedata * iqmPose.channelscale[9];    framedata += 1; }            
+            m := make_translation_matrix4 (translation)
+			* make_scale_matrix4 (scalee)
+			* rotation_matrix(Matrix4, rotation);
+            poseMatrix : Matrix4;
+            if iqmPose.parent >= 0 {
+                poseMatrix = invBindPoses[j] * m * bindPoses[iqmPose.parent];
+            } else {
+                poseMatrix = invBindPoses[j] * m;
+            }
             array_add(*poseMatrices, poseMatrix);
-            // scale: we don't care abt the scale atm
         }
     }
     result.poseMatrices = array_copy(poseMatrices);
+    result.jointCount = pHeader.numJoints;
+    result.frameCount = pHeader.numFrames;
 
     print("Animations, #%\n", pHeader.numAnims);
     for i : 0..pHeader.numAnims-1 {

@@ -12,6 +12,9 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
         iqmModel := LoadIQM("assets/models/mrfixit/mrfixit.iqm");
         if entity.entityType == .PLAYER { // TODO: Actually load model data from disk and compute necessary stuff as AABB.
             world.player = entity;        
+            array_resize(*world.player.poseMatrices, iqmModel.poseMatrices.count);
+            world.player.jointCount = iqmModel.jointCount;
+            world.player.frameCount = iqmModel.frameCount;
             for iqmModel.meshes {                
                 cpuEntityModel : CPUEntityModel;
                 textureID := RegisterTexture(it.material);
@@ -37,20 +40,23 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                     for j : 0..3 {
                         tri.a.blendindices[j] = a.blendindices[j];
                         tri.b.blendindices[j] = b.blendindices[j];
-                        tri.c.blendindices[j] = c.blendindices[j];
-                        tri.a.blendweights.component[j] = 255.0 / cast(float)a.blendweights[j];
-                        tri.b.blendweights.component[j] = 255.0 / cast(float)b.blendweights[j];
-                        tri.c.blendweights.component[j] = 255.0 / cast(float)c.blendweights[j];
+                        tri.c.blendindices[j] = c.blendindices[j];        
+                        tri.a.blendweights.component[j] = cast(float)a.blendweights[j] / 255.0;
+                        tri.b.blendweights.component[j] = cast(float)b.blendweights[j] / 255.0;
+                        tri.c.blendweights.component[j] = cast(float)c.blendweights[j] / 255.0;
                     }                    
 
                     array_add(*tris, tri);
                     array_add(*world.player.tris, tri);
                     i += 3;
-                }
+                }                
                 cpuEntityModel.gpuID = CreateEntityModel(tris, textureID);
                 array_add(*world.player.models, cpuEntityModel);
                 array_free(tris);
             }
+            for iqmModel.poseMatrices {
+                world.player.poseMatrices[it_index] = transpose(it);
+            }            
             world.player.aabb = ComputeAABB(world.player.tris);        
             world.player.currentAABB = world.player.aabb;
             world.player.pos = entity.pos;            

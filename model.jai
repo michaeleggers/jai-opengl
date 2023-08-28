@@ -7,7 +7,7 @@ Vertex :: struct {
     bc      : Vector3;
     normal  : Vector3;
     color   := Vector3.{1.0, 1.0, 1.0};
-    blendindices : [4] u8;
+    blendindices : [4] u32;
     blendweights : Vector4;
 }
 

@@ -43,10 +43,15 @@ Entity :: struct {
     transform    := Matrix4_Identity; // Holds the current transformation matrix    
     followCamera : *FollowCamera = null;
     applyGravity := true; // By default the world's gravity force is applied every frame.
+    poseMatrices : [..] Matrix4;
+    jointCount   : u32;
+    currentFrame : u32;
+    frameCount   : u32;
+    frameCompletion : float;
 }
 
 // TODO: THIS IS REALLY UGLY!!!
-UpdateEntity :: (entity : *Entity) { // TODO: Find out how to do namespaces (if they exist or if there is something like it)
+UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespaces (if they exist or if there is something like it)
     // update transform matrix
     entity.transform = transpose(make_translation_matrix4(entity.pos));    
 
@@ -74,6 +79,18 @@ UpdateEntity :: (entity : *Entity) { // TODO: Find out how to do namespaces (if 
     entity.currentAABB.topB = entity.currentAABB.bottomB + Y*height;
     entity.currentAABB.topC = entity.currentAABB.bottomC + Y*height;
     entity.currentAABB.topD = entity.currentAABB.bottomD + Y*height;
+
+    // Animation stuff
+    frameCompletion += 0.1;
+    if frameCompletion >= 1.0 {
+        currentFrame += 1;
+        frameCompletion = 0.0;
+    }
+    
+    if currentFrame > frameCount {
+        currentFrame = 0;
+    }
+
 
     // Draw3DAABB(entity.currentAABB);
     
