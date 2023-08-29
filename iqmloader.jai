@@ -36,12 +36,12 @@ Mesh :: struct {
 }
 
 IQMData :: struct {
-    meshes : [..] Mesh;    
-    bindPoses : [] Matrix4;
+    meshes       : [..] Mesh;    
+    bindPoses    : [] Matrix4;
     invBindPoses : [] Matrix4;
-    poseMatrices : [] Matrix4;
-    jointCount : u32;
-    frameCount : u32;  
+    poses        : [] Pose;
+    jointCount   : u32;
+    frameCount   : u32;  
 }
 
 IQMVertArray :: struct {
@@ -280,7 +280,7 @@ LoadIQM :: (file : string) -> IQMData {
         print("rot: %\n", rotation);
         // scale: Not really interested.
         // m := Matrix4_Identity;
-        normalize_or_identity(*rotation);
+        // normalize_or_identity(*rotation);
         // // set_rotation(*m, rotation);
         // m = rotation_matrix(Matrix4, rotation);
         // scale(*m, scalee);
@@ -289,17 +289,22 @@ LoadIQM :: (file : string) -> IQMData {
         * make_scale_matrix4 (scalee)
         * rotation_matrix(Matrix4, rotation);
         bindPoses[i] = m;
-        invBindPoses[i] = inverse(m);
+        invBindPoses[i] = m;
         if iqmJoint.parent >= 0 {
-            bindPoses[i] = bindPoses[iqmJoint.parent] * bindPoses[i];
+            // bindPoses[i] = bindPoses[i] * bindPoses[iqmJoint.parent];
             invBindPoses[i] = invBindPoses[i] * invBindPoses[iqmJoint.parent];
-        }        
-        array_add(*globalBindPoses, invBindPoses[i] * bindPoses[i]);
+        }
+        // array_add(*globalBindPoses, invBindPoses[i] * bindPoses[i]);
     }
+    // Step 2: Invert globale bind poses
+    for i : 0..invBindPoses.count-1 {
+        invBindPoses[i] = inverse(invBindPoses[i]);
+    }
+
     result.bindPoses = array_copy(bindPoses);
     result.invBindPoses = array_copy(invBindPoses);
     
-    poseMatrices : [..] Matrix4;
+    poses : [..] Pose;
     framedata := cast(*u16)(pFrames);
     for i : 0..pHeader.numFrames-1 {
         print(" Poses, #%:\n", pHeader.numPoses);
@@ -319,23 +324,27 @@ LoadIQM :: (file : string) -> IQMData {
             scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += <<framedata * iqmPose.channelscale[9];    framedata += 1; }
 
             print("rot: %\n", rotation);
-            normalize_or_identity(*rotation);
+            // normalize_or_identity(*rotation);
             m := make_translation_matrix4 (translation)
 			* make_scale_matrix4 (scalee)
-			* rotation_matrix(Matrix4, rotation);            
-            poseMatrix : Matrix4;            
+			* rotation_matrix(Matrix4, rotation);
+            pose : Pose;
+            pose.parent = iqmPose.parent;
+            pose.m = m;
 
-            if iqmPose.parent >= 0 {
-                poseMatrix = bindPoses[iqmPose.parent] * m * invBindPoses[j];
-            } else {
-                poseMatrix = m * invBindPoses[j];
-            }
-            array_add(*poseMatrices, poseMatrix);
+            // if iqmPose.parent >= 0 {
+            //     poseMatrix = bindPoses[iqmPose.parent] * m * invBindPoses[j];
+            // } else {
+            //     poseMatrix = m * invBindPoses[j];
+            // }
+            // array_add(*poseMatrices, poseMatrix);
+            array_add(*poses, pose);
         }
-        break; // DELETE LATER! JUST DEBUG STUFF!
+        // break; // DELETE LATER! JUST DEBUG STUFF!
     }
 
-    result.poseMatrices = array_copy(globalBindPoses);
+    result.poses = array_copy(poses);
+    // result.poseMatrices = array_copy(globalBindPoses);
     result.jointCount = pHeader.numJoints;
     result.frameCount = pHeader.numFrames;
 
@@ -344,6 +353,7 @@ LoadIQM :: (file : string) -> IQMData {
         iqmAnim := cast(*IQMAnim)(pAnims + i*size_of(IQMAnim));
         name := to_string(pAnims + iqmAnim.name);
         print("name: %\n", name);
+        print("%\n", <<iqmAnim);
     }
 
     // exit(1);

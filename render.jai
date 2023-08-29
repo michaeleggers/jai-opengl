@@ -643,8 +643,7 @@ DrawFrame :: (refdef : RefDef) {
     for i : 0..entityCount-1 {
         entity := refdef.entities[i];
         glBindBuffer(GL_UNIFORM_BUFFER, poseMatrixUBO);
-        poseOffset := entity.currentFrame*entity.jointCount;
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_SKELETON_JOINTS*size_of(Matrix4), *(entity.poseMatrices[0]));
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_SKELETON_JOINTS*size_of(Matrix4), *entity.palette[0]);
         for entity.models {             
             entityModel := entityModels[it.gpuID];
             entityTransform := transpose(make_translation_matrix4(entity.pos));

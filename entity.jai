@@ -43,11 +43,18 @@ Entity :: struct {
     transform    := Matrix4_Identity; // Holds the current transformation matrix    
     followCamera : *FollowCamera = null;
     applyGravity := true; // By default the world's gravity force is applied every frame.
-    poseMatrices : [..] Matrix4;
+    poses        : [..] Pose;
+    invBindPoses : [..] Matrix4;
+    palette      : [..] Matrix4;
     jointCount   : u32;
     currentFrame : u32;
     frameCount   : u32;
     frameCompletion : float;
+}
+
+Pose :: struct {
+    parent : s32;
+    m      : Matrix4;
 }
 
 // TODO: THIS IS REALLY UGLY!!!
@@ -80,17 +87,39 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
     entity.currentAABB.topC = entity.currentAABB.bottomC + Y*height;
     entity.currentAABB.topD = entity.currentAABB.bottomD + Y*height;
 
+
     // Animation stuff
+
     frameCompletion += 0.1;
     if frameCompletion >= 1.0 {
         currentFrame += 1;
-        frameCompletion = 0.0;
+        frameCompletion = 0.0;        
     }
     
     if currentFrame >= frameCount {
         currentFrame = 0;
     }
 
+    // Test: Always compute the pose for the first frame
+    currentPoses : [..] Matrix4;
+    array_resize(*currentPoses, jointCount);
+    offset := currentFrame*jointCount;
+    for i : 0..jointCount-1 {
+        pose := poses[offset + i];
+        if pose.parent >= 0 {
+            currentPoses[i] = pose.m * currentPoses[pose.parent];
+        } else {
+            currentPoses[i] = pose.m;
+        }
+    }        
+
+    for i : 0..jointCount-1 {
+        palette[i] = invBindPoses[i] * currentPoses[i];
+    }
+    for i : 0..palette.count-1 {
+        palette[i] = transpose(palette[i]);
+    }
+    array_free(currentPoses);
 
     // Draw3DAABB(entity.currentAABB);
     
@@ -108,5 +137,5 @@ GetModelNameByClassname :: (classname : string) -> string {
 }
 
 ENTITY_MODELS :: ClassnameToModel.[
-    .{"info_player_start", "mrfixit"}
+    .{"info_player_start", "cylinder"}
 ];

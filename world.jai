@@ -12,7 +12,9 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
         iqmModel := LoadIQM(iqmModelPath);
         if entity.entityType == .PLAYER { // TODO: Actually load model data from disk and compute necessary stuff as AABB.
             world.player = entity;        
-            array_resize(*world.player.poseMatrices, iqmModel.poseMatrices.count);
+            array_resize(*world.player.poses, iqmModel.frameCount*iqmModel.jointCount);
+            array_resize(*world.player.invBindPoses, iqmModel.invBindPoses.count);
+            array_resize(*world.player.palette, iqmModel.jointCount);
             world.player.jointCount = iqmModel.jointCount;
             world.player.frameCount = iqmModel.frameCount;
             for iqmModel.meshes {                
@@ -54,10 +56,13 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                 array_add(*world.player.models, cpuEntityModel);
                 array_free(tris);
             }
-            for iqmModel.poseMatrices {
-                world.player.poseMatrices[it_index] = transpose(it);
+            for iqmModel.invBindPoses {
+                world.player.invBindPoses[it_index] = it;
+            }
+            for iqmModel.poses {
+                world.player.poses[it_index] = it;
             }            
-            world.player.aabb = ComputeAABB(world.player.tris);        
+            world.player.aabb = ComputeAABB(world.player.tris);
             world.player.currentAABB = world.player.aabb;
             world.player.pos = entity.pos;            
         }
