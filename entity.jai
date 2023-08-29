@@ -115,9 +115,9 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
         for i : 0..jointCount-1 {
             palette[i] = currentPoses[i] * invBindPoses[i];
         }
-        for i : 0..palette.count-1 {
-            palette[i] = transpose(palette[i]);
-        }
+        // for i : 0..palette.count-1 {
+        //     palette[i] = transpose(palette[i]);
+        // }
         array_free(currentPoses);
     }
     
@@ -139,5 +139,5 @@ GetModelNameByClassname :: (classname : string) -> string {
 }
 
 ENTITY_MODELS :: ClassnameToModel.[
-    .{"info_player_start", "cylinder"}
+    .{"info_player_start", "mrfixit"}
 ];

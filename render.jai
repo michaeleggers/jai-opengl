@@ -672,7 +672,7 @@ DrawFrame :: (refdef : RefDef) {
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
 
     // HUD
     glUseProgram(HUDShaderProgram);

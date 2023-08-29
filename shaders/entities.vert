@@ -28,10 +28,10 @@ out vec3 Normal;
 
 void main() {
     vec4 v = vec4(pos, 1.0);
-    vec4 skinnedPos = (palette[blendindices.x] * v) * blendweights.x;
-    skinnedPos += (palette[blendindices.y] * v) * blendweights.y;
-    skinnedPos += (palette[blendindices.z] * v) * blendweights.z;
-    skinnedPos += (palette[blendindices.w] * v) * blendweights.w;
+    vec4 skinnedPos = (v * palette[blendindices.x]) * blendweights.x;
+    skinnedPos += (v * palette[blendindices.y]) * blendweights.y;
+    skinnedPos += (v * palette[blendindices.z]) * blendweights.z;
+    skinnedPos += (v * palette[blendindices.w]) * blendweights.w;
     
     gl_Position = proj * view * transform * skinnedPos;
     
