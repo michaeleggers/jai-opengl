@@ -94,32 +94,34 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
     if frameCompletion >= 1.0 {
         currentFrame += 1;
         frameCompletion = 0.0;        
+
+        if currentFrame >= frameCount {
+            currentFrame = 0;
+        }
+
+        // Test
+        currentPoses : [..] Matrix4;
+        array_resize(*currentPoses, jointCount);
+        offset := currentFrame*jointCount;
+        for i : 0..jointCount-1 {
+            pose := poses[i + offset];
+            if pose.parent >= 0 {
+                currentPoses[i] = currentPoses[pose.parent] * pose.m;
+            } else {
+                currentPoses[i] = pose.m;
+            }
+        }        
+
+        for i : 0..jointCount-1 {
+            palette[i] = currentPoses[i] * invBindPoses[i];
+        }
+        for i : 0..palette.count-1 {
+            palette[i] = transpose(palette[i]);
+        }
+        array_free(currentPoses);
     }
     
-    if currentFrame >= frameCount {
-        currentFrame = 0;
-    }
 
-    // Test: Always compute the pose for the first frame
-    currentPoses : [..] Matrix4;
-    array_resize(*currentPoses, jointCount);
-    offset := currentFrame*jointCount;
-    for i : 0..jointCount-1 {
-        pose := poses[offset + i];
-        if pose.parent >= 0 {
-            currentPoses[i] = pose.m * currentPoses[pose.parent];
-        } else {
-            currentPoses[i] = pose.m;
-        }
-    }        
-
-    for i : 0..jointCount-1 {
-        palette[i] = invBindPoses[i] * currentPoses[i];
-    }
-    for i : 0..palette.count-1 {
-        palette[i] = transpose(palette[i]);
-    }
-    array_free(currentPoses);
 
     // Draw3DAABB(entity.currentAABB);
     

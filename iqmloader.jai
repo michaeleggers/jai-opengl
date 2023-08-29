@@ -280,19 +280,19 @@ LoadIQM :: (file : string) -> IQMData {
         print("rot: %\n", rotation);
         // scale: Not really interested.
         // m := Matrix4_Identity;
-        // normalize_or_identity(*rotation);
+        normalize_or_identity(*rotation);
         // // set_rotation(*m, rotation);
         // m = rotation_matrix(Matrix4, rotation);
         // scale(*m, scalee);
         // m = translate(m, translation);
         m := make_translation_matrix4(translation)
-        * make_scale_matrix4 (scalee)
+        // * make_scale_matrix4 (scalee)
         * rotation_matrix(Matrix4, rotation);
         bindPoses[i] = m;
         invBindPoses[i] = m;
         if iqmJoint.parent >= 0 {
-            // bindPoses[i] = bindPoses[i] * bindPoses[iqmJoint.parent];
-            invBindPoses[i] = invBindPoses[i] * invBindPoses[iqmJoint.parent];
+            bindPoses[i] = bindPoses[i] * bindPoses[iqmJoint.parent];
+            invBindPoses[i] = invBindPoses[iqmJoint.parent] * invBindPoses[i];
         }
         // array_add(*globalBindPoses, invBindPoses[i] * bindPoses[i]);
     }
@@ -309,25 +309,25 @@ LoadIQM :: (file : string) -> IQMData {
     for i : 0..pHeader.numFrames-1 {
         print(" Poses, #%:\n", pHeader.numPoses);
         for j : 0..pHeader.numPoses-1 {
-            iqmPose := cast(*IQMPose)(pPoses + j*size_of(IQMPose));            
+            iqmPose := cast(*IQMPose)(pPoses + j*size_of(IQMPose));
             translation, scalee : Vector3;
             rotation : Quaternion;
-            translation.x = iqmPose.channeloffset[0]; if iqmPose.channelmask & 0x01 { translation.x += <<framedata * iqmPose.channelscale[0]; framedata += 1; }
-            translation.y = iqmPose.channeloffset[1]; if iqmPose.channelmask & 0x02 { translation.y += <<framedata * iqmPose.channelscale[1]; framedata += 1; }
-            translation.z = iqmPose.channeloffset[2]; if iqmPose.channelmask & 0x04 { translation.z += <<framedata * iqmPose.channelscale[2]; framedata += 1; }
-            rotation.x = iqmPose.channeloffset[3];    if iqmPose.channelmask & 0x08 { rotation.x += (<<framedata * iqmPose.channelscale[3]);    framedata += 1; }     
-            rotation.y = iqmPose.channeloffset[4];    if iqmPose.channelmask & 0x10 { rotation.y += (<<framedata * iqmPose.channelscale[4]);    framedata += 1; }
-            rotation.z = iqmPose.channeloffset[5];    if iqmPose.channelmask & 0x20 { rotation.z += (<<framedata * iqmPose.channelscale[5]);    framedata += 1; }
-            rotation.w = iqmPose.channeloffset[6];    if iqmPose.channelmask & 0x40 { rotation.w += (<<framedata * iqmPose.channelscale[6]);    framedata += 1; }
-            scalee.x = iqmPose.channeloffset[7];     if iqmPose.channelmask & 0x80 { scalee.x += <<framedata * iqmPose.channelscale[7];     framedata += 1; }
-            scalee.y = iqmPose.channeloffset[8];     if iqmPose.channelmask & 0x100 { scalee.y += <<framedata * iqmPose.channelscale[8];    framedata += 1; }
-            scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += <<framedata * iqmPose.channelscale[9];    framedata += 1; }
+            translation.x = iqmPose.channeloffset[0]; if iqmPose.channelmask & 0x01 { translation.x += cast(float)<<framedata * iqmPose.channelscale[0]; framedata += 1; }
+            translation.y = iqmPose.channeloffset[1]; if iqmPose.channelmask & 0x02 { translation.y += cast(float)<<framedata * iqmPose.channelscale[1]; framedata += 1; }
+            translation.z = iqmPose.channeloffset[2]; if iqmPose.channelmask & 0x04 { translation.z += cast(float)<<framedata * iqmPose.channelscale[2]; framedata += 1; }
+            rotation.x = iqmPose.channeloffset[3];    if iqmPose.channelmask & 0x08 { rotation.x += (cast(float)<<framedata * iqmPose.channelscale[3]);    framedata += 1; }     
+            rotation.y = iqmPose.channeloffset[4];    if iqmPose.channelmask & 0x10 { rotation.y += (cast(float)<<framedata * iqmPose.channelscale[4]);    framedata += 1; }
+            rotation.z = iqmPose.channeloffset[5];    if iqmPose.channelmask & 0x20 { rotation.z += (cast(float)<<framedata * iqmPose.channelscale[5]);    framedata += 1; }
+            rotation.w = iqmPose.channeloffset[6];    if iqmPose.channelmask & 0x40 { rotation.w += (cast(float)<<framedata * iqmPose.channelscale[6]);    framedata += 1; }
+            scalee.x = iqmPose.channeloffset[7];     if iqmPose.channelmask & 0x80 { scalee.x += cast(float)<<framedata * iqmPose.channelscale[7];     framedata += 1; }
+            scalee.y = iqmPose.channeloffset[8];     if iqmPose.channelmask & 0x100 { scalee.y += cast(float)<<framedata * iqmPose.channelscale[8];    framedata += 1; }
+            scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += cast(float)<<framedata * iqmPose.channelscale[9];    framedata += 1; }
 
             print("rot: %\n", rotation);
-            // normalize_or_identity(*rotation);
-            m := make_translation_matrix4 (translation)
-			* make_scale_matrix4 (scalee)
-			* rotation_matrix(Matrix4, rotation);
+            normalize_or_identity(*rotation);
+            m := make_translation_matrix4(translation)
+            // * make_scale_matrix4 (scalee)
+            * rotation_matrix(Matrix4, rotation);
             pose : Pose;
             pose.parent = iqmPose.parent;
             pose.m = m;
