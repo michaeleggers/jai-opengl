@@ -291,7 +291,7 @@ LoadIQM :: (file : string) -> IQMData {
         bindPoses[i] = m;
         invBindPoses[i] = m;
         if iqmJoint.parent >= 0 {
-            bindPoses[i] = bindPoses[i] * bindPoses[iqmJoint.parent];
+            bindPoses[i] = bindPoses[iqmJoint.parent] * bindPoses[i];
             invBindPoses[i] = invBindPoses[iqmJoint.parent] * invBindPoses[i];
         }
         // array_add(*globalBindPoses, invBindPoses[i] * bindPoses[i]);

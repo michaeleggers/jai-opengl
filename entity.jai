@@ -45,6 +45,7 @@ Entity :: struct {
     applyGravity := true; // By default the world's gravity force is applied every frame.
     poses        : [..] Pose;
     invBindPoses : [..] Matrix4;
+    bindPoses    : [..] Matrix4;
     palette      : [..] Matrix4;
     jointCount   : u32;
     currentFrame : u32;
@@ -113,7 +114,7 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
         }        
 
         for i : 0..jointCount-1 {
-            palette[i] = transpose(currentPoses[i] * invBindPoses[i]); // transpose, because OpenGL is column-major
+            palette[i] = transpose(bindPoses[i] * invBindPoses[i]); // transpose, because OpenGL is column-major
         }
 
         array_free(currentPoses);

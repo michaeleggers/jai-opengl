@@ -32,6 +32,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             world.player = entity;        
             array_resize(*world.player.poses, iqmModel.frameCount*iqmModel.jointCount);
             array_resize(*world.player.invBindPoses, iqmModel.invBindPoses.count);
+            array_resize(*world.player.bindPoses, iqmModel.bindPoses.count);
             array_resize(*world.player.palette, iqmModel.jointCount);
             world.player.jointCount = iqmModel.jointCount;
             world.player.frameCount = iqmModel.frameCount;
@@ -78,6 +79,9 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             for iqmModel.invBindPoses {
                 pose := it;                
                 world.player.invBindPoses[it_index] = pose;
+            }
+            for iqmModel.bindPoses {
+                world.player.bindPoses[it_index] = it;
             }
             for iqmModel.poses {
                 pose := it;                
