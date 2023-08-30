@@ -31,9 +31,10 @@ poseMatrixUBO : GLuint;
 // Immediate 3D
 gImmediateVBO               : GLuint;
 gImmediateVAO               : GLuint;
-MAX_IMMEDIATE3D_DRAW_CMDS :: 128;
+MAX_IMMEDIATE3D_DRAW_CMDS   :: 256;
 gImmediate3DDrawCmds        : [MAX_IMMEDIATE3D_DRAW_CMDS] Immediate3DDrawCmd;
 gImmediate3DDrawCmdCount    : s32;
+IMMEDIATE3D_BUFFER_SIZE     :: (1024*3*size_of(Vertex));
 
 // TODO: God, this is so ugly. Can we do better with dynamic array?
 MAX_HUD_DRAW_CMDS : u32 : 128;
@@ -186,7 +187,7 @@ InitImmediateBuffers :: () {
     glEnableVertexAttribArray(4);
 
     // Allocate enough space for 1024 tris
-    glBufferData(GL_ARRAY_BUFFER, 1024 * 3 * size_of(Vertex), null, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, IMMEDIATE3D_BUFFER_SIZE, null, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -257,6 +258,10 @@ Draw3DImmediateTris :: (tris : [] Tri, depthTest := true) {
         lastDrawCmd := gImmediate3DDrawCmds[gImmediate3DDrawCmdCount-1];
         firstVertex = lastDrawCmd.firstVertex + lastDrawCmd.vertexCount;
         offset = lastDrawCmd.offset + lastDrawCmd.vertexCount * size_of(Vertex);
+        if (offset + size) >= IMMEDIATE3D_BUFFER_SIZE {
+            // print("Draw3DImmediateTris: Immmediate 3D GL buffer full! Discarding draw command!\n");
+            return;
+        }
     }
 
     glBindVertexArray(gImmediateVAO);
@@ -279,6 +284,8 @@ Draw3DImmediateTris :: (tris : [] Tri, depthTest := true) {
     // gImmediateVertexCount += xx (tris.count * 3);
 }
 
+// Put two Vertex into the immediate buffer and draw in the order
+// they were put in. If the VBO is full, discard this command.
 Draw3DImmediateLines :: (lines : [] Line, depthTest := true) {
     size := lines.count * size_of(Line);
 
@@ -288,6 +295,9 @@ Draw3DImmediateLines :: (lines : [] Line, depthTest := true) {
         lastDrawCmd := gImmediate3DDrawCmds[gImmediate3DDrawCmdCount-1];
         firstVertex = lastDrawCmd.firstVertex + lastDrawCmd.vertexCount;
         offset = lastDrawCmd.offset + lastDrawCmd.vertexCount * size_of(Vertex);
+        if (size + offset) >= IMMEDIATE3D_BUFFER_SIZE {
+            return;
+        }
     }
 
     glBindVertexArray(gImmediateVAO);
@@ -615,9 +625,12 @@ DrawFrame :: (refdef : RefDef) {
         perFrameSettings.drawWireframe = 0;
     }
     glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
-    ptr := glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    memcpy(ptr, *perFrameSettings, size_of(PerFrameSettings));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(PerFrameSettings), *perFrameSettings, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // ptr := glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    // memcpy(ptr, *perFrameSettings, size_of(PerFrameSettings));
+    // glUnmapBuffer(GL_UNIFORM_BUFFER);
+
     // glBindBufferBase(GL_UNIFORM_BUFFER, 1, perFrameSettingsUBO);
     // glBufferData(GL_UNIFORM_BUFFER, size_of(PerFrameSettings), *perFrameSettings, GL_STATIC_DRAW);
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -683,9 +696,11 @@ DrawFrame :: (refdef : RefDef) {
     // glBindBufferBase(GL_UNIFORM_BUFFER, 3, hudWindowDataUBO);
 
     glBindBuffer(GL_UNIFORM_BUFFER, hudWindowDataUBO);
-    ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    memcpy(ptr, *hudWindowData, size_of(HUDWindowData));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+    glBufferData(GL_UNIFORM_BUFFER, size_of(HUDWindowData), *hudWindowData, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    // ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    // memcpy(ptr, *hudWindowData, size_of(HUDWindowData));
+    // glUnmapBuffer(GL_UNIFORM_BUFFER);
 
     // glBufferData(GL_UNIFORM_BUFFER, size_of(HUDWindowData), *hudWindowData, GL_STATIC_DRAW);    
     // glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -701,9 +716,11 @@ DrawFrame :: (refdef : RefDef) {
         // glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         glBindBuffer(GL_UNIFORM_BUFFER, hudTransformUBO);
-        ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-        memcpy(ptr, *hudDrawCmd.transform, size_of(HUDTransform));
-        glUnmapBuffer(GL_UNIFORM_BUFFER);
+        glBufferData(GL_UNIFORM_BUFFER, size_of(HUDTransform), *hudDrawCmd.transform, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        // ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+        // memcpy(ptr, *hudDrawCmd.transform, size_of(HUDTransform));
+        // glUnmapBuffer(GL_UNIFORM_BUFFER);
 
         glDrawArrays(GL_TRIANGLES, 0, xx hud.vertices.count);    
         

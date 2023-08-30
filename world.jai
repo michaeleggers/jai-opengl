@@ -52,6 +52,10 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                     tri.a.pos = Vector3.{a.pos[0], a.pos[1], a.pos[2]};
                     tri.c.pos = Vector3.{b.pos[0], b.pos[1], b.pos[2]};
                     tri.b.pos = Vector3.{c.pos[0], c.pos[1], c.pos[2]};
+                    tri.a.pos = FixOrientation(tri.a.pos);
+                    tri.b.pos = FixOrientation(tri.b.pos);
+                    tri.c.pos = FixOrientation(tri.c.pos);
+
 
                     tri.a.uv = Vector2.{a.texCoord[0], a.texCoord[1]};
                     tri.c.uv = Vector2.{b.texCoord[0], b.texCoord[1]};
@@ -385,7 +389,7 @@ Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
         boxTris[it_index].b.color = color;
         boxTris[it_index].c.color = color;
     }
-    //Draw3DImmediateTris(boxTris); // TODO: There is a bug that crashes the program!!!
+    Draw3DImmediateTris(boxTris); // TODO: There is a bug that causes: GL CALLBACK: foo type = 33356, severity = HIGH, message = GL_INVALID_VALUE error generated. Invalid offset and/or size.
 }
 
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
