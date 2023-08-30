@@ -389,7 +389,7 @@ Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
         boxTris[it_index].b.color = color;
         boxTris[it_index].c.color = color;
     }
-    Draw3DImmediateTris(boxTris); // TODO: There is a bug that causes: GL CALLBACK: foo type = 33356, severity = HIGH, message = GL_INVALID_VALUE error generated. Invalid offset and/or size.
+    Draw3DImmediateTris(boxTris);
 }
 
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
