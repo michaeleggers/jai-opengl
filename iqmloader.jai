@@ -297,7 +297,7 @@ LoadIQM :: (file : string) -> IQMData {
     }
     // Step 2: Invert globale bind poses
     for i : 0..invBindPoses.count-1 {
-        invBindPoses[i] = inverse(invBindPoses[i]);
+        invBindPoses[i] = inverse(invBindPoses[i]); // TODO: Should be called globalInvBindPoses
     }
 
     result.bindPoses = array_copy(bindPoses);
