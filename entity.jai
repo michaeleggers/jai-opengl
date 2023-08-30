@@ -105,26 +105,19 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
         offset := currentFrame*jointCount;
         for i : 0..jointCount-1 {
             pose := poses[i + offset];
+            currentPoses[i] = pose.m;
             if pose.parent >= 0 {
                 currentPoses[i] = currentPoses[pose.parent] * pose.m;
-            } else {
-                currentPoses[i] = pose.m;
-            }
+            }            
         }        
 
         for i : 0..jointCount-1 {
-            palette[i] = currentPoses[i] * invBindPoses[i];
+            palette[i] = transpose(currentPoses[i] * invBindPoses[i]); // transpose, because OpenGL is column-major
         }
-        // for i : 0..palette.count-1 {
-        //     palette[i] = transpose(palette[i]);
-        // }
+
         array_free(currentPoses);
     }
-    
-
-
-    // Draw3DAABB(entity.currentAABB);
-    
+      
     entity.predict = .{0.0, 0.0, 0.0};
 }
 
