@@ -280,6 +280,7 @@ LoadIQM :: (file : string) -> IQMData {
         // scale: Not really interested.
         // m := Matrix4_Identity;
         normalize_or_identity(*rotation);
+        
         // // set_rotation(*m, rotation);
         // m = rotation_matrix(Matrix4, rotation);
         // scale(*m, scalee);

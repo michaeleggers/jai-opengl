@@ -108,11 +108,11 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
             if pose.parent >= 0 {
                 currentPoses[i] = currentPoses[pose.parent] * pose.m;
             } else {
-                currentPoses[i] = FixBoneOrientation(pose.m);
+                currentPoses[i] = pose.m;
             }
         }        
 
-        for i : 0..jointCount-1 {            
+        for i : 0..jointCount-1 {
             palette[i] = transpose(currentPoses[i] * invBindPoses[i]); // transpose, because OpenGL is column-major
         }
 
@@ -133,5 +133,5 @@ GetModelNameByClassname :: (classname : string) -> string {
 }
 
 ENTITY_MODELS :: ClassnameToModel.[
-    .{"info_player_start", "cylinder"}
+    .{"info_player_start", "mrfixit"}
 ];
