@@ -114,7 +114,7 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
         }        
 
         for i : 0..jointCount-1 {
-            palette[i] = transpose(bindPoses[i] * invBindPoses[i]); // transpose, because OpenGL is column-major
+            palette[i] = transpose(currentPoses[i] * invBindPoses[i]); // transpose, because OpenGL is column-major
         }
 
         array_free(currentPoses);
