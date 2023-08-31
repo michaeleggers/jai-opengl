@@ -21,13 +21,12 @@ Entity :: struct {
     #as using base := BaseEntity.{    
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
             using cast(*Entity)baseEntity;
-            if keyState[SDLK_h] predict.x -= 0.06;
-            if keyState[SDLK_f] predict.x += 0.06;
-            if keyState[SDLK_t] predict.z += 0.06;
-            if keyState[SDLK_g] predict.z -= 0.06;   
-            if keyState[SDLK_i] predict.y += 0.1080;  // A bit more than gravity force so we can "jump"
-            if keyState[SDLK_k] predict.y -= 0.07;   
-
+            if keyState[SDLK_h] predict.x += 1.06;
+            if keyState[SDLK_f] predict.x -= 1.06;
+            if keyState[SDLK_t] predict.y += 1.06;
+            if keyState[SDLK_g] predict.y -= 1.06;   
+            if keyState[SDLK_i] predict.z += 0.3080;  // A bit more than gravity force so we can "jump"
+            if keyState[SDLK_k] predict.z -= 0.37;
         }
     };
     classname    : string;

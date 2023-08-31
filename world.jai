@@ -2,7 +2,7 @@
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{0.0, -0.01, 0.0}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{0.0, 0.0, -0.01}; // Applied on entities every frame that are set to react to gravity.
 }
 
 FixOrientation :: (v : Vector3) -> Vector3 {
@@ -405,11 +405,11 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     velocity := world.player.predict;
     hitGround, gravity := CheckGround(world, *world.player);
     if hitGround {
-        // print("Hit ground. Don't apply gravity...\n");
+        print("Hit ground. Don't apply gravity...\n");
         movementVector = PredictMovement(world, *world.player, velocity);
     } else {
-        // print("Didn't hit ground. Apply gravity...\n");
-        gravity.y += velocity.y;
+        print("Didn't hit ground. Apply gravity...\n");
+        gravity.z += velocity.z;
         movementVector = PredictMovement(world, *world.player, gravity);
     }
     world.player.pos += movementVector;

@@ -22,7 +22,7 @@ Camera :: struct {
     type    : Type = Camera;
     pos     := Vector3.{ 0.0, 0.0, 5.0 };
     center  := Vector3.{ 0.0, 0.0, 0.0 };
-    up      := Vector3.{ 0.0, 1.0, 0.0 };   
+    up      := Vector3.{ 0.0, 0.0, 1.0 };   
     forward : Vector3;
     orientation : Quaternion;    
     fov     := 90.0;
@@ -95,7 +95,7 @@ MoveForward :: (using camera : *Camera, distance : float) {
 
 RotateAroundUp :: (using camera : *Camera, angle : float) {
     refUpQ : Quaternion;
-    set_from_axis_and_angle(*refUpQ, .{0.0, 1.0, 0.0}, angle);
+    set_from_axis_and_angle(*refUpQ, .{0.0, 0.0, 1.0}, angle);
 
     rotate(*forward, refUpQ);
     rotate(*up, refUpQ);

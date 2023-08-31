@@ -108,7 +108,7 @@ main :: () {
     // world.textureID = RegisterTexture("wood_planks_01.tga");
     // modelID := RegisterModel(*world);
 
-    debugCamera := CreateCamera(.{ pos = .{0.0, 20.0, -10.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
+    debugCamera := CreateCamera(.{ pos = .{0.0, -10.0, 20.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
     refdef.camera = *debugCamera;
     followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z - 1}, fov = 50.0 }, *world.player, 10.0);
     world.player.followCamera = *followCamera;
