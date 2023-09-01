@@ -49,12 +49,14 @@ Entity :: struct {
     jointCount   : u32;
     currentFrame : u32;
     frameCount   : u32;
-    frameCompletion : float;
+    pctFrameCompletion : float;
 }
 
 Pose :: struct {
-    parent : s32;
-    m      : Matrix4;
+    parent      : s32;
+    translation : Vector3;
+    scale       : Vector3;
+    rotation    : Quaternion;
 }
 
 // TODO: THIS IS REALLY UGLY!!!
@@ -90,36 +92,53 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
 
     // Animation stuff
 
-    frameCompletion += 0.1;
-    if frameCompletion >= 1.0 {
+    pctFrameCompletion += 0.1;
+    if pctFrameCompletion > 0.999 {
         currentFrame += 1;
-        frameCompletion = 0.0;        
+        pctFrameCompletion = 0.0;        
 
         if currentFrame >= frameCount {
             currentFrame = 0;
         }
 
-        // Test
-        currentPoses : [..] Matrix4;
-        array_resize(*currentPoses, jointCount);
-        offset := currentFrame*jointCount;
-        for i : 0..jointCount-1 {
-            pose := poses[i + offset];
-            if pose.parent >= 0 {
-                currentPoses[i] = currentPoses[pose.parent] * pose.m;
-            } else {
-                currentPoses[i] = pose.m;
-            }
-        }        
-
-        for i : 0..jointCount-1 {
-            palette[i] = transpose(currentPoses[i] * invBindPoses[i]); // transpose, because OpenGL is column-major
-        }
-
-        array_free(currentPoses);
     }
-      
+    nextFrame := (currentFrame + 1) % frameCount;
+
+    print("currentFrame: %\n", currentFrame);
+
+    // Interpolate pose matrices
+    currentPoses : [..] Matrix4;
+    array_resize(*currentPoses, jointCount);
+    offset := currentFrame*jointCount;
+    nextPoseOffset := nextFrame*jointCount;
+    for i : 0..jointCount-1 {
+        pose := poses[i + offset];
+        nextPose := poses[i + nextPoseOffset];
+        poseMatrix := InterpolatePose(pose, nextPose, pctFrameCompletion);
+        if pose.parent >= 0 {
+            currentPoses[i] = currentPoses[pose.parent] * poseMatrix;
+        } else {
+            currentPoses[i] = poseMatrix;
+        }
+    }        
+
+    // Rebuild matrix palette
+    for i : 0..jointCount-1 {
+        palette[i] = transpose(currentPoses[i] * invBindPoses[i]); // transpose, because OpenGL is column-major
+    }
+    array_free(currentPoses);
+
+
+    // Reset wish movement vector  
     entity.predict = .{0.0, 0.0, 0.0};
+}
+
+InterpolatePose :: (pose : Pose, nextPose : Pose, pctFrameCompletion: float) -> Matrix4 {
+    translation := (1.0 - pctFrameCompletion)*pose.translation + pctFrameCompletion*nextPose.translation;
+    scale := (1.0 - pctFrameCompletion)*pose.scale + pctFrameCompletion*nextPose.scale;
+    rotation := (1.0 - pctFrameCompletion)*pose.rotation + pctFrameCompletion*nextPose.rotation;
+    // normalize_or_identity(*rotation);
+    return make_translation_matrix4(translation) * make_scale_matrix4(scale) * rotation_matrix(Matrix4, rotation);
 }
 
 GetModelNameByClassname :: (classname : string) -> string {

@@ -80,15 +80,13 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
                 array_free(tris);
             }
             for iqmModel.invBindPoses {
-                pose := it;                
-                world.player.invBindPoses[it_index] = pose;
+                world.player.invBindPoses[it_index] = it;
             }
             for iqmModel.bindPoses {
                 world.player.bindPoses[it_index] = it;
             }
-            for iqmModel.poses {
-                pose := it;                
-                world.player.poses[it_index] = pose;
+            for iqmModel.poses {                
+                world.player.poses[it_index] = it;
             }            
             world.player.aabb = ComputeAABB(world.player.tris);
             world.player.currentAABB = world.player.aabb;
@@ -405,10 +403,10 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     velocity := world.player.predict;
     hitGround, gravity := CheckGround(world, *world.player);
     if hitGround {
-        print("Hit ground. Don't apply gravity...\n");
+        //print("Hit ground. Don't apply gravity...\n");
         movementVector = PredictMovement(world, *world.player, velocity);
     } else {
-        print("Didn't hit ground. Apply gravity...\n");
+        // print("Didn't hit ground. Apply gravity...\n");
         gravity.z += velocity.z;
         movementVector = PredictMovement(world, *world.player, gravity);
     }

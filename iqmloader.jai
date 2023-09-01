@@ -323,12 +323,14 @@ LoadIQM :: (file : string) -> IQMData {
             scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += cast(float)<<framedata * iqmPose.channelscale[9];    framedata += 1; }
 
             normalize_or_identity(*rotation);
-            m := make_translation_matrix4(translation)
-            * make_scale_matrix4 (scalee)
-            * rotation_matrix(Matrix4, rotation);
+            // m := make_translation_matrix4(translation)
+            // * make_scale_matrix4 (scalee)
+            // * rotation_matrix(Matrix4, rotation);
             pose : Pose;
             pose.parent = iqmPose.parent;
-            pose.m = m;
+            pose.translation = translation;
+            pose.scale = scalee;
+            pose.rotation = rotation;
 
             // if iqmPose.parent >= 0 {
             //     poseMatrix = bindPoses[iqmPose.parent] * m * invBindPoses[j];
