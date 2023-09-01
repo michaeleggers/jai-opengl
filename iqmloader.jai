@@ -279,7 +279,7 @@ LoadIQM :: (file : string) -> IQMData {
         scalee := Vector3.{iqmJoint.scale[0], iqmJoint.scale[1], iqmJoint.scale[2]};
         // scale: Not really interested.
         // m := Matrix4_Identity;
-        normalize_or_identity(*rotation);
+        // normalize_or_identity(*rotation);
         
         // // set_rotation(*m, rotation);
         // m = rotation_matrix(Matrix4, rotation);
@@ -322,7 +322,7 @@ LoadIQM :: (file : string) -> IQMData {
             scalee.y = iqmPose.channeloffset[8];     if iqmPose.channelmask & 0x100 { scalee.y += cast(float)<<framedata * iqmPose.channelscale[8];    framedata += 1; }
             scalee.z = iqmPose.channeloffset[9];     if iqmPose.channelmask & 0x200 { scalee.z += cast(float)<<framedata * iqmPose.channelscale[9];    framedata += 1; }
 
-            normalize_or_identity(*rotation);
+            // normalize_or_identity(*rotation);
             // m := make_translation_matrix4(translation)
             // * make_scale_matrix4 (scalee)
             // * rotation_matrix(Matrix4, rotation);

@@ -94,7 +94,7 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
 
     // Animation stuff
 
-    // pctFrameCompletion += 0.03;
+    pctFrameCompletion += 0.09;
     if pctFrameCompletion < 0.0 {
         if currentFrame == 0 {
             currentFrame = frameCount-1;
@@ -137,7 +137,6 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
     }
     array_free(currentPoses);
 
-
     // Reset wish movement vector  
     entity.predict = .{0.0, 0.0, 0.0};
 }
@@ -145,9 +144,13 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
 InterpolatePose :: (pose : Pose, nextPose : Pose, pctFrameCompletion: float) -> Matrix4 {
     translation := (1.0 - pctFrameCompletion)*pose.translation + pctFrameCompletion*nextPose.translation;
     scale := (1.0 - pctFrameCompletion)*pose.scale + pctFrameCompletion*nextPose.scale;
-    // rotation := (1.0 - pctFrameCompletion)*pose.rotation + pctFrameCompletion*nextPose.rotation;
-    // Clamp(*pctFrameCompletion, 0.0, 1.0);
-    rotation := slerp(pose.rotation, nextPose.rotation, pctFrameCompletion);
+    // Test for shortest path between the two quaternions
+    r1 := pose.rotation;
+    r2 := nextPose.rotation;
+    r1DotR2 := dot(r1, r2);
+    if r1DotR2 < 0 r2 = -r2;
+    // Only then do the interpolation
+    rotation := slerp(r1, r2, pctFrameCompletion);
     // normalize_or_identity(*rotation);
     return make_translation_matrix4(translation) * rotation_matrix(Matrix4, rotation) * make_scale_matrix4(scale);
 }
