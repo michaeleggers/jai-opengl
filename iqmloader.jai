@@ -286,8 +286,8 @@ LoadIQM :: (file : string) -> IQMData {
         // scale(*m, scalee);
         // m = translate(m, translation);
         m := make_translation_matrix4(translation)
-        * make_scale_matrix4 (scalee)
-        * rotation_matrix(Matrix4, rotation);
+        * rotation_matrix(Matrix4, rotation)
+        * make_scale_matrix4 (scalee);
         bindPoses[i] = m;
         invBindPoses[i] = m;
         if iqmJoint.parent >= 0 {

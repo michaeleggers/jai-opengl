@@ -328,7 +328,7 @@
 # Player entity
 {
     "classname" "info_player_start"
-    "origin" "3 5 3"
+    "origin" "3 3 10"
     "texture" "Body.tga" # kinda obsolete, since textures are defined in the IQM model file!
     # "angle" 270
 }

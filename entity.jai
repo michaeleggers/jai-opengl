@@ -27,6 +27,8 @@ Entity :: struct {
             if keyState[SDLK_g] predict.y -= 1.06;   
             if keyState[SDLK_i] predict.z += 0.3080;  // A bit more than gravity force so we can "jump"
             if keyState[SDLK_k] predict.z -= 0.37;
+            if keyState[SDLK_LEFTBRACKET] pctFrameCompletion -= 0.1;
+            if keyState[SDLK_RIGHTBRACKET] pctFrameCompletion += 0.1;
         }
     };
     classname    : string;
@@ -92,19 +94,26 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
 
     // Animation stuff
 
-    pctFrameCompletion += 0.1;
-    if pctFrameCompletion > 0.999 {
+    // pctFrameCompletion += 0.03;
+    if pctFrameCompletion < 0.0 {
+        if currentFrame == 0 {
+            currentFrame = frameCount-1;
+        } else {
+            currentFrame -= 1;
+        }
+        pctFrameCompletion = 1.0;
+    }
+    if pctFrameCompletion > 1.0 {
         currentFrame += 1;
         pctFrameCompletion = 0.0;        
 
         if currentFrame >= frameCount {
             currentFrame = 0;
         }
-
     }
     nextFrame := (currentFrame + 1) % frameCount;
 
-    print("currentFrame: %\n", currentFrame);
+    print("pctFrameCompletion: %, %, %\n", pctFrameCompletion, currentFrame, nextFrame);
 
     // Interpolate pose matrices
     currentPoses : [..] Matrix4;
@@ -136,9 +145,11 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
 InterpolatePose :: (pose : Pose, nextPose : Pose, pctFrameCompletion: float) -> Matrix4 {
     translation := (1.0 - pctFrameCompletion)*pose.translation + pctFrameCompletion*nextPose.translation;
     scale := (1.0 - pctFrameCompletion)*pose.scale + pctFrameCompletion*nextPose.scale;
-    rotation := (1.0 - pctFrameCompletion)*pose.rotation + pctFrameCompletion*nextPose.rotation;
+    // rotation := (1.0 - pctFrameCompletion)*pose.rotation + pctFrameCompletion*nextPose.rotation;
+    // Clamp(*pctFrameCompletion, 0.0, 1.0);
+    rotation := slerp(pose.rotation, nextPose.rotation, pctFrameCompletion);
     // normalize_or_identity(*rotation);
-    return make_translation_matrix4(translation) * make_scale_matrix4(scale) * rotation_matrix(Matrix4, rotation);
+    return make_translation_matrix4(translation) * rotation_matrix(Matrix4, rotation) * make_scale_matrix4(scale);
 }
 
 GetModelNameByClassname :: (classname : string) -> string {
