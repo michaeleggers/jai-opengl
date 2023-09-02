@@ -168,6 +168,8 @@ main :: () {
 
                     if event.key.keysym.sym == SDLK_LEFTBRACKET keyState[SDLK_LEFTBRACKET] = true;
                     if event.key.keysym.sym == SDLK_RIGHTBRACKET keyState[SDLK_RIGHTBRACKET] = true;
+                    if event.key.keysym.sym == SDLK_COMMA keyState[SDLK_COMMA] = true;
+                    if event.key.keysym.sym == SDLK_PERIOD keyState[SDLK_PERIOD] = true;
 
                     if event.key.keysym.sym == SDLK_SPACE   keyState[SDLK_SPACE] = true;
 
@@ -197,7 +199,8 @@ main :: () {
 
                     if event.key.keysym.sym == SDLK_LEFTBRACKET keyState[SDLK_LEFTBRACKET] = false;
                     if event.key.keysym.sym == SDLK_RIGHTBRACKET keyState[SDLK_RIGHTBRACKET] = false;
-
+                    if event.key.keysym.sym == SDLK_COMMA keyState[SDLK_COMMA] = false;
+                    if event.key.keysym.sym == SDLK_PERIOD keyState[SDLK_PERIOD] = false;
 
                 // case SDL_MOUSEBUTTONDOWN;
                 //     // if event.button.state == SDL_PRESSED {

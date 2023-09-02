@@ -42,6 +42,7 @@ IQMData :: struct {
     poses        : [] Pose;
     jointCount   : u32;
     frameCount   : u32;  
+    animations   : [..] Anim;
 }
 
 IQMVertArray :: struct {
@@ -110,7 +111,7 @@ IQMAnim :: struct {
     name : u32;
     firstFrame, numFrames : u32;
     framerate : float;
-    flags : u32;
+    flags : u32; // TODO: What are those used for?
 }
 
 // Return length of a c-string including null-byte.
@@ -352,11 +353,14 @@ LoadIQM :: (file : string) -> IQMData {
     for i : 0..pHeader.numAnims-1 {
         iqmAnim := cast(*IQMAnim)(pAnims + i*size_of(IQMAnim));
         name := to_string(pAnims + iqmAnim.name);
-        print("name: %\n", name);
-        print("%\n", <<iqmAnim);
+        anim := Anim.{
+            name = name, 
+            firstFrame = iqmAnim.firstFrame, 
+            numFrames = iqmAnim.numFrames,
+            framerate = iqmAnim.framerate
+        };        
+        array_add(*result.animations, anim);
     }
-
-    // exit(1);
 
     return result;
 }

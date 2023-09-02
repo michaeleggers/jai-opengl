@@ -29,6 +29,18 @@ Entity :: struct {
             if keyState[SDLK_k] predict.z -= 0.37;
             if keyState[SDLK_LEFTBRACKET] pctFrameCompletion -= 0.1;
             if keyState[SDLK_RIGHTBRACKET] pctFrameCompletion += 0.1;
+            if keyState[SDLK_PERIOD] {
+                currentAnim += 1;
+                if currentAnim >= animations.count {
+                    currentAnim = 0;
+                }
+            }
+            if keyState[SDLK_COMMA] {
+                if currentAnim == 0 {
+                    if animations.count > 0 currentAnim = cast(u32)(animations.count-1);
+                }
+                else currentAnim -= 1;
+            }
         }
     };
     classname    : string;
@@ -50,8 +62,10 @@ Entity :: struct {
     palette      : [..] Matrix4;
     jointCount   : u32;
     currentFrame : u32;
-    frameCount   : u32;
+    totalFrameCount   : u32;
     pctFrameCompletion : float;
+    animations   : [..] Anim;
+    currentAnim  : u32;
 }
 
 Pose :: struct {
@@ -59,6 +73,12 @@ Pose :: struct {
     translation : Vector3;
     scale       : Vector3;
     rotation    : Quaternion;
+}
+
+Anim :: struct {
+    name : string;
+    firstFrame, numFrames : u32;
+    framerate : float;
 }
 
 // TODO: THIS IS REALLY UGLY!!!
@@ -94,10 +114,18 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
 
     // Animation stuff
 
-    pctFrameCompletion += 0.09;
+
+    // Set the currentFrame based on which animation we are in
+
+    animFirstFrame := animations[currentAnim].firstFrame;
+    animFrameCount := animations[currentAnim].numFrames;
+    
+    // Figure out the correct framepair
+
+    pctFrameCompletion += 0.2;
     if pctFrameCompletion < 0.0 {
-        if currentFrame == 0 {
-            currentFrame = frameCount-1;
+        if currentFrame == animFirstFrame {
+            currentFrame = (animFirstFrame+animFrameCount-1);
         } else {
             currentFrame -= 1;
         }
@@ -107,11 +135,11 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
         currentFrame += 1;
         pctFrameCompletion = 0.0;        
 
-        if currentFrame >= frameCount {
-            currentFrame = 0;
+        if currentFrame >= (animFirstFrame+animFrameCount) {
+            currentFrame = animFirstFrame;
         }
     }
-    nextFrame := (currentFrame + 1) % frameCount;
+    nextFrame := (currentFrame + 1) % (animFirstFrame+animFrameCount);
 
     print("pctFrameCompletion: %, %, %\n", pctFrameCompletion, currentFrame, nextFrame);
 
@@ -166,5 +194,5 @@ GetModelNameByClassname :: (classname : string) -> string {
 }
 
 ENTITY_MODELS :: ClassnameToModel.[
-    .{"info_player_start", "mrfixit"}
+    .{"info_player_start", "cylinder_two_anims"}
 ];

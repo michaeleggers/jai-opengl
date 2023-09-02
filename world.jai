@@ -35,7 +35,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             array_resize(*world.player.bindPoses, iqmModel.bindPoses.count);
             array_resize(*world.player.palette, iqmModel.jointCount);
             world.player.jointCount = iqmModel.jointCount;
-            world.player.frameCount = iqmModel.frameCount;
+            world.player.totalFrameCount = iqmModel.frameCount;
             for iqmModel.meshes {                
                 cpuEntityModel : CPUEntityModel;
                 textureID := RegisterTexture(it.material);
@@ -88,6 +88,9 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
             for iqmModel.poses {                
                 world.player.poses[it_index] = it;
             }            
+            for iqmModel.animations {
+                array_add(*world.player.animations, it);
+            }
             world.player.aabb = ComputeAABB(world.player.tris);
             world.player.currentAABB = world.player.aabb;
             world.player.pos = entity.pos;            
