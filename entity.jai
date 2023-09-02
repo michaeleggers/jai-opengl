@@ -29,18 +29,6 @@ Entity :: struct {
             if keyState[SDLK_k] predict.z -= 0.37;
             if keyState[SDLK_LEFTBRACKET] pctFrameCompletion -= 0.1;
             if keyState[SDLK_RIGHTBRACKET] pctFrameCompletion += 0.1;
-            if keyState[SDLK_PERIOD] {
-                currentAnim += 1;
-                if currentAnim >= animations.count {
-                    currentAnim = 0;
-                }
-            }
-            if keyState[SDLK_COMMA] {
-                if currentAnim == 0 {
-                    if animations.count > 0 currentAnim = cast(u32)(animations.count-1);
-                }
-                else currentAnim -= 1;
-            }
         }
     };
     classname    : string;
@@ -117,12 +105,33 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
 
     // Set the currentFrame based on which animation we are in
 
+    pctFrameCompletion += 0.2;
+
+    setNewAnim := false;
+    if KeyReleased(SDLK_COMMA) {
+        currentAnim += 1;
+        if currentAnim >= animations.count {
+            currentAnim = 0;
+        }
+        setNewAnim = true;
+    }
+    if KeyReleased(SDLK_PERIOD) {
+        if currentAnim == 0 {
+            if animations.count > 0 currentAnim = cast(u32)(animations.count-1);
+        }
+        else currentAnim -= 1;
+        setNewAnim = true;
+    }
+
     animFirstFrame := animations[currentAnim].firstFrame;
     animFrameCount := animations[currentAnim].numFrames;
-    
+    if setNewAnim {
+        pctFrameCompletion = 0.0;
+        currentFrame = animFirstFrame;
+    }
+
     // Figure out the correct framepair
 
-    pctFrameCompletion += 0.2;
     if pctFrameCompletion < 0.0 {
         if currentFrame == animFirstFrame {
             currentFrame = (animFirstFrame+animFrameCount-1);
@@ -133,7 +142,7 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
     }
     if pctFrameCompletion > 1.0 {
         currentFrame += 1;
-        pctFrameCompletion = 0.0;        
+        pctFrameCompletion = 0.0;
 
         if currentFrame >= (animFirstFrame+animFrameCount) {
             currentFrame = animFirstFrame;
@@ -141,7 +150,7 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
     }
     nextFrame := (currentFrame + 1) % (animFirstFrame+animFrameCount);
 
-    print("pctFrameCompletion: %, %, %\n", pctFrameCompletion, currentFrame, nextFrame);
+    // print("pctFrameCompletion: %, %, %\n", pctFrameCompletion, currentFrame, nextFrame);
 
     // Interpolate pose matrices
     currentPoses : [..] Matrix4;

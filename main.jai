@@ -43,7 +43,10 @@ MouseState :: struct {
     rightButtonWentUp := false;
 }
 
+// TODO: Too large to fit in static memory. Often we are just lucky that it works.
+//       -> Put this onto the heap.
 keyState : [#run enum_highest_value(SDL_Keycode)] bool;
+keyStatePrevFrame : [..] bool;
 
 main :: () {
 
@@ -73,6 +76,8 @@ main :: () {
     }
 
     RenderInit();
+
+    InputInit();
 
     crosshairHUD := CreateHUD("crosshair_point.png");
 
@@ -129,6 +134,8 @@ main :: () {
 
     running := true;
     while running {
+
+        memset(keyStatePrevFrame.data, cast(u8)(false), keyStatePrevFrame.count*size_of(bool));
 
         // Maybe even use SDL_GetKeyboardState() here and don't rely on SDL events at all?
         mouseX, mouseY : s32;
@@ -199,8 +206,14 @@ main :: () {
 
                     if event.key.keysym.sym == SDLK_LEFTBRACKET keyState[SDLK_LEFTBRACKET] = false;
                     if event.key.keysym.sym == SDLK_RIGHTBRACKET keyState[SDLK_RIGHTBRACKET] = false;
-                    if event.key.keysym.sym == SDLK_COMMA keyState[SDLK_COMMA] = false;
-                    if event.key.keysym.sym == SDLK_PERIOD keyState[SDLK_PERIOD] = false;
+                    if event.key.keysym.sym == SDLK_COMMA {
+                        keyStatePrevFrame[SDLK_COMMA] = keyState[SDLK_COMMA];
+                        keyState[SDLK_COMMA] = false;
+                    }
+                    if event.key.keysym.sym == SDLK_PERIOD {
+                        keyStatePrevFrame[SDLK_PERIOD] = keyState[SDLK_PERIOD];
+                        keyState[SDLK_PERIOD] = false;
+                    }
 
                 // case SDL_MOUSEBUTTONDOWN;
                 //     // if event.button.state == SDL_PRESSED {
