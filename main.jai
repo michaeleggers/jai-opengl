@@ -122,7 +122,8 @@ main :: () {
     running := true;
     while running {
 
-        memset(keyStatePrevFrame.data, cast(u8)(false), keyStatePrevFrame.count*size_of(bool));
+        // memset(keyStatePrevFrame.data, cast(u8)(false), keyStatePrevFrame.count*size_of(bool));
+        memcpy(keyStatePrevFrame.data, keyState.data, keyState.count*size_of(bool));
 
         // Maybe even use SDL_GetKeyboardState() here and don't rely on SDL events at all?
         mouseX, mouseY : s32;
@@ -172,15 +173,20 @@ main :: () {
                         case .SDLK_LEFT; keyState[KeyboardButton.KEYBOARD_LEFT] = true;    
                         case .SDLK_UP; keyState[KeyboardButton.KEYBOARD_UP] = true;    
                         case .SDLK_DOWN; keyState[KeyboardButton.KEYBOARD_DOWN] = true;                            
-                        case .SDLK_ESCAPE; keyState[KeyboardButton.KEYBOARD_ESCAPE] = true;                            
 
                         case .SDLK_1; keyState[KeyboardButton.KEYBOARD_1] = true;
                         case .SDLK_2; keyState[KeyboardButton.KEYBOARD_2] = true;
-                        
+
+                        case .SDLK_ESCAPE; keyState[KeyboardButton.KEYBOARD_ESCAPE] = true;                            
+                        case .SDLK_COMMA; keyState[KEYBOARD_COMMA] = true;
+                        case .SDLK_PERIOD; keyState[KEYBOARD_PERIOD] = true;    
+                        case .SDLK_TAB; keyState[KEYBOARD_TAB] = true;
+
                         case; print("Button not mapped\n");
                     }
             
                 case SDL_KEYUP;
+                    // memcpy(keyStatePrevFrame.data, keyState.data, keyState.count*size_of(bool));
                     if event.key.keysym.sym == {
                         case .SDLK_a; keyState[KeyboardButton.KEYBOARD_A] = false;
                         case .SDLK_b; keyState[KeyboardButton.KEYBOARD_B] = false;
@@ -213,10 +219,14 @@ main :: () {
                         case .SDLK_LEFT; keyState[KeyboardButton.KEYBOARD_LEFT] = false;    
                         case .SDLK_UP; keyState[KeyboardButton.KEYBOARD_UP] = false;    
                         case .SDLK_DOWN; keyState[KeyboardButton.KEYBOARD_DOWN] = false;                            
-                        case .SDLK_ESCAPE; keyState[KeyboardButton.KEYBOARD_ESCAPE] = false;                            
 
-                        case .SDLK_1; keyState[KeyboardButton.KEYBOARD_1] = false;
-                        case .SDLK_2; keyState[KeyboardButton.KEYBOARD_2] = false;
+                        case .SDLK_1; keyState[KEYBOARD_1] = false;
+                        case .SDLK_2; keyState[KEYBOARD_2] = false;
+
+                        case .SDLK_ESCAPE; keyState[KeyboardButton.KEYBOARD_ESCAPE] = false;                            
+                        case .SDLK_COMMA;  keyState[KEYBOARD_COMMA] = false;                                                    
+                        case .SDLK_PERIOD; keyState[KEYBOARD_PERIOD] = false;                        
+                        case .SDLK_TAB; keyState[KEYBOARD_TAB] = false;                            
                         
                         case; print("Button not mapped\n");
                     }
@@ -271,11 +281,11 @@ main :: () {
             }
         }
 
-        if keyState[KEYBOARD_ESCAPE] running = false;
+        if KeyPressed(KEYBOARD_ESCAPE) running = false;    
 
         // Update stuff
-        if keyState[KeyboardButton.KEYBOARD_1] refdef.camera = *debugCamera;
-        if keyState[KeyboardButton.KEYBOARD_2] refdef.camera = *followCamera;
+        if KeyPressed(KEYBOARD_1) refdef.camera = *debugCamera;
+        if KeyPressed(KEYBOARD_2) refdef.camera = *followCamera;
         UpdateWorld(keyState, mouseState, *refdef, *world);
 
         // Test triangle picking
@@ -331,8 +341,11 @@ main :: () {
         ]);
 
         // Render settings
-        refdef.wireframe = keyState[KeyboardButton.KEYBOARD_TAB];        
-
+        if KeyDown(KEYBOARD_TAB) {
+            print("tab down once\n");
+            refdef.wireframe = !refdef.wireframe;
+        }
+    
         // Rendition
         DrawFrame(refdef);
 

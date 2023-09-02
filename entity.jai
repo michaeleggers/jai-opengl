@@ -108,14 +108,15 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
     pctFrameCompletion += 0.2;
 
     setNewAnim := false;
-    if KeyReleased(.KEYBOARD_COMMA) {
+    if KeyReleased(KEYBOARD_COMMA) {
+        print("comma released\n");
         currentAnim += 1;
         if currentAnim >= animations.count {
             currentAnim = 0;
         }
         setNewAnim = true;
     }
-    if KeyReleased(.KEYBOARD_PERIOD) {
+    if KeyReleased(KEYBOARD_PERIOD) {
         if currentAnim == 0 {
             if animations.count > 0 currentAnim = cast(u32)(animations.count-1);
         }

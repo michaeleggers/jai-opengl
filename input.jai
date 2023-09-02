@@ -41,10 +41,10 @@ using KeyboardButton :: enum u32 {
     KEYBOARD_7;
     KEYBOARD_8;
     KEYBOARD_9;
-    KEYBOARD_TAB;
     KEYBOARD_LEFTBRACKET;
     KEYBOARD_RIGHTBRACKET;
     KEYBOARD_ESCAPE;
+    KEYBOARD_TAB;
 
     KEYBOARD_MAX_KEYS;
 }
@@ -78,6 +78,14 @@ SetHandler :: (customHandler : (keyStates : []bool) -> ()) {
 
 KeyReleased :: (key : KeyboardButton) -> bool {
     return keyStatePrevFrame[key] && !keyState[key];
+}
+
+KeyDown :: (key : KeyboardButton) -> bool {
+    return !keyStatePrevFrame[key] && keyState[key];
+}
+
+KeyPressed :: (key : KeyboardButton) -> bool {
+    return keyState[key];
 }
 
 InputInit :: () {
