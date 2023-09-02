@@ -35,19 +35,6 @@ ToCString :: (s : string) -> *u8 {
     return result;
 }
 
-MouseState :: struct {
-    x, y            : s32;
-    oldX, oldY      : s32;
-    dX, dY          : s32;
-    rightButtonDown  := false;
-    rightButtonWentUp := false;
-}
-
-// TODO: Too large to fit in static memory. Often we are just lucky that it works.
-//       -> Put this onto the heap.
-keyState : [#run enum_highest_value(SDL_Keycode)] bool;
-keyStatePrevFrame : [..] bool;
-
 main :: () {
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
