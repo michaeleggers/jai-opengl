@@ -21,14 +21,14 @@ Entity :: struct {
     #as using base := BaseEntity.{    
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
             using cast(*Entity)baseEntity;
-            if keyState[SDLK_h] predict.x += 1.06;
-            if keyState[SDLK_f] predict.x -= 1.06;
-            if keyState[SDLK_t] predict.y += 1.06;
-            if keyState[SDLK_g] predict.y -= 1.06;   
-            if keyState[SDLK_i] predict.z += 0.3080;  // A bit more than gravity force so we can "jump"
-            if keyState[SDLK_k] predict.z -= 0.37;
-            if keyState[SDLK_LEFTBRACKET] pctFrameCompletion -= 0.1;
-            if keyState[SDLK_RIGHTBRACKET] pctFrameCompletion += 0.1;
+            if keyState[KeyboardButton.KEYBOARD_H] predict.x += 1.06;
+            if keyState[KeyboardButton.KEYBOARD_F] predict.x -= 1.06;
+            if keyState[KeyboardButton.KEYBOARD_T] predict.y += 1.06;
+            if keyState[KeyboardButton.KEYBOARD_G] predict.y -= 1.06;   
+            if keyState[KeyboardButton.KEYBOARD_I] predict.z += 0.3080;  // A bit more than gravity force so we can "jump"
+            if keyState[KeyboardButton.KEYBOARD_K] predict.z -= 0.37;
+            if keyState[KeyboardButton.KEYBOARD_LEFTBRACKET] pctFrameCompletion -= 0.1;
+            if keyState[KeyboardButton.KEYBOARD_RIGHTBRACKET] pctFrameCompletion += 0.1;
         }
     };
     classname    : string;
@@ -108,14 +108,14 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
     pctFrameCompletion += 0.2;
 
     setNewAnim := false;
-    if KeyReleased(SDLK_COMMA) {
+    if KeyReleased(.KEYBOARD_COMMA) {
         currentAnim += 1;
         if currentAnim >= animations.count {
             currentAnim = 0;
         }
         setNewAnim = true;
     }
-    if KeyReleased(SDLK_PERIOD) {
+    if KeyReleased(.KEYBOARD_PERIOD) {
         if currentAnim == 0 {
             if animations.count > 0 currentAnim = cast(u32)(animations.count-1);
         }
