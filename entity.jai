@@ -21,14 +21,14 @@ Entity :: struct {
     #as using base := BaseEntity.{    
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
             using cast(*Entity)baseEntity;
-            if keyState[KeyboardButton.KEYBOARD_H] predict.x += 1.06;
-            if keyState[KeyboardButton.KEYBOARD_F] predict.x -= 1.06;
-            if keyState[KeyboardButton.KEYBOARD_T] predict.y += 1.06;
-            if keyState[KeyboardButton.KEYBOARD_G] predict.y -= 1.06;   
-            if keyState[KeyboardButton.KEYBOARD_I] predict.z += 0.3080;  // A bit more than gravity force so we can "jump"
-            if keyState[KeyboardButton.KEYBOARD_K] predict.z -= 0.37;
-            if keyState[KeyboardButton.KEYBOARD_LEFTBRACKET] pctFrameCompletion -= 0.1;
-            if keyState[KeyboardButton.KEYBOARD_RIGHTBRACKET] pctFrameCompletion += 0.1;
+            if KeyPressed(KEYBOARD_H)               predict.x += 0.6;
+            if KeyPressed(KEYBOARD_F)               predict.x -= 0.6;
+            if KeyPressed(KEYBOARD_T)               predict.y += 0.6;
+            if KeyPressed(KEYBOARD_G)               predict.y -= 0.6;   
+            if KeyPressed(KEYBOARD_I)               predict.z += 0.3080;  // A bit more than gravity force so we can "jump"
+            if KeyPressed(KEYBOARD_K)               predict.z -= 0.37;
+            if KeyPressed(KEYBOARD_LEFTBRACKET)     pctFrameCompletion -= 0.1;
+            if KeyPressed(KEYBOARD_RIGHTBRACKET)    pctFrameCompletion += 0.1;
         }
     };
     classname    : string;
