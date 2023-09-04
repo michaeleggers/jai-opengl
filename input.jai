@@ -62,7 +62,6 @@ keyState : [..] bool;
 keyStatePrevFrame : [..] bool;
 // Safe mouse state, so we can get a delta
 mouseState : MouseState;
-mouseX, mouseY : s32; // TODO: Should be part of MouseState I guess.
 
 // Not sure if the handler will be needed? At the moment it is not used.
 handler : (keyStates : [] bool) -> () = null;
@@ -93,11 +92,11 @@ KeyPressed :: (key : KeyboardButton) -> bool {
 
 // TODO: Should maybe just be: GetMouseState() and return the whole thing.
 GetMouseX :: () -> s32 {
-    return mouseX;
+    return mouseState.x;
 }
 
 GetMouseY :: () -> s32 {
-    return mouseY;
+    return mouseState.y;
 }
 
 InputInit :: () {
@@ -116,9 +115,9 @@ HandleSystemEvents :: (running : *bool, refdef : *RefDef) {
     memcpy(keyStatePrevFrame.data, keyState.data, keyState.count*size_of(bool));
 
     // Maybe even use SDL_GetKeyboardState() here and don't rely on SDL events at all?
-    buttonMask := SDL_GetMouseState(*mouseX, *mouseY);
-    mouseState.oldX = mouseX;
-    mouseState.oldY = mouseY;
+    buttonMask := SDL_GetMouseState(*mouseState.x, *mouseState.y);
+    mouseState.oldX = mouseState.x;
+    mouseState.oldY = mouseState.y;
     mouseState.rightButtonDown = false;        
     mouseState.rightButtonWentUp = false;
 
@@ -241,16 +240,16 @@ HandleSystemEvents :: (running : *bool, refdef : *RefDef) {
             //     // }
 
             case SDL_MOUSEMOTION;
-                mouseX = event.motion.x;
-                mouseY = event.motion.y;
+                mouseState.x = event.motion.x;
+                mouseState.y = event.motion.y;
                 if event.motion.state & SDL_BUTTON(3) {
-                    mouseState.dX = mouseX - mouseState.oldX;
-                    mouseState.dY = mouseY - mouseState.oldY;                        
+                    mouseState.dX = mouseState.x - mouseState.oldX;
+                    mouseState.dY = mouseState.y - mouseState.oldY;                        
                     mouseState.rightButtonDown = true;
                     // UpdateCameraOnMouse(*refdef.camera, dX, dY); // TODO: Move this down, out of the event loop
                     //print("Mouse delta %, %\n", dX, dY);
-                    mouseState.oldX = mouseX;
-                    mouseState.oldY = mouseY;
+                    mouseState.oldX = mouseState.x;
+                    mouseState.oldY = mouseState.y;
                 }
             
             case SDL_MOUSEBUTTONUP;
