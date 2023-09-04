@@ -56,12 +56,13 @@ MouseState :: struct {
     rightButtonWentUp := false;
 }
 
-// TODO: Too large to fit in static memory. Often we are just lucky that it works.
-//       -> Put this onto the heap.
+
+// TODO: Maybe they should not be modifyable by other files than input.jai
 keyState : [..] bool;
 keyStatePrevFrame : [..] bool;
 // Safe mouse state, so we can get a delta
 mouseState : MouseState;
+
 
 // Not sure if the handler will be needed? At the moment it is not used.
 handler : (keyStates : [] bool) -> () = null;
@@ -102,11 +103,11 @@ GetMouseY :: () -> s32 {
 InputInit :: () {
     // TODO: enum_highest_value(SDL_Keycode) causes weird behavior during runtime. Large mem consumption
     //       and super low framerate. Not sure why. Compilerbug?
-    highestKeycodeValue := #run type_info(KeyboardButton).names.count-1;
+    numKeyboardNames := #run type_info(KeyboardButton).names.count-1;
     // print("type info: %\n", #run type_info(SDL_Keycode).names.count);
     // print("KeyboardButton type info: %\n", <<type_info(KeyboardButton));
-    array_resize(*keyState, highestKeycodeValue);
-    array_resize(*keyStatePrevFrame, highestKeycodeValue);
+    array_resize(*keyState, numKeyboardNames);
+    array_resize(*keyStatePrevFrame, numKeyboardNames);
 }
 
 HandleSystemEvents :: (running : *bool, refdef : *RefDef) {
