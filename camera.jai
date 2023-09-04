@@ -7,7 +7,7 @@
 
 Camera :: struct {
     #as using base := BaseEntity.{
-        VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
+        VirtualUpdateOnKeys = (baseEntity : *BaseEntity) {
             using cast(*Camera)baseEntity;
             if KeyPressed(KeyboardButton.RIGHT)     RotateAroundUp(cast(*Camera)baseEntity, -0.0001);
             if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cast(*Camera)baseEntity,  0.0001);

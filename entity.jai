@@ -19,7 +19,7 @@ CPUEntityModel :: struct {
 
 Entity :: struct {
     #as using base := BaseEntity.{    
-        VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
+        VirtualUpdateOnKeys = (baseEntity : *BaseEntity) {
             using cast(*Entity)baseEntity;
             if KeyPressed(KeyboardButton.H)               predict.x += 0.6;
             if KeyPressed(KeyboardButton.F)               predict.x -= 0.6;

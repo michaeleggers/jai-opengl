@@ -128,7 +128,8 @@ main :: () {
         // Update stuff
         if KeyPressed(KeyboardButton.NUM_1) refdef.camera = *debugCamera;
         if KeyPressed(KeyboardButton.NUM_2) refdef.camera = *followCamera;
-        UpdateWorld(keyState, mouseState, *refdef, *world);
+                
+        UpdateWorld(*refdef, *world);
 
         // Test triangle picking
         hitRecord := PickTri(refdef.camera, .{cast(float)GetMouseX(), cast(float)(cast(s32)refdef.clientHeight - GetMouseY())}, refdef.clientWidth, refdef.clientHeight, world.models);

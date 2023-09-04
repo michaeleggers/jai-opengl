@@ -395,10 +395,10 @@ Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
 //       and just set a flag in refdef if AABBs should be drawn or not.
 AABBlines : [12] Line;
-UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, world : *World) {
+UpdateWorld :: (refdef : *RefDef, world : *World) {
 
     // ApplyGravity(keyState, world, *world.player);
-    UpdateOnKeys(*world.player, keyState);
+    UpdateOnKeys(*world.player);
 
     // gravityVector := PredictMovement(world, *world.player, world.gravity);    
     // velocity.y += world.gravity.y;
@@ -423,12 +423,12 @@ UpdateWorld :: (keyState : [] bool, mouseState : MouseState, refdef : *RefDef, w
     //       entity on certain key- (and mouse-) presses. So in the end, UpdateCameraOnKeys and
     //       UpdateCameraOnMouse are gone. Something like that.    
     if refdef.camera.type == Camera {
-        UpdateOnKeys(refdef.camera, keyState);
-        if mouseState.rightButtonDown {    
+        UpdateOnKeys(refdef.camera);
+        if MouseRightButtonDown() {    
             SDL_ShowCursor(0); // TODO: Should be SDL_ENABLE -> Can we fix this in SDL2 module of jai?
-            UpdateCameraOnMouse(refdef.camera, mouseState.dX, mouseState.dY);
+            UpdateCameraOnMouse(refdef.camera, GetMouseDX(), GetMouseDY());
         }
-        if mouseState.rightButtonWentUp {
+        if MouseRightButtonUp() {
             SDL_ShowCursor(1);
         }
     } else if refdef.camera.type == FollowCamera {

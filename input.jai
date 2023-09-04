@@ -56,6 +56,7 @@ MouseState :: struct {
     rightButtonWentUp := false;
 }
 
+#scope_file
 
 // TODO: Maybe they should not be modifyable by other files than input.jai
 keyState : [..] bool;
@@ -63,6 +64,7 @@ keyStatePrevFrame : [..] bool;
 // Safe mouse state, so we can get a delta
 mouseState : MouseState;
 
+#scope_export
 
 // Not sure if the handler will be needed? At the moment it is not used.
 handler : (keyStates : [] bool) -> () = null;
@@ -91,6 +93,14 @@ KeyPressed :: (key : KeyboardButton) -> bool {
     return keyState[key];
 }
 
+MouseRightButtonDown :: () -> bool {
+    return mouseState.rightButtonDown;
+}
+
+MouseRightButtonUp :: () -> bool {
+    return mouseState.rightButtonWentUp;
+}
+
 // TODO: Should maybe just be: GetMouseState() and return the whole thing.
 GetMouseX :: () -> s32 {
     return mouseState.x;
@@ -98,6 +108,14 @@ GetMouseX :: () -> s32 {
 
 GetMouseY :: () -> s32 {
     return mouseState.y;
+}
+
+GetMouseDX :: () -> s32 {
+    return mouseState.dX;
+}
+
+GetMouseDY :: () -> s32 {
+    return mouseState.dY;
 }
 
 InputInit :: () {
