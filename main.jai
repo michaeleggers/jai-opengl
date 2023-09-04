@@ -142,45 +142,45 @@ main :: () {
                     
                 case SDL_KEYDOWN;
                     if event.key.keysym.sym == {
-                        case .SDLK_a; keyState[KeyboardButton.KEYBOARD_A] = true;
-                        case .SDLK_b; keyState[KeyboardButton.KEYBOARD_B] = true;
-                        case .SDLK_c; keyState[KeyboardButton.KEYBOARD_C] = true;
-                        case .SDLK_d; keyState[KeyboardButton.KEYBOARD_D] = true;
-                        case .SDLK_e; keyState[KeyboardButton.KEYBOARD_E] = true;
-                        case .SDLK_f; keyState[KeyboardButton.KEYBOARD_F] = true;
-                        case .SDLK_g; keyState[KeyboardButton.KEYBOARD_G] = true;
-                        case .SDLK_h; keyState[KeyboardButton.KEYBOARD_H] = true;
-                        case .SDLK_i; keyState[KeyboardButton.KEYBOARD_I] = true;
-                        case .SDLK_j; keyState[KeyboardButton.KEYBOARD_J] = true;
-                        case .SDLK_k; keyState[KeyboardButton.KEYBOARD_K] = true;
-                        case .SDLK_l; keyState[KeyboardButton.KEYBOARD_L] = true;
-                        case .SDLK_m; keyState[KeyboardButton.KEYBOARD_M] = true;
-                        case .SDLK_n; keyState[KeyboardButton.KEYBOARD_N] = true;
-                        case .SDLK_o; keyState[KeyboardButton.KEYBOARD_O] = true;
-                        case .SDLK_p; keyState[KeyboardButton.KEYBOARD_P] = true;
-                        case .SDLK_q; keyState[KeyboardButton.KEYBOARD_Q] = true;
-                        case .SDLK_r; keyState[KeyboardButton.KEYBOARD_R] = true;
-                        case .SDLK_s; keyState[KeyboardButton.KEYBOARD_S] = true;
-                        case .SDLK_t; keyState[KeyboardButton.KEYBOARD_T] = true;
-                        case .SDLK_u; keyState[KeyboardButton.KEYBOARD_U] = true;
-                        case .SDLK_v; keyState[KeyboardButton.KEYBOARD_V] = true;
-                        case .SDLK_w; keyState[KeyboardButton.KEYBOARD_W] = true;
-                        case .SDLK_x; keyState[KeyboardButton.KEYBOARD_X] = true;
-                        case .SDLK_y; keyState[KeyboardButton.KEYBOARD_Y] = true;
-                        case .SDLK_z; keyState[KeyboardButton.KEYBOARD_Z] = true;                        
+                        case .SDLK_a; keyState[KeyboardButton.A] = true;
+                        case .SDLK_b; keyState[KeyboardButton.B] = true;
+                        case .SDLK_c; keyState[KeyboardButton.C] = true;
+                        case .SDLK_d; keyState[KeyboardButton.D] = true;
+                        case .SDLK_e; keyState[KeyboardButton.E] = true;
+                        case .SDLK_f; keyState[KeyboardButton.F] = true;
+                        case .SDLK_g; keyState[KeyboardButton.G] = true;
+                        case .SDLK_h; keyState[KeyboardButton.H] = true;
+                        case .SDLK_i; keyState[KeyboardButton.I] = true;
+                        case .SDLK_j; keyState[KeyboardButton.J] = true;
+                        case .SDLK_k; keyState[KeyboardButton.K] = true;
+                        case .SDLK_l; keyState[KeyboardButton.L] = true;
+                        case .SDLK_m; keyState[KeyboardButton.M] = true;
+                        case .SDLK_n; keyState[KeyboardButton.N] = true;
+                        case .SDLK_o; keyState[KeyboardButton.O] = true;
+                        case .SDLK_p; keyState[KeyboardButton.P] = true;
+                        case .SDLK_q; keyState[KeyboardButton.Q] = true;
+                        case .SDLK_r; keyState[KeyboardButton.R] = true;
+                        case .SDLK_s; keyState[KeyboardButton.S] = true;
+                        case .SDLK_t; keyState[KeyboardButton.T] = true;
+                        case .SDLK_u; keyState[KeyboardButton.U] = true;
+                        case .SDLK_v; keyState[KeyboardButton.V] = true;
+                        case .SDLK_w; keyState[KeyboardButton.W] = true;
+                        case .SDLK_x; keyState[KeyboardButton.X] = true;
+                        case .SDLK_y; keyState[KeyboardButton.Y] = true;
+                        case .SDLK_z; keyState[KeyboardButton.Z] = true;                        
 
-                        case .SDLK_RIGHT; keyState[KeyboardButton.KEYBOARD_RIGHT] = true;    
-                        case .SDLK_LEFT; keyState[KeyboardButton.KEYBOARD_LEFT] = true;    
-                        case .SDLK_UP; keyState[KeyboardButton.KEYBOARD_UP] = true;    
-                        case .SDLK_DOWN; keyState[KeyboardButton.KEYBOARD_DOWN] = true;                            
+                        case .SDLK_RIGHT; keyState[KeyboardButton.RIGHT] = true;    
+                        case .SDLK_LEFT; keyState[KeyboardButton.LEFT] = true;    
+                        case .SDLK_UP; keyState[KeyboardButton.UP] = true;    
+                        case .SDLK_DOWN; keyState[KeyboardButton.DOWN] = true;                            
 
-                        case .SDLK_1; keyState[KeyboardButton.KEYBOARD_1] = true;
-                        case .SDLK_2; keyState[KeyboardButton.KEYBOARD_2] = true;
+                        case .SDLK_1; keyState[KeyboardButton.NUM_1] = true;
+                        case .SDLK_2; keyState[KeyboardButton.NUM_2] = true;
 
-                        case .SDLK_ESCAPE; keyState[KeyboardButton.KEYBOARD_ESCAPE] = true;                            
-                        case .SDLK_COMMA; keyState[KEYBOARD_COMMA] = true;
-                        case .SDLK_PERIOD; keyState[KEYBOARD_PERIOD] = true;    
-                        case .SDLK_TAB; keyState[KEYBOARD_TAB] = true;
+                        case .SDLK_ESCAPE; keyState[KeyboardButton.ESCAPE] = true;                            
+                        case .SDLK_COMMA; keyState[KeyboardButton.COMMA] = true;
+                        case .SDLK_PERIOD; keyState[KeyboardButton.PERIOD] = true;    
+                        case .SDLK_TAB; keyState[KeyboardButton.TAB] = true;
 
                         case; print("Button not mapped\n");
                     }
@@ -188,45 +188,45 @@ main :: () {
                 case SDL_KEYUP;
                     // memcpy(keyStatePrevFrame.data, keyState.data, keyState.count*size_of(bool));
                     if event.key.keysym.sym == {
-                        case .SDLK_a; keyState[KeyboardButton.KEYBOARD_A] = false;
-                        case .SDLK_b; keyState[KeyboardButton.KEYBOARD_B] = false;
-                        case .SDLK_c; keyState[KeyboardButton.KEYBOARD_C] = false;
-                        case .SDLK_d; keyState[KeyboardButton.KEYBOARD_D] = false;
-                        case .SDLK_e; keyState[KeyboardButton.KEYBOARD_E] = false;
-                        case .SDLK_f; keyState[KeyboardButton.KEYBOARD_F] = false;
-                        case .SDLK_g; keyState[KeyboardButton.KEYBOARD_G] = false;
-                        case .SDLK_h; keyState[KeyboardButton.KEYBOARD_H] = false;
-                        case .SDLK_i; keyState[KeyboardButton.KEYBOARD_I] = false;
-                        case .SDLK_j; keyState[KeyboardButton.KEYBOARD_J] = false;
-                        case .SDLK_k; keyState[KeyboardButton.KEYBOARD_K] = false;
-                        case .SDLK_l; keyState[KeyboardButton.KEYBOARD_L] = false;
-                        case .SDLK_m; keyState[KeyboardButton.KEYBOARD_M] = false;
-                        case .SDLK_n; keyState[KeyboardButton.KEYBOARD_N] = false;
-                        case .SDLK_o; keyState[KeyboardButton.KEYBOARD_O] = false;
-                        case .SDLK_p; keyState[KeyboardButton.KEYBOARD_P] = false;
-                        case .SDLK_q; keyState[KeyboardButton.KEYBOARD_Q] = false;
-                        case .SDLK_r; keyState[KeyboardButton.KEYBOARD_R] = false;
-                        case .SDLK_s; keyState[KeyboardButton.KEYBOARD_S] = false;
-                        case .SDLK_t; keyState[KeyboardButton.KEYBOARD_T] = false;
-                        case .SDLK_u; keyState[KeyboardButton.KEYBOARD_U] = false;
-                        case .SDLK_v; keyState[KeyboardButton.KEYBOARD_V] = false;
-                        case .SDLK_w; keyState[KeyboardButton.KEYBOARD_W] = false;
-                        case .SDLK_x; keyState[KeyboardButton.KEYBOARD_X] = false;
-                        case .SDLK_y; keyState[KeyboardButton.KEYBOARD_Y] = false;
-                        case .SDLK_z; keyState[KeyboardButton.KEYBOARD_Z] = false;                        
+                        case .SDLK_a; keyState[KeyboardButton.A] = false;
+                        case .SDLK_b; keyState[KeyboardButton.B] = false;
+                        case .SDLK_c; keyState[KeyboardButton.C] = false;
+                        case .SDLK_d; keyState[KeyboardButton.D] = false;
+                        case .SDLK_e; keyState[KeyboardButton.E] = false;
+                        case .SDLK_f; keyState[KeyboardButton.F] = false;
+                        case .SDLK_g; keyState[KeyboardButton.G] = false;
+                        case .SDLK_h; keyState[KeyboardButton.H] = false;
+                        case .SDLK_i; keyState[KeyboardButton.I] = false;
+                        case .SDLK_j; keyState[KeyboardButton.J] = false;
+                        case .SDLK_k; keyState[KeyboardButton.K] = false;
+                        case .SDLK_l; keyState[KeyboardButton.L] = false;
+                        case .SDLK_m; keyState[KeyboardButton.M] = false;
+                        case .SDLK_n; keyState[KeyboardButton.N] = false;
+                        case .SDLK_o; keyState[KeyboardButton.O] = false;
+                        case .SDLK_p; keyState[KeyboardButton.P] = false;
+                        case .SDLK_q; keyState[KeyboardButton.Q] = false;
+                        case .SDLK_r; keyState[KeyboardButton.R] = false;
+                        case .SDLK_s; keyState[KeyboardButton.S] = false;
+                        case .SDLK_t; keyState[KeyboardButton.T] = false;
+                        case .SDLK_u; keyState[KeyboardButton.U] = false;
+                        case .SDLK_v; keyState[KeyboardButton.V] = false;
+                        case .SDLK_w; keyState[KeyboardButton.W] = false;
+                        case .SDLK_x; keyState[KeyboardButton.X] = false;
+                        case .SDLK_y; keyState[KeyboardButton.Y] = false;
+                        case .SDLK_z; keyState[KeyboardButton.Z] = false;                        
 
-                        case .SDLK_RIGHT; keyState[KeyboardButton.KEYBOARD_RIGHT] = false;    
-                        case .SDLK_LEFT; keyState[KeyboardButton.KEYBOARD_LEFT] = false;    
-                        case .SDLK_UP; keyState[KeyboardButton.KEYBOARD_UP] = false;    
-                        case .SDLK_DOWN; keyState[KeyboardButton.KEYBOARD_DOWN] = false;                            
+                        case .SDLK_RIGHT; keyState[KeyboardButton.RIGHT] = false;    
+                        case .SDLK_LEFT; keyState[KeyboardButton.LEFT] = false;    
+                        case .SDLK_UP; keyState[KeyboardButton.UP] = false;    
+                        case .SDLK_DOWN; keyState[KeyboardButton.DOWN] = false;                            
 
-                        case .SDLK_1; keyState[KEYBOARD_1] = false;
-                        case .SDLK_2; keyState[KEYBOARD_2] = false;
+                        case .SDLK_1; keyState[KeyboardButton.NUM_1] = false;
+                        case .SDLK_2; keyState[KeyboardButton.NUM_2] = false;
 
-                        case .SDLK_ESCAPE; keyState[KeyboardButton.KEYBOARD_ESCAPE] = false;                            
-                        case .SDLK_COMMA;  keyState[KEYBOARD_COMMA] = false;                                                    
-                        case .SDLK_PERIOD; keyState[KEYBOARD_PERIOD] = false;                        
-                        case .SDLK_TAB; keyState[KEYBOARD_TAB] = false;                            
+                        case .SDLK_ESCAPE; keyState[KeyboardButton.ESCAPE] = false;                            
+                        case .SDLK_COMMA;  keyState[KeyboardButton.COMMA] = false;                                                    
+                        case .SDLK_PERIOD; keyState[KeyboardButton.PERIOD] = false;                        
+                        case .SDLK_TAB; keyState[KeyboardButton.TAB] = false;                            
                         
                         case; print("Button not mapped\n");
                     }
@@ -281,11 +281,11 @@ main :: () {
             }
         }
 
-        if KeyPressed(KEYBOARD_ESCAPE) running = false;    
+        if KeyPressed(KeyboardButton.ESCAPE) running = false;    
 
         // Update stuff
-        if KeyPressed(KEYBOARD_1) refdef.camera = *debugCamera;
-        if KeyPressed(KEYBOARD_2) refdef.camera = *followCamera;
+        if KeyPressed(KeyboardButton.NUM_1) refdef.camera = *debugCamera;
+        if KeyPressed(KeyboardButton.NUM_2) refdef.camera = *followCamera;
         UpdateWorld(keyState, mouseState, *refdef, *world);
 
         // Test triangle picking
@@ -341,7 +341,7 @@ main :: () {
         ]);
 
         // Render settings
-        if KeyDown(KEYBOARD_TAB) {
+        if KeyDown(KeyboardButton.TAB) {
             print("tab down once\n");
             refdef.wireframe = !refdef.wireframe;
         }

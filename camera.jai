@@ -9,14 +9,14 @@ Camera :: struct {
     #as using base := BaseEntity.{
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
             using cast(*Camera)baseEntity;
-            if KeyPressed(KEYBOARD_RIGHT)     RotateAroundUp(cast(*Camera)baseEntity, -0.0001);
-            if KeyPressed(KEYBOARD_LEFT)      RotateAroundUp(cast(*Camera)baseEntity,  0.0001);
-            if KeyPressed(KEYBOARD_UP)        RotateAroundSide(cast(*Camera)baseEntity,  0.0001);
-            if KeyPressed(KEYBOARD_DOWN)      RotateAroundSide(cast(*Camera)baseEntity, -0.0001);
-            if KeyPressed(KEYBOARD_D)         MoveSide(cast(*Camera)baseEntity,  0.1);
-            if KeyPressed(KEYBOARD_A)         MoveSide(cast(*Camera)baseEntity, -0.1);
-            if KeyPressed(KEYBOARD_W)         MoveForward(cast(*Camera)baseEntity,  0.1);
-            if KeyPressed(KEYBOARD_S)         MoveForward(cast(*Camera)baseEntity, -0.1);
+            if KeyPressed(KeyboardButton.RIGHT)     RotateAroundUp(cast(*Camera)baseEntity, -0.0001);
+            if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cast(*Camera)baseEntity,  0.0001);
+            if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cast(*Camera)baseEntity,  0.0001);
+            if KeyPressed(KeyboardButton.DOWN)      RotateAroundSide(cast(*Camera)baseEntity, -0.0001);
+            if KeyPressed(KeyboardButton.D)         MoveSide(cast(*Camera)baseEntity,  0.1);
+            if KeyPressed(KeyboardButton.A)         MoveSide(cast(*Camera)baseEntity, -0.1);
+            if KeyPressed(KeyboardButton.W)         MoveForward(cast(*Camera)baseEntity,  0.1);
+            if KeyPressed(KeyboardButton.S)         MoveForward(cast(*Camera)baseEntity, -0.1);
         }
     };
     type    : Type = Camera;

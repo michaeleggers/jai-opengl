@@ -21,14 +21,14 @@ Entity :: struct {
     #as using base := BaseEntity.{    
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, keyState : [] bool) {
             using cast(*Entity)baseEntity;
-            if KeyPressed(KEYBOARD_H)               predict.x += 0.6;
-            if KeyPressed(KEYBOARD_F)               predict.x -= 0.6;
-            if KeyPressed(KEYBOARD_T)               predict.y += 0.6;
-            if KeyPressed(KEYBOARD_G)               predict.y -= 0.6;   
-            if KeyPressed(KEYBOARD_I)               predict.z += 0.3080;  // A bit more than gravity force so we can "jump"
-            if KeyPressed(KEYBOARD_K)               predict.z -= 0.37;
-            if KeyPressed(KEYBOARD_LEFTBRACKET)     pctFrameCompletion -= 0.1;
-            if KeyPressed(KEYBOARD_RIGHTBRACKET)    pctFrameCompletion += 0.1;
+            if KeyPressed(KeyboardButton.H)               predict.x += 0.6;
+            if KeyPressed(KeyboardButton.F)               predict.x -= 0.6;
+            if KeyPressed(KeyboardButton.T)               predict.y += 0.6;
+            if KeyPressed(KeyboardButton.G)               predict.y -= 0.6;   
+            if KeyPressed(KeyboardButton.I)               predict.z += 0.3080;  // A bit more than gravity force so we can "jump"
+            if KeyPressed(KeyboardButton.K)               predict.z -= 0.37;
+            if KeyPressed(KeyboardButton.LEFTBRACKET)     pctFrameCompletion -= 0.1;
+            if KeyPressed(KeyboardButton.RIGHTBRACKET)    pctFrameCompletion += 0.1;
         }
     };
     classname    : string;
@@ -108,7 +108,7 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
     pctFrameCompletion += 0.2;
 
     setNewAnim := false;
-    if KeyDown(KEYBOARD_COMMA) {
+    if KeyDown(KeyboardButton.COMMA) {
         print("comma released\n");
         currentAnim += 1;
         if currentAnim >= animations.count {
@@ -116,7 +116,7 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
         }
         setNewAnim = true;
     }
-    if KeyDown(KEYBOARD_PERIOD) {
+    if KeyDown(KeyboardButton.PERIOD) {
         if currentAnim == 0 {
             if animations.count > 0 currentAnim = cast(u32)(animations.count-1);
         }
