@@ -347,6 +347,34 @@ Draw3DImmediateLinesPtr :: (lines : *Line, count : u32, depthTest := true) {
     gImmediate3DDrawCmdCount += 1;
 }
 
+// Directly draw an AABB. It is not the nicest code! Should be replaced at some point.
+Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
+    boxTris : [12] Tri;
+    
+    scaleExtents := aabb.maxXYZ - aabb.minXYZ;
+    centerPos := aabb.minXYZ + scaleExtents/2.0;
+
+    transform := translate(Matrix4_Identity, centerPos);
+    transform = transpose(scale(transform, abs(scaleExtents)));
+    for GEOM_UNIT_CUBE_CENTER {    
+        // TODO: All of those vector conversions between v3 and v4 is kinda annoying!
+        //       Is there a good way in jai to do this? like in glm: glm::vec4(myVec3, 1.0); ?
+        a := Mat4XVec4(transform, vec3toVec4(it.a.pos));
+        b := Mat4XVec4(transform, vec3toVec4(it.b.pos));
+        c := Mat4XVec4(transform, vec3toVec4(it.c.pos));
+        a3 := Vector3.{a.x, a.y, a.z};
+        b3 := Vector3.{b.x, b.y, b.z};
+        c3 := Vector3.{c.x, c.y, c.z};
+        boxTris[it_index].a.pos = a3 + 0.0001*it.a.normal;
+        boxTris[it_index].b.pos = b3 + 0.0001*it.b.normal;
+        boxTris[it_index].c.pos = c3 + 0.0001*it.c.normal;
+        boxTris[it_index].a.color = color;
+        boxTris[it_index].b.color = color;
+        boxTris[it_index].c.color = color;
+    }
+    Draw3DImmediateTris(boxTris);
+}
+
 RenderPrepare :: () {
     // Some general GL settings. Must be set BEFORE SDL creates the OpenGL context!
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, xx SDL_GL_CONTEXT_PROFILE_CORE);
@@ -456,7 +484,7 @@ RenderInit :: () {
     glBindBuffer(GL_UNIFORM_BUFFER, poseMatrixUBO);
     glBufferData(GL_UNIFORM_BUFFER, MAX_SKELETON_JOINTS*size_of(Matrix4), null, GL_DYNAMIC_DRAW);
 
-    SDL_GL_SetSwapInterval(0); // VSYNC on, please.
+    SDL_GL_SetSwapInterval(1); // VSYNC on, please.
 }
 
 CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint {
