@@ -204,5 +204,5 @@ GetModelNameByClassname :: (classname : string) -> string {
 }
 
 ENTITY_MODELS :: ClassnameToModel.[
-    .{"info_player_start", "cylinder_two_anims"}
+    .{"info_player_start", "mrfixit"}
 ];
