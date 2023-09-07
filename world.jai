@@ -2,7 +2,7 @@
 World :: struct {
     models : [..] Model; // World geometry
     player : Entity;
-    gravity := Vector3.{0.0, 0.0, -0.01}; // Applied on entities every frame that are set to react to gravity.
+    gravity := Vector3.{0.0, 0.0, -1.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 FixOrientation :: (v : Vector3) -> Vector3 {
@@ -160,9 +160,9 @@ MinkowskiAABB :: (a : AABB, b : AABB) -> AABB {
     };    
 }
 
-CheckGround :: (world : *World, entity : *Entity) -> bool, Vector3 #must {
+CheckGround :: (world : *World, entity : *Entity, frameTime : float) -> bool, Vector3 #must {
     // Sweep bounding box
-    sweptAABB_x, sweptAABB_y, sweptAABB_z := SweepAABB(entity.currentAABB, world.gravity);
+    sweptAABB_x, sweptAABB_y, sweptAABB_z := SweepAABB(entity.currentAABB, frameTime*world.gravity);
 
     // check AABB overlap with world geometry        
     worldCollisionModels : [..] Model;
@@ -183,8 +183,8 @@ CheckGround :: (world : *World, entity : *Entity) -> bool, Vector3 #must {
     start.x = entity.currentAABB.minXYZ.x + entity.aabb.width/2.0;
     start.y = entity.currentAABB.minXYZ.y + entity.aabb.height/2.0;
     start.z = entity.currentAABB.minXYZ.z + entity.aabb.depth/2.0;    
-    end := start + world.gravity;
-    max := length(world.gravity);
+    end := start + frameTime*world.gravity;
+    max := length(frameTime*world.gravity);
     dir := normalize(world.gravity);
     shortestDistance := max;
     hitTri : Tri;    
@@ -395,21 +395,19 @@ Draw3DAABB :: (aabb : AABB, color := Vector3.{1.0, 0.0, 0.0}) {
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
 //       and just set a flag in refdef if AABBs should be drawn or not.
 AABBlines : [12] Line;
-UpdateWorld :: (refdef : *RefDef, world : *World) {
+UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
 
     // ApplyGravity(keyState, world, *world.player);
-    UpdateOnKeys(*world.player);
+    UpdateOnKeys(*world.player, frameTime);
 
     // gravityVector := PredictMovement(world, *world.player, world.gravity);    
     // velocity.y += world.gravity.y;
     movementVector : Vector3;
     velocity := world.player.predict;
-    hitGround, gravity := CheckGround(world, *world.player);
-    if hitGround {
-        //print("Hit ground. Don't apply gravity...\n");
-        movementVector = PredictMovement(world, *world.player, velocity);
-    } else {
-        // print("Didn't hit ground. Apply gravity...\n");
+    hitGround, gravity := CheckGround(world, *world.player, frameTime);
+    if hitGround {    
+        movementVector = PredictMovement(world, *world.player, frameTime*velocity);
+    } else {    
         gravity.z += velocity.z;
         movementVector = PredictMovement(world, *world.player, gravity);
     }
@@ -423,7 +421,7 @@ UpdateWorld :: (refdef : *RefDef, world : *World) {
     //       entity on certain key- (and mouse-) presses. So in the end, UpdateCameraOnKeys and
     //       UpdateCameraOnMouse are gone. Something like that.    
     if refdef.camera.type == Camera {
-        UpdateOnKeys(refdef.camera);
+        UpdateOnKeys(refdef.camera, frameTime);
         if MouseRightButtonDown() {    
             SDL_ShowCursor(0); // TODO: Should be SDL_ENABLE -> Can we fix this in SDL2 module of jai?
             UpdateCameraOnMouse(refdef.camera, GetMouseDX(), GetMouseDY());

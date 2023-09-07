@@ -19,14 +19,14 @@ CPUEntityModel :: struct {
 
 Entity :: struct {
     #as using base := BaseEntity.{    
-        VirtualUpdateOnKeys = (baseEntity : *BaseEntity) {
+        VirtualUpdateOnKeys = (baseEntity : *BaseEntity, frameTime : float) {
             using cast(*Entity)baseEntity;
             if KeyPressed(KeyboardButton.H)               predict.x += 0.6;
             if KeyPressed(KeyboardButton.F)               predict.x -= 0.6;
             if KeyPressed(KeyboardButton.T)               predict.y += 0.6;
             if KeyPressed(KeyboardButton.G)               predict.y -= 0.6;   
-            if KeyPressed(KeyboardButton.I)               predict.z += 0.3080;  // A bit more than gravity force so we can "jump"
-            if KeyPressed(KeyboardButton.K)               predict.z -= 0.37;
+            if KeyPressed(KeyboardButton.I)               predict.z += 0.1;  // A bit more than gravity force so we can "jump"
+            if KeyPressed(KeyboardButton.K)               predict.z -= 0.1;
             if KeyPressed(KeyboardButton.LEFTBRACKET)     pctFrameCompletion -= 0.1;
             if KeyPressed(KeyboardButton.RIGHTBRACKET)    pctFrameCompletion += 0.1;
         }

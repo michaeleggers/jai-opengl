@@ -62,6 +62,8 @@ main :: () {
         return;
     }
 
+    perfFrequency : u64 = SDL_GetPerformanceFrequency(); // in Hz -> Says how often the performance counter is incremented.
+
     RenderInit();
 
     InputInit();
@@ -118,8 +120,11 @@ main :: () {
 
 
 
+    frameTime : float;
     running := true;
     while running {
+
+        perfCounterBeginFrame := SDL_GetPerformanceCounter();
 
         HandleSystemEvents(*running, *refdef);
 
@@ -129,7 +134,7 @@ main :: () {
         if KeyPressed(KeyboardButton.NUM_1) refdef.camera = *debugCamera;
         if KeyPressed(KeyboardButton.NUM_2) refdef.camera = *followCamera;
                 
-        UpdateWorld(*refdef, *world);
+        UpdateWorld(*refdef, *world, frameTime);
 
         // Test triangle picking
         hitRecord := PickTri(refdef.camera, .{cast(float)GetMouseX(), cast(float)(cast(s32)refdef.clientHeight - GetMouseY())}, refdef.clientWidth, refdef.clientHeight, world.models);
@@ -194,6 +199,12 @@ main :: () {
 
         // Clear per-frame allocations
         reset_temporary_storage();
+
+        perfCounterEndFrame := SDL_GetPerformanceCounter();
+
+        perfDelta := perfCounterEndFrame - perfCounterBeginFrame;
+        frameTime = cast(float)perfDelta / cast(float)perfFrequency;
+        print("frameTime: % seconds\n", frameTime);
     }
 
     SDL_DestroyWindow(refdef.window);

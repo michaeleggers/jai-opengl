@@ -1,8 +1,8 @@
 
 BaseEntity :: struct {    
-    VirtualUpdateOnKeys : (*BaseEntity) -> () = null; 
+    VirtualUpdateOnKeys : (*BaseEntity, frameTime : float) -> () = null; 
 }
 
-UpdateOnKeys :: (baseEntity : *BaseEntity) {
-    baseEntity.VirtualUpdateOnKeys(baseEntity);
+UpdateOnKeys :: (baseEntity : *BaseEntity, frameTime : float) {
+    baseEntity.VirtualUpdateOnKeys(baseEntity, frameTime);
 }
