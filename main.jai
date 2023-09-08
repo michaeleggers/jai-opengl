@@ -18,6 +18,7 @@
 #load "collision.jai";
 #load "input.jai";
 #load "iqmloader.jai";
+#load "quakemap_parser.jai";
 
 AllocString :: (count : u32) -> string {
     s : string;
@@ -69,6 +70,9 @@ main :: () {
     InputInit();
 
     crosshairHUD := CreateHUD("crosshair_point.png");
+
+    map : QuakeMap = ParseQuakeMap("assets/maps/first_quake.map");
+    exit(-1);
 
     brushes, entities := LoadMapFile("assets/maps/simpleroom.map");
     // Init world and upload the world geometry to GPU
