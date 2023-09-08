@@ -47,7 +47,7 @@ TokenType :: enum u32 {
 
 #scope_export
 
-using MapVersion :: enum {
+MapVersion :: enum u32 {
     QUAKE;
     VALVE_220;
 }
@@ -294,7 +294,7 @@ GetNumber :: (mapData : string) -> float64 {
     return result;
 }
 
-ParseQuakeMap :: (file : string, mapVersion := QUAKE) -> QuakeMap {
+ParseQuakeMap :: (file : string, mapVersion := MapVersion.QUAKE) -> QuakeMap {
     
     mapData := read_entire_file(file);
 
