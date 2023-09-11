@@ -63,8 +63,9 @@ QuakeTexture :: struct {
 }
 
 Valve220Texture :: struct {
-    tx1, ty1, tz1, tOffset1 : float64;
-    tx2, ty2, tz2, tOffset2 : float64;
+    tx1, ty1, tz1, tOffset1  : float64;
+    tx2, ty2, tz2, tOffset2  : float64;
+    rotation, scaleX, scaleY : float64;
 }
 
 QuakeFace :: struct {
@@ -96,9 +97,9 @@ BrushEntity :: struct {
 }
 
 QuakeEntity :: struct {
-    entityData : union {
+    data : union {
         pointEntity : PointEntity;
-        brush       : QuakeBrush;
+        brushes     : [..] QuakeBrush;
         brushEntity : BrushEntity;     
     }
     subEntities : [..] QuakeEntity;
@@ -170,52 +171,68 @@ AdvanceCursor :: (count : s64) {
 
 GetVertex :: (mapData : string) -> QuakeVertex {
     Check(GetToken(mapData), .LPAREN); AdvanceCursor(1);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); n1 := GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); n2 := GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); n3 := GetNumber(mapData);
     Check(GetToken(mapData), .RPAREN); AdvanceCursor(1);
 
-    return .{};
+    return .{n1, n2, n3};
 }
 
-GetQuakeBrush :: (mapData : string) -> QuakeBrush {
-    brush : QuakeBrush;    
+GetQuakeFace :: (mapData : string) -> QuakeFace {
+    result : QuakeFace;    
 
-    // Get 3 points of plane
+    // Get 3 points of plane    
 
-    GetVertex(mapData);
-    GetVertex(mapData);
-    GetVertex(mapData);
+    result.vertices[0] = GetVertex(mapData);
+    result.vertices[1] = GetVertex(mapData);
+    result.vertices[2] = GetVertex(mapData);
     
     // Get texture name
 
-    Check(GetToken(mapData), .STRING); GetString(mapData);
+    Check(GetToken(mapData), .TEXNAME); result.textureName = GetTexName(mapData);
 
     // Get texture coords
 
-    Check(GetToken(mapData), .LBRACKET); GetTextureCoords(mapData);
+    Check(GetToken(mapData), .LBRACKET); result.textureData.valveTexture = GetValve220TextureCoords(mapData);
+
+    return result;
+}
+
+GetQuakeBrush :: (mapData : string) -> QuakeBrush {
+    brush : QuakeBrush;
+
+    while GetToken(mapData) != .RBRACE {
+        face := GetQuakeFace(mapData);
+        array_add(*brush.faces, face);
+    }
     
     return brush;
 }
 
-GetTextureCoords :: (mapData : string) {
+GetValve220TextureCoords :: (mapData : string) -> Valve220Texture {
+
+    result : Valve220Texture;
+
     Check(GetToken(mapData), .LBRACKET); AdvanceCursor(1);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.tx1 = GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.ty1 = GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.tz1 = GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.tOffset1 = GetNumber(mapData);
     Check(GetToken(mapData), .RBRACKET); AdvanceCursor(1);
 
     Check(GetToken(mapData), .LBRACKET); AdvanceCursor(1);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.tx2 = GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.ty2 = GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.tz2 = GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.tOffset2 = GetNumber(mapData);
     Check(GetToken(mapData), .RBRACKET); AdvanceCursor(1);
 
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
-    Check(GetToken(mapData), .NUMBER); GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.rotation = GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.scaleX = GetNumber(mapData);
+    Check(GetToken(mapData), .NUMBER); result.scaleY = GetNumber(mapData);
+
+    return result;
 }
 
 GetProperties :: (mapData : string) -> PointEntity {
@@ -237,35 +254,63 @@ GetProperties :: (mapData : string) -> PointEntity {
     return pointEntity;
 }
 
+CharArrayToString :: (charArray : [] u8) -> string #must {
+    result : string;
+    result.count = charArray.count;
+    result.data = alloc(charArray.count);
+    memcpy(result.data, charArray.data, charArray.count);
+    
+    free(charArray.data);
+
+    return result;
+}
+
+GetTexName :: (mapData : string) -> string {
+    charArray : [..] u8;
+    while mapData[g_Pos] != #char " " {
+        array_add(*charArray, mapData[g_Pos]);
+        AdvanceCursor(1);
+    }
+
+    result := CharArrayToString(charArray);
+
+    return result;
+}
+
 GetString :: (mapData : string) -> string {
     charArray : [..] u8;
-    AdvanceCursor(1);
+    AdvanceCursor(1); // Go over opening ' " '
     while mapData[g_Pos] != #char "\"" {
         array_add(*charArray, mapData[g_Pos]);
         AdvanceCursor(1);
     }
     AdvanceCursor(1); // Go over closing ' " '.
 
-    result : string;
-    result.count = charArray.count;
-    result.data = alloc(charArray.count);
-    memcpy(result.data, charArray.data, charArray.count);
-    free(charArray.data);
+    result := CharArrayToString(charArray);
 
     return result;
 }
 
-GetEntity :: (mapData : string) {
+GetEntity :: (mapData : string) -> QuakeEntity {
+
+    entity : QuakeEntity;
+
     Check(GetToken(mapData), .LBRACE); AdvanceCursor(1);
 
-    if GetToken(mapData) == .LPAREN GetQuakeBrush(mapData);
+    if GetToken(mapData) == .LPAREN array_add(*entity.data.brushes, GetQuakeBrush(mapData));
     else if GetToken(mapData) == .STRING GetProperties(mapData);
     
-    // Current Entity could contain another entity...
+    // Current Entity could contain sub entities... This is commonly the case
+    // for eg. worldspawn: All brushes that make static world geometry are
+    // subentities of worldspawn.
 
-    if GetToken(mapData) == .LBRACE GetEntity(mapData); 
+    while GetToken(mapData) == .LBRACE array_add(*entity.subEntities, GetEntity(mapData));
+
+    // Current entity is done
 
     Check(GetToken(mapData), .RBRACE); AdvanceCursor(1);
+
+    return entity;
 }
 
 GetNumber :: (mapData : string) -> float64 {
@@ -277,7 +322,7 @@ GetNumber :: (mapData : string) -> float64 {
 
     assert(IsNumeric(mapData[g_Pos]), "Expected a numeric symbol, but got: %\n", mapData[g_Pos]); // TODO: Shouldnt I use Check() here?
 
-    while IsNumeric(mapData[g_Pos]) || mapData[g_Pos] == #char "e" || mapData[g_Pos] == #char "-" {
+    while IsNumeric(mapData[g_Pos]) || mapData[g_Pos] == #char "e" || mapData[g_Pos] == #char "-" || mapData[g_Pos] == #char "." {
         array_add(*number, mapData[g_Pos]);
         AdvanceCursor(1);
     }
