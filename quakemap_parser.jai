@@ -96,12 +96,11 @@ BrushEntity :: struct {
     brushes     : [..] QuakeBrush;
 }
 
-QuakeEntity :: struct {
-    data : union {
-        pointEntity : PointEntity;
-        brushes     : [..] QuakeBrush;
-        brushEntity : BrushEntity;     
-    }
+QuakeEntity :: struct {    
+    properties  : [..] Property;
+    brushes     : [..] QuakeBrush;
+    brushEntity : BrushEntity;
+    
     subEntities : [..] QuakeEntity;
 }
 
@@ -114,8 +113,12 @@ AdvanceToNextNonWhitespace :: (mapData : string) {
 }
 
 AdvanceToNextLine :: (mapData : string) {
-    while mapData[g_Pos] != #char "\n" g_Pos += 1;
-    if mapData[g_Pos] == #char "\r" g_Pos += 1;
+    while mapData[g_Pos] != #char "\n" {
+        g_Pos += 1;
+        if !(g_Pos < mapData.count) return;
+    }
+    if !(g_Pos < mapData.count) return;
+    if mapData[g_Pos] == #char "\r"     g_Pos += 1;
 }
 
 SkipLineBreaksAndWhitespaces :: (mapData : string) {
@@ -123,6 +126,7 @@ SkipLineBreaksAndWhitespaces :: (mapData : string) {
         || mapData[g_Pos] == #char "\n"
         || mapData[g_Pos] == #char "\r" {
             g_Pos += 1;
+            if !(g_Pos < mapData.count) return;
         }
 }
 
@@ -136,13 +140,16 @@ IsLiteral :: (c : u8) -> bool {
 }
 
 GetToken :: (mapData : string) -> TokenType {
+
     result := TokenType.UNKNOWN;
 
     SkipLineBreaksAndWhitespaces(mapData);
+    if !(g_Pos < mapData.count) return .END_OF_INPUT;
     while mapData[g_Pos] == #char "/" { // Skip comments
         AdvanceToNextLine(mapData);
-        SkipLineBreaksAndWhitespaces(mapData);
+        SkipLineBreaksAndWhitespaces(mapData);        
     }
+
 
     c := mapData[g_Pos];
 
@@ -235,8 +242,8 @@ GetValve220TextureCoords :: (mapData : string) -> Valve220Texture {
     return result;
 }
 
-GetProperties :: (mapData : string) -> PointEntity {
-    pointEntity : PointEntity;
+GetProperties :: (mapData : string) -> [..] Property {
+    result : [..] Property;
 
     Check(GetToken(mapData), .STRING);
     while GetToken(mapData) == .STRING {
@@ -244,14 +251,14 @@ GetProperties :: (mapData : string) -> PointEntity {
         key := GetString(mapData);
         Check(GetToken(mapData), .STRING);
         value := GetString(mapData);
-        array_add(*pointEntity.properties, Property.{key, value});
+        array_add(*result, Property.{key, value});
     }
 
-    for pointEntity.properties {
+    for result {
         print("key: %, value: %\n", it.key, it.value);
     }
 
-    return pointEntity;
+    return result;
 }
 
 CharArrayToString :: (charArray : [] u8) -> string #must {
@@ -291,14 +298,16 @@ GetString :: (mapData : string) -> string {
     return result;
 }
 
-GetEntity :: (mapData : string) -> QuakeEntity {
+GetEntity :: (mapData : string) -> QuakeEntity, bool {
+
+    if GetToken(mapData) == .END_OF_INPUT return .{}, false;
 
     entity : QuakeEntity;
 
     Check(GetToken(mapData), .LBRACE); AdvanceCursor(1);
 
-    if GetToken(mapData) == .LPAREN array_add(*entity.data.brushes, GetQuakeBrush(mapData));
-    else if GetToken(mapData) == .STRING GetProperties(mapData);
+    if GetToken(mapData) == .LPAREN array_add(*entity.brushes, GetQuakeBrush(mapData));
+    else if GetToken(mapData) == .STRING entity.properties = GetProperties(mapData);
     
     // Current Entity could contain sub entities... This is commonly the case
     // for eg. worldspawn: All brushes that make static world geometry are
@@ -310,7 +319,7 @@ GetEntity :: (mapData : string) -> QuakeEntity {
 
     Check(GetToken(mapData), .RBRACE); AdvanceCursor(1);
 
-    return entity;
+    return entity, true;
 }
 
 GetNumber :: (mapData : string) -> float64 {
@@ -347,12 +356,18 @@ ParseQuakeMap :: (file : string, mapVersion := MapVersion.QUAKE) -> QuakeMap {
     g_LineNo = 1;
     g_MapVersion = mapVersion;
     
-    while g_Pos < g_InputLength {
-        
-        // AdvanceCursor(1);
-        // print("Token: %\n", GetToken(mapData));
-        GetEntity(mapData);
-        //g_Pos += 1;
+    entities : [..] QuakeEntity;
+    found := true;
+    entity : QuakeEntity;
+    while found {
+        entity, found = GetEntity(mapData);
+        if found {
+            array_add(*entities, entity);
+        }
+    }
+
+    if !found && g_Pos < g_InputLength {
+        print("WARNING (Quake MAP parser): No more entities found but not yet at the end of the file: %\n", file);
     }
 
     return .{};
