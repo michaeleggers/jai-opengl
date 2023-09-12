@@ -72,6 +72,7 @@ main :: () {
     crosshairHUD := CreateHUD("crosshair_point.png");
 
     map : QuakeMap = ParseQuakeMap("assets/maps/first_quake.map");
+    qworld := InitWorldFromQuakeMap(map);
     exit(-1);
 
     brushes, entities := LoadMapFile("assets/maps/simpleroom.map");

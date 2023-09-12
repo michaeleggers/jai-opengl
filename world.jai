@@ -23,6 +23,10 @@ FixBoneOrientation :: (m : Matrix4) -> Matrix4 {
     return m * rotation;
 }
 
+InitWorldFromQuakeMap :: (map : QuakeMap) {
+    
+}
+
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
     for entity : entities {
         modelname := GetModelNameByClassname(entity.classname);

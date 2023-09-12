@@ -99,13 +99,10 @@ BrushEntity :: struct {
 QuakeEntity :: struct {    
     properties  : [..] Property;
     brushes     : [..] QuakeBrush;
-    brushEntity : BrushEntity;
-    
-    subEntities : [..] QuakeEntity;
 }
 
 QuakeMap :: struct {
-    quakeEntities : [..] QuakeEntity;
+    entities : [..] QuakeEntity;
 }
 
 AdvanceToNextNonWhitespace :: (mapData : string) {
@@ -313,7 +310,7 @@ GetEntity :: (mapData : string) -> QuakeEntity, bool {
     // The entity consists of both properties and brushes: It is a brush entity.
     // The worldspawn is a brush entity in that it defines some global properties
     // usually followed by a long list of brushes that make up the static world
-    // geometry
+    // geometry.
 
     if      GetToken(mapData) == .STRING entity.properties = GetProperties(mapData);
     while GetToken(mapData) == .LBRACE {
@@ -362,13 +359,13 @@ ParseQuakeMap :: (file : string, mapVersion := MapVersion.QUAKE) -> QuakeMap {
     g_LineNo = 1;
     g_MapVersion = mapVersion;
     
-    entities : [..] QuakeEntity;
+    quakeMap : QuakeMap;
     found := true;
     entity : QuakeEntity;
     while found {
         entity, found = GetEntity(mapData);
         if found {
-            array_add(*entities, entity);
+            array_add(*quakeMap.entities, entity);
         }
     }
 
@@ -376,7 +373,7 @@ ParseQuakeMap :: (file : string, mapVersion := MapVersion.QUAKE) -> QuakeMap {
         print("WARNING (Quake MAP parser): No more entities found but not yet at the end of the file: %\n", file);
     }
 
-    return .{};
+    return quakeMap;
 }
 
 
