@@ -213,6 +213,7 @@ GetQuakeBrush :: (mapData : string) -> QuakeBrush {
         face := GetQuakeFace(mapData);
         array_add(*brush.faces, face);
     }
+    AdvanceCursor(1); // Go over RBRACE
     
     return brush;
 }
@@ -306,14 +307,19 @@ GetEntity :: (mapData : string) -> QuakeEntity, bool {
 
     Check(GetToken(mapData), .LBRACE); AdvanceCursor(1);
 
-    if GetToken(mapData) == .LPAREN array_add(*entity.brushes, GetQuakeBrush(mapData));
-    else if GetToken(mapData) == .STRING entity.properties = GetProperties(mapData);
-    
-    // Current Entity could contain sub entities... This is commonly the case
-    // for eg. worldspawn: All brushes that make static world geometry are
-    // subentities of worldspawn.
+    // Parse the entity
+    // Two cases are possible:
+    // The entity only consists of properties: It is a point entity.
+    // The entity consists of both properties and brushes: It is a brush entity.
+    // The worldspawn is a brush entity in that it defines some global properties
+    // usually followed by a long list of brushes that make up the static world
+    // geometry
 
-    while GetToken(mapData) == .LBRACE array_add(*entity.subEntities, GetEntity(mapData));
+    if      GetToken(mapData) == .STRING entity.properties = GetProperties(mapData);
+    while GetToken(mapData) == .LBRACE {
+        AdvanceCursor(1);
+        if GetToken(mapData) == .LPAREN array_add(*entity.brushes, GetQuakeBrush(mapData));
+    }    
 
     // Current entity is done
 
