@@ -24,7 +24,11 @@ FixBoneOrientation :: (m : Matrix4) -> Matrix4 {
 }
 
 InitWorldFromQuakeMap :: (map : QuakeMap) {
-    
+    for map.entities {
+        for it.brushes {
+            model := CreateModelFromQuakeBrush(it);
+        }
+    }
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {

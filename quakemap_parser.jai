@@ -53,19 +53,19 @@ MapVersion :: enum u32 {
 }
 
 QuakeVertex :: struct {
-    x, y, z : float64;
+    x, y, z : float;
 }
 
 QuakeTexture :: struct {
-    xOffset, yOffset    : float64;
-    rotation            : float64;
-    xScale, yScale      : float64;
+    xOffset, yOffset    : float;
+    rotation            : float;
+    xScale, yScale      : float;
 }
 
 Valve220Texture :: struct {
-    tx1, ty1, tz1, tOffset1  : float64;
-    tx2, ty2, tz2, tOffset2  : float64;
-    rotation, scaleX, scaleY : float64;
+    tx1, ty1, tz1, tOffset1  : float;
+    tx2, ty2, tz2, tOffset2  : float;
+    rotation, scaleX, scaleY : float;
 }
 
 QuakeFace :: struct {
@@ -325,7 +325,7 @@ GetEntity :: (mapData : string) -> QuakeEntity, bool {
     return entity, true;
 }
 
-GetNumber :: (mapData : string) -> float64 {
+GetNumber :: (mapData : string) -> float {
     number : [..] u8;
     if mapData[g_Pos] == #char "-" {
         array_add(*number, #char "-");
@@ -344,7 +344,7 @@ GetNumber :: (mapData : string) -> float64 {
     numberString.data = alloc(number.count);
     memcpy(numberString.data, number.data, number.count);
 
-    result := string_to_float64(numberString);
+    result := string_to_float(numberString);
     free(number.data);
     free(numberString.data);
 

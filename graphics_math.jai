@@ -1,6 +1,8 @@
 #import "Basic";
 #import "Math";
 
+PS_FLOAT_EPSILON : float : 0.0001;
+
 LookAt :: (pos : Vector3, center : Vector3, up : Vector3) -> Matrix4 {
     result := Matrix4_Identity;
     
@@ -186,4 +188,100 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
     return HitRecord.{success, bestTri, shortestT};
     
     // return .{Xnd, Ynd, 0.0, 0.0};
+}
+
+Polygon :: struct {
+    vertices : [..] Vector3;
+    normal   : Vector3;
+}
+
+Plane :: struct {
+    n   : Vector3;
+    p0  : Vector3;
+    d   : float64;
+}
+
+CreatePlane :: (p0 : Vector3, p1 : Vector3, p2 : Vector3) -> Plane {
+    v0 := p2 - p0;
+    v1 := p1 - p0;
+    n  := normalize(cross(v0, v1));
+    d  := -dot(n, p0);
+
+    return .{n, p0, d};
+}
+
+ConvertQuakeFaceToPlane :: (face : QuakeFace) -> Plane {
+    p0 := Vector3.{face.vertices[0].x, face.vertices[0].y, face.vertices[0].z};
+    p1 := Vector3.{face.vertices[1].x, face.vertices[1].y, face.vertices[1].z};
+    p2 := Vector3.{face.vertices[2].x, face.vertices[2].y, face.vertices[2].z};
+
+    return CreatePlane(p0, p1, p2);
+}
+
+IsPointInsideBrush :: (brush : QuakeBrush, p : Vector3) -> bool {
+    for brush.faces {
+        plane := ConvertQuakeFaceToPlane(it);
+        a := normalize(p - plane.p0);
+        dotProd := dot(plane.n, a);
+        if dot(plane.n, p) + plane.d > PS_FLOAT_EPSILON {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+IntersectThreePlanes :: (p0 : Plane, p1 : Plane, p2 : Plane, out_IntersectionPoint : *Vector3) -> bool {
+    n0xn1 := cross(p0.n, p1.n);
+    det   := dot(n0xn1, p2.n);
+
+    // early out if planes do not intersect at single point
+
+    if abs(det) < PS_FLOAT_EPSILON return false;
+
+    <<out_IntersectionPoint = (
+        -p0.d * (cross(p1.n, p2.n))
+        -p1.d * (cross(p2.n, p0.n))
+        -p2.d * (cross(p0.n, p1.n))
+    ) / det;
+
+    return true;
+}
+
+InsertVertexToPolygon :: (v : Vector3, p : *Polygon) {
+    array_add(*p.vertices, v);
+}
+
+CreatePolysFromQuakeBrush :: (brush : QuakeBrush) -> [..] Polygon {
+    polys : [..] Polygon;
+    faceCount := brush.faces.count;
+    for i : 0..faceCount-1 {
+        p0 := ConvertQuakeFaceToPlane(brush.faces[i]);
+        poly : Polygon;
+        poly.normal = p0.n;
+        for j : 0..faceCount-1 {
+            p1 := ConvertQuakeFaceToPlane(brush.faces[j]);
+            for k : 0..faceCount-1 {
+                intersectionPoint : Vector3;
+                p2 := ConvertQuakeFaceToPlane(brush.faces[k]);
+                if i != j && i != k && j != k {
+                    if IntersectThreePlanes(p0, p1, p2, *intersectionPoint) {
+                        if IsPointInsideBrush(brush, intersectionPoint) {
+                            // TODO: Calculate texture coordinates
+                            InsertVertexToPolygon(intersectionPoint, *poly);
+                        }
+                    }
+                }
+            }
+        }
+        if poly.vertices.count > 0 {
+            array_add(*polys, poly);
+        }
+    }
+
+    return polys;
+}
+
+CreateModelFromQuakeBrush :: (brush : QuakeBrush) -> Model {
+    polys := CreatePolysFromQuakeBrush(brush);
 }
