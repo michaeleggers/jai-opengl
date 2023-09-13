@@ -195,6 +195,16 @@ Polygon :: struct {
     normal   : Vector3;
 }
 
+PolygonToTri :: (poly : Polygon) -> Tri {
+    vertCount := poly.vertices.count;
+    if poly.vertices.count != 3 print("WARNING (PolygonToTri): Polygon doesn't consist of 3 vertices but %!\n", vertCount);
+    return .{
+        vertices[0] = Vertex.{pos = poly.vertices[0]},
+        vertices[1] = Vertex.{pos = poly.vertices[1]},
+        vertices[2] = Vertex.{pos = poly.vertices[2]},
+    };
+}
+
 Plane :: struct {
     n   : Vector3;
     p0  : Vector3;
@@ -358,5 +368,13 @@ TriangulatePolygons :: (polys : [] Polygon) -> [..] Polygon {
 
 CreateModelFromQuakeBrush :: (brush : QuakeBrush) -> Model {
     polys := CreatePolysFromQuakeBrush(brush);
+    print("not triangulated: %\n", polys.count);
     polys = TriangulatePolygons(polys);
+    print("polys.count: %\n", polys.count);
+    model : Model;
+    for polys {
+        array_add(*model.tris, PolygonToTri(it));
+    }
+
+    return model;
 }
