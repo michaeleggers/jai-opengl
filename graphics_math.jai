@@ -304,7 +304,7 @@ SortVerticesCCW :: (poly : Polygon) -> Polygon {
     center *= (1.0/vertCount);
 
     closestVertexID : u32 = 0;
-    for i : 0..vertCount {
+    for i : 0..vertCount-2 { // TODO: Explain why -2!!!
         v0 := result.vertices[i]; // Find next vertex to v0 with smallest angle
 
         plane := CreatePlane(center, v0, center + result.normal);
@@ -337,7 +337,7 @@ SortVerticesCCW :: (poly : Polygon) -> Polygon {
     return result;
 }
 
-TriangulatePolygon :: (polys : [] Polygon) -> [..] Polygon {
+TriangulatePolygons :: (polys : [] Polygon) -> [..] Polygon {
     tris : [..] Polygon;
 
     for polys {
@@ -358,5 +358,5 @@ TriangulatePolygon :: (polys : [] Polygon) -> [..] Polygon {
 
 CreateModelFromQuakeBrush :: (brush : QuakeBrush) -> Model {
     polys := CreatePolysFromQuakeBrush(brush);
-
+    polys = TriangulatePolygons(polys);
 }
