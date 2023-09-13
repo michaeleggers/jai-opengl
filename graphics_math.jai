@@ -197,7 +197,12 @@ Polygon :: struct {
 
 PolygonToTri :: (poly : Polygon) -> Tri {
     vertCount := poly.vertices.count;
-    if poly.vertices.count != 3 print("WARNING (PolygonToTri): Polygon doesn't consist of 3 vertices but %!\n", vertCount);
+    if vertCount != 3 print("WARNING (PolygonToTri): Polygon doesn't consist of 3 vertices but %!\n", vertCount);
+    if vertCount < 3 {
+        print("(PolygonToTri): Polygon consists of only % vertices. This should not happen! Returning 0-Tri!\n", vertCount);
+        return .{};
+    }
+    
     return .{
         vertices[0] = Vertex.{pos = poly.vertices[0]},
         vertices[1] = Vertex.{pos = poly.vertices[1]},
