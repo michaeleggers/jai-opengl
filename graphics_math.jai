@@ -282,6 +282,81 @@ CreatePolysFromQuakeBrush :: (brush : QuakeBrush) -> [..] Polygon {
     return polys;
 }
 
+GetAngle :: (p0 : Vector3, p1 : Vector3, p2 : Vector3) -> float {
+    a := normalize(p1 - p0);
+    b := normalize(p2 - p0);
+
+    return dot(a, b);
+}
+
+SortVerticesCCW :: (poly : Polygon) -> Polygon {
+    result := poly;
+    vertCount := poly.vertices.count;
+
+    if vertCount < 3 return result; // Actually not a valid polygon!
+
+    // Center of poly
+
+    center : Vector3;
+    for result.vertices {
+        center += it;
+    }
+    center *= (1.0/vertCount);
+
+    closestVertexID : u32 = 0;
+    for i : 0..vertCount {
+        v0 := result.vertices[i]; // Find next vertex to v0 with smallest angle
+
+        plane := CreatePlane(center, v0, center + result.normal);
+
+        smallestAngleIndex := 0;
+        smallestAngle := -1.0;
+        for j : i+1..vertCount-1 {
+            test := normalize(result.vertices[j] - center);
+            if dot(plane.n, test) < - PS_FLOAT_EPSILON { // Check if the point is legal
+                angle := GetAngle(center, v0, result.vertices[j]);
+                if angle > smallestAngle {
+                    smallestAngle = angle;
+                    smallestAngleIndex = j;
+                }
+            }
+        }
+        result.vertices[i+1], result.vertices[smallestAngleIndex] = swap(result.vertices[i+1], result.vertices[smallestAngleIndex]);
+    }
+
+    // Fix winding
+
+    a := result.vertices[0] - center;
+    b := result.vertices[1] - center;
+    normal := normalize(cross(a, b));
+    if dot(normal, result.normal) < PS_FLOAT_EPSILON {
+        ArrayReverse(*result.vertices);
+        result.normal = normal;
+    }
+
+    return result;
+}
+
+TriangulatePolygon :: (polys : [] Polygon) -> [..] Polygon {
+    tris : [..] Polygon;
+
+    for polys {
+        sortedPoly := SortVerticesCCW(it);
+        vertCount := sortedPoly.vertices.count;
+        provokingVert := sortedPoly.vertices[0];
+        for i : 2..vertCount-1 {
+            poly : Polygon;
+            array_add(*poly.vertices, provokingVert);
+            array_add(*poly.vertices, sortedPoly.vertices[i-1]);
+            array_add(*poly.vertices, sortedPoly.vertices[i]);
+            array_add(*tris, poly);
+        }
+    }
+
+    return tris;
+}
+
 CreateModelFromQuakeBrush :: (brush : QuakeBrush) -> Model {
     polys := CreatePolysFromQuakeBrush(brush);
+
 }

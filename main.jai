@@ -19,6 +19,7 @@
 #load "input.jai";
 #load "iqmloader.jai";
 #load "quakemap_parser.jai";
+#load "utils.jai";
 
 AllocString :: (count : u32) -> string {
     s : string;
