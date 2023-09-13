@@ -282,11 +282,11 @@ CreatePolysFromQuakeBrush :: (brush : QuakeBrush) -> [..] Polygon {
     return polys;
 }
 
-GetAngle :: (p0 : Vector3, p1 : Vector3, p2 : Vector3) -> float {
+GetCosineTheta :: (p0 : Vector3, p1 : Vector3, p2 : Vector3) -> float {
     a := normalize(p1 - p0);
     b := normalize(p2 - p0);
 
-    return dot(a, b);
+    return dot(a, b); // = cos(theta)
 }
 
 SortVerticesCCW :: (poly : Polygon) -> Polygon {
@@ -310,13 +310,13 @@ SortVerticesCCW :: (poly : Polygon) -> Polygon {
         plane := CreatePlane(center, v0, center + result.normal);
 
         smallestAngleIndex := 0;
-        smallestAngle := -1.0;
+        smallestCosTheta := -1.0;
         for j : i+1..vertCount-1 {
             test := normalize(result.vertices[j] - center);
             if dot(plane.n, test) < - PS_FLOAT_EPSILON { // Check if the point is legal
-                angle := GetAngle(center, v0, result.vertices[j]);
-                if angle > smallestAngle {
-                    smallestAngle = angle;
+                cosTheta := GetCosineTheta(center, v0, result.vertices[j]);
+                if cosTheta > smallestCosTheta {
+                    smallestCosTheta = cosTheta;
                     smallestAngleIndex = j;
                 }
             }
