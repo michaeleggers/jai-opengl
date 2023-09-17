@@ -32,3 +32,20 @@ Model :: struct {
     // Only for HUD elements. ID is index into the HUDElements array in render.jai
     hudID       : u32;
 }
+
+// A WorldTri is very similar to a regular Tri but it is used for static world
+// geometry or what is called *brush entities* in Quake: World geometry that
+// has some kind of behaviour, like doors, elevators, buttons, etc...
+// A WorldTri also can have some surface-flags that tells us what
+// kind of sound should be played when the player walks over it.
+// Or even transparancy settings for the renderer.
+// WorldTris are batched by there TextureID for now to
+// reduce the amount of draw-calls for the renderer.
+
+WorldTri :: struct {
+    a, b, c : Vertex;    
+
+    textureID : u32;
+
+    #place a; vertices : [3] Vertex;
+}
