@@ -73,37 +73,38 @@ main :: () {
 
     crosshairHUD := CreateHUD("crosshair_point");
 
-    map : QuakeMap = ParseQuakeMap("assets/maps/first_quake.map");
-    qworld := InitWorldFromQuakeMap(map);
-    exit(-1);
-
-    brushes, entities := LoadMapFile("assets/maps/simpleroom.map");
-    // Init world and upload the world geometry to GPU
     world : World;
-    //world := Model.{ position = .{0.0, 0.0, 0.0}};
-    for brush : brushes {        
-        height := brush.height;
-        model : Model;
-        model.textureID = RegisterTexture(brush.texture);
-        heightScale := transpose(scale(Matrix3_Identity, Vector3.{1.0, height, 1.0}));
-        for tri : GEOM_UNIT_CUBE {
-            t := tri;
-            brushOffset := Vector3.{brush.xPos, brush.yPos, brush.zPos};
-            t.a.pos = heightScale*t.a.pos;
-            t.b.pos = heightScale*t.b.pos;
-            t.c.pos = heightScale*t.c.pos;
-            t.a.pos += brushOffset;
-            t.b.pos += brushOffset; 
-            t.c.pos += brushOffset;
-            array_add(*model.tris, t);
-        }
-        model.aabb = ComputeAABB(model.tris);
-        model.position = Vector3.{brush.xPos, brush.yPos, brush.zPos};
-        array_add(*world.models, model);
-        RegisterModel(*model); // Upload to GPU
-    }
-    // Initialize Entities
-    SpawnEntities(entities, *refdef, *world);
+
+    map : QuakeMap = ParseQuakeMap("assets/maps/first_quake.map");
+    qworld := InitWorldFromQuakeMap(map, *world);
+
+    // brushes, entities := LoadMapFile("assets/maps/simpleroom.map");
+    // // Init world and upload the world geometry to GPU
+    
+    // //world := Model.{ position = .{0.0, 0.0, 0.0}};
+    // for brush : brushes {        
+    //     height := brush.height;
+    //     model : Model;
+    //     model.textureID = RegisterTexture(brush.texture);
+    //     heightScale := transpose(scale(Matrix3_Identity, Vector3.{1.0, height, 1.0}));
+    //     for tri : GEOM_UNIT_CUBE {
+    //         t := tri;
+    //         brushOffset := Vector3.{brush.xPos, brush.yPos, brush.zPos};
+    //         t.a.pos = heightScale*t.a.pos;
+    //         t.b.pos = heightScale*t.b.pos;
+    //         t.c.pos = heightScale*t.c.pos;
+    //         t.a.pos += brushOffset;
+    //         t.b.pos += brushOffset; 
+    //         t.c.pos += brushOffset;
+    //         array_add(*model.tris, t);
+    //     }
+    //     model.aabb = ComputeAABB(model.tris);
+    //     model.position = Vector3.{brush.xPos, brush.yPos, brush.zPos};
+    //     array_add(*world.models, model);
+    //     RegisterModel(*model); // Upload to GPU
+    // }
+    // // Initialize Entities
+    // SpawnEntities(entities, *refdef, *world);
 
     // Add a nice texture to the model
     // world.textureID = RegisterTexture("wood_planks_01.tga");

@@ -49,3 +49,4 @@ WorldTri :: struct {
 
     #place a; vertices : [3] Vertex;
 }
+

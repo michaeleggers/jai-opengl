@@ -540,6 +540,48 @@ CreateShaderProgram :: (vertShaderFile : string, fragShaderFile : string) -> GLu
     return shaderProgram;
 }
 
+// NOTE: This is almost the same as RegisterModel below.
+// RegisterModel is kinda obsolete now that we create
+// a triangle soup from a Quake map. If we decide that
+// we still want to keep the old way of loading maps using
+// the old map format we should unify the function, because
+// there is so much duplicate code around here.
+// We will see.
+WorldTrisToGPU :: (tris : [] WorldTri) {
+    findBatchByTexID :: (textureID : u32) -> *Batch {
+        if batches.count <= textureID {
+            return null;
+        }
+        else {
+            return *batches[textureID];
+        }
+    }
+
+    for tris {
+        batch := findBatchByTexID(it.textureID);
+        if !batch {
+            batch = CreateBatch();
+            batch.textureID = it.textureID;
+        }
+
+        array_add(*batch.vertices, it.vertices[0]);
+        array_add(*batch.vertices, it.vertices[1]);
+        array_add(*batch.vertices, it.vertices[2]);
+
+        lastVertexOffset := batch.totalVertexCount * size_of(Vertex);
+        dataSize := 3 * size_of(Vertex);
+
+        glBindVertexArray(batch.VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, batch.VBO);    
+        glBufferSubData(GL_ARRAY_BUFFER, lastVertexOffset, dataSize, batch.vertices.data + batch.totalVertexCount);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        batch.totalVertexCount += 3;    
+    }
+}
+
+// This is obsolete and should not be used for now
 RegisterModel :: (model : *Model) {
     findBatchByTexID :: (textureID : u32) -> *Batch {
         if batches.count <= textureID {

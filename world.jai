@@ -1,8 +1,9 @@
 
 World :: struct {
-    models : [..] Model; // World geometry
-    player : Entity;
-    gravity := Vector3.{0.0, 0.0, -10.0}; // Applied on entities every frame that are set to react to gravity.
+    models    : [..] Model;    // World geometry: This is the old way of representing world geometry. TODO: Delete later
+    tris      : [..] WorldTri; // Polysoup of all the static geometry.
+    player    : Entity;
+    gravity   := Vector3.{0.0, 0.0, -10.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
 FixOrientation :: (v : Vector3) -> Vector3 {
@@ -23,14 +24,17 @@ FixBoneOrientation :: (m : Matrix4) -> Matrix4 {
     return m * rotation;
 }
 
-InitWorldFromQuakeMap :: (map : QuakeMap) {
+InitWorldFromQuakeMap :: (map : QuakeMap, world : *World) {
 
     for map.entities {
         for it.brushes {
-            model := CreateModelFromQuakeBrush(it);
-            print("Tri-count: %\n", model.tris.count);
+            tris := CreateWorldTrisFromBrush(it);
+            for tris array_add(*world.tris, it);
+            print("Tri-count: %\n", tris.count);
         }
     }
+
+    WorldTrisToGPU(world.tris);
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
@@ -159,22 +163,22 @@ AABBlines : [12] Line;
 UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
 
     // ApplyGravity(keyState, world, *world.player);
-    UpdateOnKeys(*world.player, frameTime);
+    // UpdateOnKeys(*world.player, frameTime);
 
     // gravityVector := PredictMovement(world, *world.player, world.gravity);    
     // velocity.y += world.gravity.y;
-    movementVector : Vector3;
-    velocity := world.player.predict;
-    hitGround, gravity := CheckGround(world, *world.player, frameTime);
-    if hitGround {    
-        movementVector = PredictMovement(world, *world.player, frameTime*velocity);
-    } else {    
-        gravity.z += velocity.z;
-        movementVector = PredictMovement(world, *world.player, gravity);
-    }
-    world.player.pos += movementVector;
+    // movementVector : Vector3;
+    // velocity := world.player.predict;
+    // hitGround, gravity := CheckGround(world, *world.player, frameTime);
+    // if hitGround {    
+    //     movementVector = PredictMovement(world, *world.player, frameTime*velocity);
+    // } else {    
+    //     gravity.z += velocity.z;
+    //     movementVector = PredictMovement(world, *world.player, gravity);
+    // }
+    // world.player.pos += movementVector;
     
-    UpdateEntity(*world.player);
+    // UpdateEntity(*world.player);
     
     // TODO: Make a polymorphic function that accepts entities and the camera.
     //       This function could be called something like 'ProcessKeyboardInput' and 'ProcessMouseInput'.
@@ -195,73 +199,73 @@ UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
     }
 
     // Draw players AABB as wireframe. TODO: Move this into a generic function.
-    aabb := world.player.currentAABB;
-    minX := aabb.minXYZ.x;
-    minY := aabb.minXYZ.y;
-    minZ := aabb.minXYZ.z;
-    maxX := aabb.maxXYZ.x;
-    maxY := aabb.maxXYZ.y;
-    maxZ := aabb.maxXYZ.z;
-    width := aabb.width;
-    height := aabb.height;
-    depth := aabb.depth;
-    // We allocate memory here because returning an array of [12]Line lines will result in a stack overflow and crash.
-    // AABBlines := cast(*Line)alloc(12 * size_of(Line));
-    AABBlines[0] = .{
-            a = .{pos = .{minX, minY, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX + width, minY, minZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[1] = .{
-            a = .{pos = .{minX, minY, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX, minY + height, minZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[2] = .{
-            a = .{pos = .{minX, minY, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX, minY, minZ + depth}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[3] = .{
-            a = .{pos = .{maxX, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX - width, maxY, maxZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[4] = .{
-            a = .{pos = .{maxX, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX, maxY - height, maxZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[5] = .{
-            a = .{pos = .{maxX, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[6] = .{
-            a = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX, minY + height, minZ}, color = .{1.0, 1.0, 1.0}},
-    };
-    AABBlines[7] = .{
-            a = .{pos = .{minX, minY + height, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX - width, maxY, maxZ}, color = .{1.0, 1.0, 1.0}}
-    };
-    AABBlines[8] = .{
-            a = .{pos = .{maxX - width, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX, minY, minZ + depth}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[9] = .{
-            a = .{pos = .{minX, minY, minZ + depth}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX, maxY - height, maxZ}, color = .{1.0, 1.0, 1.0}} 
-    };
-    AABBlines[10] = .{
-            a = .{pos = .{maxX, maxY - height, maxZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{minX + width, minY, minZ}, color = .{1.0, 1.0, 1.0}}
-    };
-    AABBlines[11] = .{
-            a = .{pos = .{minX + width, minY, minZ}, color = .{1.0, 1.0, 1.0}},
-            b = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}}
-    };
-    Draw3DImmediateLines(AABBlines); // TODO: This is probably the most C way of doing this. And it is... ugly. Maybe
+    // aabb := world.player.currentAABB;
+    // minX := aabb.minXYZ.x;
+    // minY := aabb.minXYZ.y;
+    // minZ := aabb.minXYZ.z;
+    // maxX := aabb.maxXYZ.x;
+    // maxY := aabb.maxXYZ.y;
+    // maxZ := aabb.maxXYZ.z;
+    // width := aabb.width;
+    // height := aabb.height;
+    // depth := aabb.depth;
+    // // We allocate memory here because returning an array of [12]Line lines will result in a stack overflow and crash.
+    // // AABBlines := cast(*Line)alloc(12 * size_of(Line));
+    // AABBlines[0] = .{
+    //         a = .{pos = .{minX, minY, minZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{minX + width, minY, minZ}, color = .{1.0, 1.0, 1.0}} 
+    // };
+    // AABBlines[1] = .{
+    //         a = .{pos = .{minX, minY, minZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{minX, minY + height, minZ}, color = .{1.0, 1.0, 1.0}} 
+    // };
+    // AABBlines[2] = .{
+    //         a = .{pos = .{minX, minY, minZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{minX, minY, minZ + depth}, color = .{1.0, 1.0, 1.0}} 
+    // };
+    // AABBlines[3] = .{
+    //         a = .{pos = .{maxX, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{maxX - width, maxY, maxZ}, color = .{1.0, 1.0, 1.0}} 
+    // };
+    // AABBlines[4] = .{
+    //         a = .{pos = .{maxX, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{maxX, maxY - height, maxZ}, color = .{1.0, 1.0, 1.0}} 
+    // };
+    // AABBlines[5] = .{
+    //         a = .{pos = .{maxX, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}} 
+    // };
+    // AABBlines[6] = .{
+    //         a = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{minX, minY + height, minZ}, color = .{1.0, 1.0, 1.0}},
+    // };
+    // AABBlines[7] = .{
+    //         a = .{pos = .{minX, minY + height, minZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{maxX - width, maxY, maxZ}, color = .{1.0, 1.0, 1.0}}
+    // };
+    // AABBlines[8] = .{
+    //         a = .{pos = .{maxX - width, maxY, maxZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{minX, minY, minZ + depth}, color = .{1.0, 1.0, 1.0}} 
+    // };
+    // AABBlines[9] = .{
+    //         a = .{pos = .{minX, minY, minZ + depth}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{maxX, maxY - height, maxZ}, color = .{1.0, 1.0, 1.0}} 
+    // };
+    // AABBlines[10] = .{
+    //         a = .{pos = .{maxX, maxY - height, maxZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{minX + width, minY, minZ}, color = .{1.0, 1.0, 1.0}}
+    // };
+    // AABBlines[11] = .{
+    //         a = .{pos = .{minX + width, minY, minZ}, color = .{1.0, 1.0, 1.0}},
+    //         b = .{pos = .{maxX, maxY, maxZ - depth}, color = .{1.0, 1.0, 1.0}}
+    // };
+    // Draw3DImmediateLines(AABBlines); // TODO: This is probably the most C way of doing this. And it is... ugly. Maybe
     // we should just *not* use immediate draw for that many lines and just create a AABB VAO, VBO. Not sure...
     // And probably this draw call should not be here at all. lol.
 
     // free(AABBlines);
 
     // Add player entity to refresh definition
-    RenderAddEntity(refdef, world.player);
+    // RenderAddEntity(refdef, world.player);
 }
 

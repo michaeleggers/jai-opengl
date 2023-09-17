@@ -197,7 +197,7 @@ Polygon :: struct {
     textureID   : u32;
 }
 
-PolygonToTri :: (poly : Polygon) -> Tri {
+PolygonToTri :: (poly : Polygon) -> WorldTri {
     vertCount := poly.vertices.count;
     if vertCount != 3 print("WARNING (PolygonToTri): Polygon doesn't consist of 3 vertices but %!\n", vertCount);
     if vertCount < 3 {
@@ -208,7 +208,8 @@ PolygonToTri :: (poly : Polygon) -> Tri {
     return .{
         vertices[0] = poly.vertices[0],
         vertices[1] = poly.vertices[1],
-        vertices[2] = poly.vertices[2]
+        vertices[2] = poly.vertices[2],
+        textureID = poly.textureID
     };
 }
 
@@ -408,15 +409,14 @@ TriangulatePolygons :: (polys : [] Polygon) -> [..] Polygon {
     return tris;
 }
 
-CreateModelFromQuakeBrush :: (brush : QuakeBrush) -> Model {
-    polys := CreatePolysFromQuakeBrush(brush);
-    print("not triangulated: %\n", polys.count);
-    polys = TriangulatePolygons(polys);
-    print("polys.count: %\n", polys.count);
-    model : Model;
+CreateWorldTrisFromBrush :: (brush : QuakeBrush) -> [..] WorldTri {
+    polys := CreatePolysFromQuakeBrush(brush);    
+    polys = TriangulatePolygons(polys);    
+
+    tris : [..] WorldTri;
     for polys {
-        array_add(*model.tris, PolygonToTri(it));
+        array_add(*tris, PolygonToTri(it));
     }
 
-    return model;
+    return tris;
 }
