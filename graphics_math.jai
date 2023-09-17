@@ -264,6 +264,25 @@ IntersectThreePlanes :: (p0 : Plane, p1 : Plane, p2 : Plane, out_IntersectionPoi
 }
 
 InsertVertexToPolygon :: (v : Vector3, p : *Polygon) {
+
+    // @@ The following is from the C++ version. I am not sure
+    // what I was trying to do there... If there is a bug
+    // it might be valuable to check this code again.
+
+    // v0 := *p[0];
+    // if v0 == *p[p.vertices.count-1] {
+    //     array_add(*p.vertices, v);
+        
+    //     return;
+    // }
+
+    // Don't insert vertex if it is already in there.
+    // Commonly happens when p is a quad.
+
+    for p.vertices {
+        if v == it return;
+    }
+
     array_add(*p.vertices, v);
 }
 
@@ -279,7 +298,7 @@ CreatePolysFromQuakeBrush :: (brush : QuakeBrush) -> [..] Polygon {
             for k : 0..faceCount-1 {
                 intersectionPoint : Vector3;
                 p2 := ConvertQuakeFaceToPlane(brush.faces[k]);
-                if i != j && i != k && j != k {
+                if (i != j) && (i != k) && (j != k) {
                     if IntersectThreePlanes(p0, p1, p2, *intersectionPoint) {
                         if IsPointInsideBrush(brush, intersectionPoint) {
                             // TODO: Calculate texture coordinates
