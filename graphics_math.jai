@@ -296,6 +296,13 @@ CreatePolysFromQuakeBrush :: (brush : QuakeBrush) -> [..] Polygon {
         poly : Polygon;
         poly.normal = p0.n;
         poly.textureName = copy_string(brush.faces[i].textureName);
+        poly.textureID = RegisterTexture(poly.textureName);
+        texture, found := GetTextureByName(poly.textureName);
+        assert(found, "GetTextureName failed to load texture object for name: %\n", poly.textureName);
+
+        textureData := brush.faces[i].textureData.valveTexture;
+        axisU := Vector3.{textureData.tx1, textureData.ty1, textureData.tz1} / textureData.scaleX;
+        axisV := Vector3.{textureData.tx2, textureData.ty2, textureData.tz2} / textureData.scaleY;
         for j : 0..faceCount-1 {
             p1 := ConvertQuakeFaceToPlane(brush.faces[j]);
             for k : 0..faceCount-1 {
@@ -304,10 +311,15 @@ CreatePolysFromQuakeBrush :: (brush : QuakeBrush) -> [..] Polygon {
                 if (i != j) && (i != k) && (j != k) {
                     if IntersectThreePlanes(p0, p1, p2, *intersectionPoint) {
                         if IsPointInsideBrush(brush, intersectionPoint) {
-                            // TODO: Calculate texture coordinates
-                            poly.textureID = RegisterTexture(poly.textureName);
-                            texture := GetTextureByName(poly.textureName);
-                            v := Vertex.{pos = intersectionPoint};
+                            uv := Vector2.{
+                                dot(intersectionPoint, axisU),
+                                dot(intersectionPoint, axisV)
+                            };
+                            uv.x += textureData.tOffset1;
+                            uv.y += textureData.tOffset2;
+                            uv.x /= texture.width;
+                            uv.y /= texture.height;
+                            v := Vertex.{pos = intersectionPoint, uv = uv};
                             InsertVertexToPolygon(v, *poly);
                         }
                     }
