@@ -34,25 +34,14 @@ FlipImageVert :: (data : *u8, width : s32, height : s32, channels : s32) {
     free(saveBottomRow);
 }
 
-LoadTextureFromDisk :: (name : string) -> bool, *u8, s32, s32, s32 {
-
-    TryToLoad :: (pathAndFileName : string) -> bool, *u8, s32, s32, s32 {
-        width, height, comp : s32;
-        data := stbi_load(pathAndFileName.data, *width, *height, *comp, 0);        
-        if !data {
-            return false, data, width, height, comp;
-        }
-        return true, data, width, height, comp;
-    }
-
+FindTextureFileOnDisk :: (name : string) -> bool, string {
     extensions := string.["tga", "png"];
     for extensions {
         file := tprint("assets/textures/%.%", name, it);
-        found, data, width, height, comp := TryToLoad(file);
-        if found return true, data, width, height, comp;
+        if file_exists(file) return true, file;
     }
 
-    return false, null, -1, -1, -1;
+    return false, name;
 }
 
 RegisterTexture :: (fileName : string) -> u32 {
@@ -64,15 +53,20 @@ RegisterTexture :: (fileName : string) -> u32 {
     }
 
     texture := Texture.{ name = fileName };
-    found, data, width, height, comp := LoadTextureFromDisk(fileName);
+
+    found, pathAndFileName := FindTextureFileOnDisk(fileName);
     if !found {
-        log("Failed to load texture: %\n", fileName, flags=.ERROR);
+        log("Failed to load texture: %\n", pathAndFileName, flags=.ERROR);
         exit(-1);
     }
-    texture.width = width;
-    texture.height = height;
-    texture.comp = comp;
+
+    data := stbi_load(pathAndFileName.data, *texture.width, *texture.height, *texture.comp, 0);        
+    if !data {
+        log("stbi_load failed to load texture: %\n", pathAndFileName, flags=.ERROR);
+        exit(-1);
+    }
     assert(texture.comp > 2, "Failed to load texture: %, too few components: %\n", fileName, texture.comp);
+
     print("Loaded texture-file: %, components: %\n", fileName, texture.comp);
     FlipImageVert(data, texture.width, texture.height, texture.comp); // Open GL UV y is bottom left...
 
