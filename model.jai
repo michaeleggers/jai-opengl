@@ -12,8 +12,8 @@ Vertex :: struct {
 }
 
 Tri :: struct {
-    a, b, c : Vertex;
-    
+    a, b, c : Vertex;    
+
     #place a; vertices : [3] Vertex;
 }
 

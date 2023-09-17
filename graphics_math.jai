@@ -191,8 +191,10 @@ PickTri :: (camera : Camera, screenSpaceXY : Vector2, clientWidth : u32, clientH
 }
 
 Polygon :: struct {
-    vertices : [..] Vector3;
-    normal   : Vector3;
+    vertices    : [..] Vertex;
+    normal      : Vector3;
+    textureName : string;
+    textureID   : u32;
 }
 
 PolygonToTri :: (poly : Polygon) -> Tri {
@@ -204,9 +206,9 @@ PolygonToTri :: (poly : Polygon) -> Tri {
     }
     
     return .{
-        vertices[0] = Vertex.{pos = poly.vertices[0]},
-        vertices[1] = Vertex.{pos = poly.vertices[1]},
-        vertices[2] = Vertex.{pos = poly.vertices[2]},
+        vertices[0] = poly.vertices[0],
+        vertices[1] = poly.vertices[1],
+        vertices[2] = poly.vertices[2]
     };
 }
 
@@ -263,7 +265,7 @@ IntersectThreePlanes :: (p0 : Plane, p1 : Plane, p2 : Plane, out_IntersectionPoi
     return true;
 }
 
-InsertVertexToPolygon :: (v : Vector3, p : *Polygon) {
+InsertVertexToPolygon :: (v : Vertex, p : *Polygon) {
 
     // @@ The following is from the C++ version. I am not sure
     // what I was trying to do there... If there is a bug
@@ -280,7 +282,7 @@ InsertVertexToPolygon :: (v : Vector3, p : *Polygon) {
     // Commonly happens when p is a quad.
 
     for p.vertices {
-        if v == it return;
+        if v.pos == it.pos return;
     }
 
     array_add(*p.vertices, v);
@@ -293,6 +295,7 @@ CreatePolysFromQuakeBrush :: (brush : QuakeBrush) -> [..] Polygon {
         p0 := ConvertQuakeFaceToPlane(brush.faces[i]);
         poly : Polygon;
         poly.normal = p0.n;
+        poly.textureName = copy_string(brush.faces[i].textureName);
         for j : 0..faceCount-1 {
             p1 := ConvertQuakeFaceToPlane(brush.faces[j]);
             for k : 0..faceCount-1 {
@@ -302,7 +305,10 @@ CreatePolysFromQuakeBrush :: (brush : QuakeBrush) -> [..] Polygon {
                     if IntersectThreePlanes(p0, p1, p2, *intersectionPoint) {
                         if IsPointInsideBrush(brush, intersectionPoint) {
                             // TODO: Calculate texture coordinates
-                            InsertVertexToPolygon(intersectionPoint, *poly);
+                            poly.textureID = RegisterTexture(poly.textureName);
+                            texture := GetTextureByName(poly.textureName);
+                            v := Vertex.{pos = intersectionPoint};
+                            InsertVertexToPolygon(v, *poly);
                         }
                     }
                 }
@@ -333,7 +339,7 @@ SortVerticesCCW :: (poly : Polygon) -> Polygon {
 
     center : Vector3;
     for result.vertices {
-        center += it;
+        center += it.pos;
     }
     center *= (1.0/vertCount);
 
@@ -341,14 +347,14 @@ SortVerticesCCW :: (poly : Polygon) -> Polygon {
     for i : 0..vertCount-2 { // TODO: Explain why -2!!!
         v0 := result.vertices[i]; // Find next vertex to v0 with smallest angle
 
-        plane := CreatePlane(center, v0, center + result.normal);
+        plane := CreatePlane(center, v0.pos, center + result.normal);
 
         smallestAngleIndex := 0;
         smallestCosTheta := -1.0;
         for j : i+1..vertCount-1 {
-            test := normalize(result.vertices[j] - center);
+            test := normalize(result.vertices[j].pos - center);
             if dot(plane.n, test) < - PS_FLOAT_EPSILON { // Check if the point is legal
-                cosTheta := GetCosineTheta(center, v0, result.vertices[j]);
+                cosTheta := GetCosineTheta(center, v0.pos, result.vertices[j].pos);
                 if cosTheta > smallestCosTheta {
                     smallestCosTheta = cosTheta;
                     smallestAngleIndex = j;
@@ -360,8 +366,8 @@ SortVerticesCCW :: (poly : Polygon) -> Polygon {
 
     // Fix winding
 
-    a := result.vertices[0] - center;
-    b := result.vertices[1] - center;
+    a := result.vertices[0].pos - center;
+    b := result.vertices[1].pos - center;
     normal := normalize(cross(a, b));
     if dot(normal, result.normal) < PS_FLOAT_EPSILON {
         ArrayReverse(*result.vertices);

@@ -70,7 +70,7 @@ main :: () {
 
     InputInit();
 
-    crosshairHUD := CreateHUD("crosshair_point.png");
+    crosshairHUD := CreateHUD("crosshair_point");
 
     map : QuakeMap = ParseQuakeMap("assets/maps/first_quake.map");
     qworld := InitWorldFromQuakeMap(map);

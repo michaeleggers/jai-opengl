@@ -3,13 +3,18 @@
 #import "stb_image";
 #import "GL";
 
+#scope_file
+
+textures : [..] Texture;
+
+#scope_export
+
 Texture :: struct {
     name : string;
     width, height, comp : s32;
     handle : GLuint;
 };
 
-textures : [..] Texture;
 
 FlipImageVert :: (data : *u8, width : s32, height : s32, channels : s32) {
     bytesPerRow := width*channels;
@@ -29,6 +34,27 @@ FlipImageVert :: (data : *u8, width : s32, height : s32, channels : s32) {
     free(saveBottomRow);
 }
 
+LoadTextureFromDisk :: (name : string) -> bool, *u8, s32, s32, s32 {
+
+    TryToLoad :: (pathAndFileName : string) -> bool, *u8, s32, s32, s32 {
+        width, height, comp : s32;
+        data := stbi_load(pathAndFileName.data, *width, *height, *comp, 0);        
+        if !data {
+            return false, data, width, height, comp;
+        }
+        return true, data, width, height, comp;
+    }
+
+    extensions := string.["tga", "png"];
+    for extensions {
+        file := tprint("assets/textures/%.%", name, it);
+        found, data, width, height, comp := TryToLoad(file);
+        if found return true, data, width, height, comp;
+    }
+
+    return false, null, -1, -1, -1;
+}
+
 RegisterTexture :: (fileName : string) -> u32 {
 
     for textures {
@@ -38,12 +64,14 @@ RegisterTexture :: (fileName : string) -> u32 {
     }
 
     texture := Texture.{ name = fileName };
-    texturePath := tprint("assets/textures/%", fileName);
-    data := stbi_load(texturePath.data, *texture.width, *texture.height, *texture.comp, 0);    
-    if !data {
+    found, data, width, height, comp := LoadTextureFromDisk(fileName);
+    if !found {
         log("Failed to load texture: %\n", fileName, flags=.ERROR);
         exit(-1);
     }
+    texture.width = width;
+    texture.height = height;
+    texture.comp = comp;
     assert(texture.comp > 2, "Failed to load texture: %, too few components: %\n", fileName, texture.comp);
     print("Loaded texture-file: %, components: %\n", fileName, texture.comp);
     FlipImageVert(data, texture.width, texture.height, texture.comp); // Open GL UV y is bottom left...
@@ -75,4 +103,20 @@ RegisterTexture :: (fileName : string) -> u32 {
 GetTextureHandleByID :: (id : u32) -> GLuint {
     assert(id < textures.count);
     return textures[id].handle;
+}
+
+GetTextureByName :: (name : string) -> Texture, bool {
+    GetTextureID :: (name : string) -> s64 {
+        for textures {
+            if !compare(name, it.name) {
+                return xx it_index;
+            }
+        }        
+        return -1;
+    }
+
+    id := GetTextureID(name);
+    if id < 0 return .{}, false;
+
+    return textures[id], true;
 }
