@@ -399,6 +399,7 @@ TriangulatePolygons :: (polys : [] Polygon) -> [..] Polygon {
         provokingVert := sortedPoly.vertices[0];
         for i : 2..vertCount-1 {
             poly : Polygon;
+            poly.textureID = it.textureID;
             array_add(*poly.vertices, provokingVert);
             array_add(*poly.vertices, sortedPoly.vertices[i-1]);
             array_add(*poly.vertices, sortedPoly.vertices[i]);
@@ -415,7 +416,11 @@ CreateWorldTrisFromBrush :: (brush : QuakeBrush) -> [..] WorldTri {
 
     tris : [..] WorldTri;
     for polys {
-        array_add(*tris, PolygonToTri(it));
+        tri := PolygonToTri(it);
+        tri.a.bc = Vector3.{1.0, 0.0, 0.0};
+        tri.b.bc = Vector3.{0.0, 1.0, 0.0};
+        tri.c.bc = Vector3.{0.0, 0.0, 1.0};
+        array_add(*tris, tri);
     }
 
     return tris;
