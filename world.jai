@@ -2,7 +2,8 @@
 World :: struct {
     models    : [..] Model;    // World geometry: This is the old way of representing world geometry. TODO: Delete later
     tris      : [..] WorldTri; // Polysoup of all the static geometry.
-    player    : Entity;
+    entities  : [..] Entity;   // All entities: Those are moving enemies, boxes, buttons, lights, but also triggers (things that have no visual representation in the world).
+    player    : Entity;        // Not sure if the player should be a dedicated entity. In theory the player could be any entity!
     gravity   := Vector3.{0.0, 0.0, -10.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
@@ -24,21 +25,27 @@ FixBoneOrientation :: (m : Matrix4) -> Matrix4 {
     return m * rotation;
 }
 
+InitWorldGeometry :: (brushes : [] QuakeBrush, world : *World) {
+    for brushes {
+        tris := CreateWorldTrisFromBrush(it);
+        for tris array_add(*world.tris, it);
+        print("Tri-count: %\n", tris.count);
+    }
+
+    WorldTrisToGPU(world.tris);
+}
+
 InitWorldFromQuakeMap :: (map : QuakeMap, world : *World) {
     for map.entities {
         value, propertyFound := table_find(*it.properties, "classname");
         if propertyFound {
             if !compare("worldspawn", value) {
-                for it.brushes {
-                    tris := CreateWorldTrisFromBrush(it);
-                    for tris array_add(*world.tris, it);
-                    print("Tri-count: %\n", tris.count);
-                }
+                InitWorldGeometry(it.brushes, world);
             }
         }
     }
 
-    WorldTrisToGPU(world.tris);
+    
 }
 
 SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
