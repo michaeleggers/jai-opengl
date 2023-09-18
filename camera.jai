@@ -13,10 +13,10 @@ Camera :: struct {
             if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cast(*Camera)baseEntity,  0.0001);
             if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cast(*Camera)baseEntity,  0.0001);
             if KeyPressed(KeyboardButton.DOWN)      RotateAroundSide(cast(*Camera)baseEntity, -0.0001);
-            if KeyPressed(KeyboardButton.D)         MoveSide(cast(*Camera)baseEntity,  100.0*frameTime);
-            if KeyPressed(KeyboardButton.A)         MoveSide(cast(*Camera)baseEntity, -100.0*frameTime);
-            if KeyPressed(KeyboardButton.W)         MoveForward(cast(*Camera)baseEntity,  100.0*frameTime);
-            if KeyPressed(KeyboardButton.S)         MoveForward(cast(*Camera)baseEntity, -100.0*frameTime);
+            if KeyPressed(KeyboardButton.D)         MoveSide(cast(*Camera)baseEntity,  1000.0*frameTime);
+            if KeyPressed(KeyboardButton.A)         MoveSide(cast(*Camera)baseEntity, -1000.0*frameTime);
+            if KeyPressed(KeyboardButton.W)         MoveForward(cast(*Camera)baseEntity,  1000.0*frameTime);
+            if KeyPressed(KeyboardButton.S)         MoveForward(cast(*Camera)baseEntity, -1000.0*frameTime);
         }
     };
     type    : Type = Camera;
