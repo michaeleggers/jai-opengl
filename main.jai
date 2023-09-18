@@ -4,6 +4,7 @@
 #import "File";
 #import "File_Utilities";
 #import "Math";
+#import "Hash_Table";
 
 #load "model.jai";
 #load "textures.jai";

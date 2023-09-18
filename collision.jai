@@ -5,13 +5,13 @@ HitRecord :: struct {
 }
 
 // TODO: The PickTri proc in graphics_math.jai should use this proc as it does the same just with the cam as starting point
-Trace :: (start : Vector3, end : Vector3, maxT : float, world : [] Model) -> HitRecord {
+Trace :: (start : Vector3, end : Vector3, maxT : float, models : [] Model) -> HitRecord {
     
     r := normalize(end - start);
     shortestT := maxT;    
     bestTri : Tri;
     success := false;
-    for model : world {
+    for model : models {
         for tri : model.tris {            
     
             n := tri.a.normal; // NOTE: The normal could be an average between two vertex-normals but for now we only have hard surfaces.

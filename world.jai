@@ -25,12 +25,16 @@ FixBoneOrientation :: (m : Matrix4) -> Matrix4 {
 }
 
 InitWorldFromQuakeMap :: (map : QuakeMap, world : *World) {
-
     for map.entities {
-        for it.brushes {
-            tris := CreateWorldTrisFromBrush(it);
-            for tris array_add(*world.tris, it);
-            print("Tri-count: %\n", tris.count);
+        value, propertyFound := table_find(*it.properties, "classname");
+        if propertyFound {
+            if !compare("worldspawn", value) {
+                for it.brushes {
+                    tris := CreateWorldTrisFromBrush(it);
+                    for tris array_add(*world.tris, it);
+                    print("Tri-count: %\n", tris.count);
+                }
+            }
         }
     }
 

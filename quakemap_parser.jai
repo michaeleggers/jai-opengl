@@ -82,22 +82,17 @@ QuakeBrush :: struct {
     faces : [..] QuakeFace;
 }
 
-Property :: struct {
-    key     : string;
-    value   : string;
-}
-
 PointEntity :: struct {
-    properties  : [..] Property;    
+    properties  : Table(string, string);
 }
 
 BrushEntity :: struct {
-    properties  : [..] Property;
+    properties  : Table(string, string);
     brushes     : [..] QuakeBrush;
 }
 
 QuakeEntity :: struct {    
-    properties  : [..] Property;
+    properties  : Table(string, string);
     brushes     : [..] QuakeBrush;
 }
 
@@ -240,20 +235,20 @@ GetValve220TextureCoords :: (mapData : string) -> Valve220Texture {
     return result;
 }
 
-GetProperties :: (mapData : string) -> [..] Property {
-    result : [..] Property;
+GetProperties :: (mapData : string) -> Table(string, string) {
+    result : Table(string, string);
 
     Check(GetToken(mapData), .STRING);
     while GetToken(mapData) == .STRING {
         Check(GetToken(mapData), .STRING);
         key := GetString(mapData);
         Check(GetToken(mapData), .STRING);
-        value := GetString(mapData);
-        array_add(*result, Property.{key, value});
+        value := GetString(mapData);        
+        table_add(*result, key, value);
     }
 
     for result {
-        print("key: %, value: %\n", it.key, it.value);
+        print("%\n", it);
     }
 
     return result;
