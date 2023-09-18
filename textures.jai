@@ -68,7 +68,7 @@ RegisterTexture :: (fileName : string) -> u32 {
     assert(texture.comp > 2, "Failed to load texture: %, too few components: %\n", fileName, texture.comp);
 
     print("Loaded texture-file: %, components: %\n", fileName, texture.comp);
-    FlipImageVert(data, texture.width, texture.height, texture.comp); // Open GL UV y is bottom left...
+    FlipImageVert(data, texture.width, texture.height, texture.comp); // Open GL UV y=0 is bottom left...
 
     format : GLenum;
     internalFormat : GLint;

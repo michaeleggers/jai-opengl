@@ -2,6 +2,9 @@
 //       Currently this code loads everything into arrays and then later we copy data into
 //       another array in the client code. This is pretty dumb... For now, it is okay. Still exploring.
 
+// Some infos about IQM:
+// Triangles front face is CW order.
+
 #import "Basic";
 #import "File";
 

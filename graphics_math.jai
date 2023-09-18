@@ -320,6 +320,7 @@ CreatePolysFromQuakeBrush :: (brush : QuakeBrush) -> [..] Polygon {
                             uv.y += textureData.tOffset2;
                             uv.x /= texture.width;
                             uv.y /= texture.height;
+                            uv.y = 1.0 - uv.y; // HACK: I think y is down for Valve220 UVs. But we load textures with y-up. Maybe change later!
                             v := Vertex.{pos = intersectionPoint, uv = uv};
                             InsertVertexToPolygon(v, *poly);
                         }
