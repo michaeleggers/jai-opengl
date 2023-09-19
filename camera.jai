@@ -9,10 +9,10 @@ Camera :: struct {
     #as using base := BaseEntity.{
         VirtualUpdateOnKeys = (baseEntity : *BaseEntity, frameTime : float) {
             using cast(*Camera)baseEntity;
-            if KeyPressed(KeyboardButton.RIGHT)     RotateAroundUp(cast(*Camera)baseEntity, -0.0001);
-            if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cast(*Camera)baseEntity,  0.0001);
-            if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cast(*Camera)baseEntity,  0.0001);
-            if KeyPressed(KeyboardButton.DOWN)      RotateAroundSide(cast(*Camera)baseEntity, -0.0001);
+            if KeyPressed(KeyboardButton.RIGHT)     RotateAroundUp(cast(*Camera)baseEntity, -(2.0*PI)/128.0);
+            if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cast(*Camera)baseEntity,  (2.0*PI)/128.0);
+            if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cast(*Camera)baseEntity,  (2.0*PI)/128.0);
+            if KeyPressed(KeyboardButton.DOWN)      RotateAroundSide(cast(*Camera)baseEntity, -(2.0*PI)/128.0);
             if KeyPressed(KeyboardButton.D)         MoveSide(cast(*Camera)baseEntity,  1000.0*frameTime);
             if KeyPressed(KeyboardButton.A)         MoveSide(cast(*Camera)baseEntity, -1000.0*frameTime);
             if KeyPressed(KeyboardButton.W)         MoveForward(cast(*Camera)baseEntity,  1000.0*frameTime);
