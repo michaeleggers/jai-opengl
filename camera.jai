@@ -6,21 +6,20 @@
 
 
 Camera :: struct {
-    #as using base := BaseEntity.{
-        VirtualUpdateOnKeys = (baseEntity : *BaseEntity, frameTime : float) {
-            using cast(*Camera)baseEntity;
-            if KeyPressed(KeyboardButton.RIGHT)     RotateAroundUp(cast(*Camera)baseEntity, -(2.0*PI)/128.0);
-            if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cast(*Camera)baseEntity,  (2.0*PI)/128.0);
-            if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cast(*Camera)baseEntity,  (2.0*PI)/128.0);
-            if KeyPressed(KeyboardButton.DOWN)      RotateAroundSide(cast(*Camera)baseEntity, -(2.0*PI)/128.0);
-            if KeyPressed(KeyboardButton.D)         MoveSide(cast(*Camera)baseEntity,  1000.0*frameTime);
-            if KeyPressed(KeyboardButton.A)         MoveSide(cast(*Camera)baseEntity, -1000.0*frameTime);
-            if KeyPressed(KeyboardButton.W)         MoveForward(cast(*Camera)baseEntity,  1000.0*frameTime);
-            if KeyPressed(KeyboardButton.S)         MoveForward(cast(*Camera)baseEntity, -1000.0*frameTime);
-        }
-    };
+    // #as using base := BaseEntity.{
+    //     VirtualUpdateOnKeys = (baseEntity : *BaseEntity, frameTime : float) {
+    //         using cast(*Camera)baseEntity;
+    //         if KeyPressed(KeyboardButton.RIGHT)     RotateAroundUp(cast(*Camera)baseEntity, -(2.0*PI)/128.0);
+    //         if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cast(*Camera)baseEntity,  (2.0*PI)/128.0);
+    //         if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cast(*Camera)baseEntity,  (2.0*PI)/128.0);
+    //         if KeyPressed(KeyboardButton.DOWN)      RotateAroundSide(cast(*Camera)baseEntity, -(2.0*PI)/128.0);
+    //         if KeyPressed(KeyboardButton.D)         MoveSide(cast(*Camera)baseEntity,  1000.0*frameTime);
+    //         if KeyPressed(KeyboardButton.A)         MoveSide(cast(*Camera)baseEntity, -1000.0*frameTime);
+    //         if KeyPressed(KeyboardButton.W)         MoveForward(cast(*Camera)baseEntity,  1000.0*frameTime);
+    //         if KeyPressed(KeyboardButton.S)         MoveForward(cast(*Camera)baseEntity, -1000.0*frameTime);
+    //     }
+    // };
     type    : Type = Camera;
-    pos     := Vector3.{ 0.0, 0.0, 5.0 };
     center  := Vector3.{ 0.0, 0.0, 0.0 };
     up      := Vector3.{ 0.0, 0.0, 1.0 };   
     forward : Vector3;
@@ -28,88 +27,90 @@ Camera :: struct {
     fov     := 90.0;
 }
 
-FollowCamera :: struct {
-    #as using camera : Camera;
-    type = FollowCamera;
-    base = BaseEntity.{
-        VirtualUpdateOnKeys = null
-    };
-    target  : *Entity = null;
-    distance := 5.0;
-}
+// FollowCamera :: struct {
+//     #as using camera : Camera;
+//     type = FollowCamera;
+//     // base = BaseEntity.{
+//     //     VirtualUpdateOnKeys = null
+//     // };
+//     target  : *Entity = null;
+//     distance := 5.0;
+// }
 
-CreateFollowCamera :: (camera : Camera, target : *Entity, distance : float) -> FollowCamera {
-    result : FollowCamera;    
-    result.distance = distance;
-    result.pos = camera.pos;
-    result.center = target.pos;
-    result.up = camera.up;
-    result.fov = camera.fov;
-    print("target.pos: %\n", target.pos);
-    result.forward = normalize(target.pos - result.pos);
+// CreateFollowCamera :: (camera : Camera, target : *Entity, distance : float) -> FollowCamera {
+//     result : FollowCamera;    
+//     result.distance = distance;
+//     result.position = camera.position;
+//     result.center = target.position;
+//     result.up = camera.up;
+//     result.fov = camera.fov;
+//     print("target.pos: %\n", target.position);
+//     result.forward = normalize(target.position - result.position);
+//     SetOrientation(*result);
+//     result.target = target;
+
+//     return result;
+// }
+
+// UpdateFollowCamera :: (using followCamera : *Entity) {
+//     pos = target.position + distance*(-forward);
+//     center = target.pos;
+// }
+
+CreateCamera :: (position : Vector3, camera : Camera) -> Entity(Camera) {
+    result : Entity(Camera);
+    result.instance = camera;
+    result.position = position;
+    result.instance.forward = normalize(result.instance.center - result.position);
     SetOrientation(*result);
-    result.target = target;
 
     return result;
 }
 
-UpdateFollowCamera :: (using followCamera : *FollowCamera) {
-    pos = target.pos + distance*(-forward);
-    center = target.pos;
-}
-
-CreateCamera :: (camera : Camera) -> Camera {
-    result := camera;
-    result.forward = normalize(result.center - result.pos);    
-    SetOrientation(*result);
-
-    return result;
-}
-
-SetOrientation :: (using camera : *Camera) {
+SetOrientation :: (using camera : *Entity) {
     qUp : Quaternion;
     qRight : Quaternion;
-    set_from_axis_and_angle(*qUp, up, 0.0);
-    right := normalize(cross(forward, up));
+    set_from_axis_and_angle(*qUp, instance.up, 0.0);
+    right := normalize(cross(instance.forward, instance.up));
     set_from_axis_and_angle(*qRight, right, 0.0);
 
-    orientation = qUp*qRight;
+    instance.orientation = qUp*qRight;
 }
 
-CreateView :: (using camera : Camera) -> Matrix4 {    
-    result := LookAt(pos, center, up);
+CreateView :: (using camera : Entity(Camera)) -> Matrix4 {    
+    result := LookAt(position, instance.center, instance.up);
 
     return result;
 }
 
-MoveSide :: (using camera : *Camera, distance : float) {
+MoveSide :: (using camera : *Entity, distance : float) {
     right := normalize(cross(forward, up));
-    pos += distance * right;
-    center = pos + forward;
+    position += distance * right;
+    center = position + forward;
 }
 
-MoveForward :: (using camera : *Camera, distance : float) {
-    pos += distance * forward;
-    center = pos + forward;
+MoveForward :: (using camera : *Entity, distance : float) {
+    position += distance * forward;
+    center = position + forward;
 }
 
-RotateAroundUp :: (using camera : *Camera, angle : float) {
+RotateAroundUp :: (using camera : *Entity(Camera), angle : float) {
     refUpQ : Quaternion;
     set_from_axis_and_angle(*refUpQ, .{0.0, 0.0, 1.0}, angle);
 
-    rotate(*forward, refUpQ);
-    rotate(*up, refUpQ);
-    center = pos + forward;
-    orientation = refUpQ * orientation;
+    rotate(*instance.forward, refUpQ);
+    rotate(*instance.up, refUpQ);
+    instance.center = position + instance.forward;
+    instance.orientation = refUpQ * instance.orientation;
 }
 
-RotateAroundSide :: (using camera : *Camera, angle : float) {
+RotateAroundSide :: (using camera : *Entity(Camera), angle : float) {
     refRightQ : Quaternion;
-    right := normalize(cross(forward, up));
+    right := normalize(cross(instance.forward, instance.up));
     set_from_axis_and_angle(*refRightQ, right, angle);
 
-    rotate(*up, refRightQ);
-    rotate(*forward, refRightQ);
-    center = pos + forward;
-    orientation = refRightQ * orientation;
+    rotate(*instance.up, refRightQ);
+    rotate(*instance.forward, refRightQ);
+    instance.center = position + instance.forward;
+    instance.orientation = refRightQ * instance.orientation;
 }

@@ -14,8 +14,8 @@
 #load "graphics_math.jai";
 #load "geometry.jai";
 #load "hud.jai";
-#load "base_entity.jai";
 #load "entity.jai";
+#load "big_entity.jai";
 #load "world.jai";
 #load "collision.jai";
 #load "input.jai";
@@ -111,22 +111,13 @@ main :: () {
     // world.textureID = RegisterTexture("wood_planks_01.tga");
     // modelID := RegisterModel(*world);
 
-    debugCamera := CreateCamera(.{ pos = .{0.0, -10.0, 20.0}, fov = 50.0 }); // Move cam 'back' a little bit (+z comes out of the monit... OUCH!)
-    refdef.camera = *debugCamera;
-    followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z - 1}, fov = 50.0 }, *world.player, 10.0);
-    world.player.followCamera = *followCamera;
-    followCamera2 := FollowCamera.{};
-    // refdef.camera = *followCamera;
-    print("debugCamera.type: %\n", debugCamera.type);
-    print("followCamera2.type: %\n", followCamera2.type);
-    print("followCamera.type: %\n", followCamera.type);
-    print("type_of(followCamera): %\n", type_of(followCamera));
-    print("type_of(refdef.camera): %\n", type_of(refdef.camera));
-    print("type_of(cast(*FollowCamera)refdef.camera): %\n", type_of(cast(*FollowCamera)refdef.camera));
-    thingy := cast(*FollowCamera)refdef.camera;
-    print("thingy.target: %\n", type_of(thingy.target));
-    print("refdef.camera.type: %\n", refdef.camera.type);
 
+    debugCamera := CreateCamera(Vector3.{10.0, -10.0, 1000.0}, Camera.{ fov = 50.0 });
+    refdef.camera = *debugCamera;
+    // followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z - 1}, fov = 50.0 }, *world.player, 10.0);
+    // world.player.followCamera = *followCamera;
+    // followCamera2 := FollowCamera.{};
+    // refdef.camera = *followCamera;
 
 
     frameTime : float;
@@ -141,7 +132,7 @@ main :: () {
 
         // Update stuff
         if KeyPressed(KeyboardButton.NUM_1) refdef.camera = *debugCamera;
-        if KeyPressed(KeyboardButton.NUM_2) refdef.camera = *followCamera;
+        //if KeyPressed(KeyboardButton.NUM_2) refdef.camera = *followCamera;
                 
         UpdateWorld(*refdef, *world, frameTime);
 

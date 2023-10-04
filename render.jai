@@ -48,11 +48,11 @@ RefDef :: struct {
     clientWidth         : u32 = 1024;
     clientHeight        : u32 = 768;
     window              : *SDL_Window;
-    camera              : *Camera;
+    camera              : Entity(Camera);
     wireframe           := false;
 
     HUDDrawList         : [MAX_HUD_DRAW_CMDS] HUDDrawCmd;
-    entities            : [MAX_ENTITIES] Entity;
+    entities            : [MAX_ENTITIES] Entity(BigEntity);
 };
 
 // Models for entities (Players, Monsters, Pickup Items...)
@@ -191,7 +191,7 @@ InitImmediateBuffers :: () {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-RenderAddEntity :: (refdef : *RefDef, entity : Entity) {
+RenderAddEntity :: (refdef : *RefDef, entity : *Entity) {
     if entityCount >= MAX_ENTITIES {
         print("RenderAddEntity: No more space left for more entities!\n");
         return;
@@ -672,7 +672,7 @@ DrawFrame :: (refdef : RefDef) {
     viewProjMatrices.view = CreateView(refdef.camera);
     // viewProjMatrices.view = transpose(make_look_at_matrix(refdef.camera.pos, refdef.camera.center, refdef.camera.up, x_is_forward=false));
 
-    viewProjMatrices.proj = Perspective(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 10000.0);
+    viewProjMatrices.proj = Perspective(refdef.camera.instance.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 10000.0);
     // viewProjMatrices.proj = transpose(make_projection_matrix(refdef.camera.fov * PI / 180.0, refdef.clientWidth / cast(float)refdef.clientHeight, 0.1, 1000.0));
     
     // TODO: Not sure if we should keep a buffer in mapped state...? Probably not worth it? Look this up in the gl-bible.
@@ -726,10 +726,10 @@ DrawFrame :: (refdef : RefDef) {
     for i : 0..entityCount-1 {
         entity := refdef.entities[i];
         glBindBuffer(GL_UNIFORM_BUFFER, poseMatrixUBO);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_SKELETON_JOINTS*size_of(Matrix4), *entity.palette[0]);
-        for entity.models {             
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_SKELETON_JOINTS*size_of(Matrix4), *entity.instance.palette[0]);
+        for entity.instance.models {             
             entityModel := entityModels[it.gpuID];
-            entityTransform := transpose(make_translation_matrix4(entity.pos));
+            entityTransform := transpose(make_translation_matrix4(entity.position));
             // memcpy(ptr, *entityTransform, size_of(EntityTransform));
             glBindBuffer(GL_UNIFORM_BUFFER, entityTransformUBO);
             glBufferData(GL_UNIFORM_BUFFER, size_of(EntityTransform), *entityTransform, GL_DYNAMIC_DRAW);

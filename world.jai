@@ -2,8 +2,8 @@
 World :: struct {
     models    : [..] Model;    // World geometry: This is the old way of representing world geometry. TODO: Delete later
     tris      : [..] WorldTri; // Polysoup of all the static geometry.
-    entities  : [..] Entity;   // All entities: Those are moving enemies, boxes, buttons, lights, but also triggers (things that have no visual representation in the world).
-    player    : Entity;        // Not sure if the player should be a dedicated entity. In theory the player could be any entity!
+    entities  : [..] BaseEntity;   // All entities: Those are moving enemies, boxes, buttons, lights, but also triggers (things that have no visual representation in the world).
+    player    : BaseEntity;        // Not sure if the player should be a dedicated entity. In theory the player could be any entity!
     gravity   := Vector3.{0.0, 0.0, -10.0}; // Applied on entities every frame that are set to react to gravity.
 }
 
@@ -123,7 +123,7 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
     }
 }
 
-UpdateCameraOnMouse :: (camera : *Camera, dX : s32, dY : s32) {
+UpdateCameraOnMouse :: (camera : *Entity(Camera), dX : s32, dY : s32) {
     RotateAroundUp(camera, -dX * 0.01);
     RotateAroundSide(camera, -dY * 0.01);
 }
@@ -196,18 +196,18 @@ UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
     //       The passed entity (or camera) brings a control-scheme, that defines what happens to this
     //       entity on certain key- (and mouse-) presses. So in the end, UpdateCameraOnKeys and
     //       UpdateCameraOnMouse are gone. Something like that.    
-    if refdef.camera.type == Camera {
-        UpdateOnKeys(refdef.camera, frameTime);
-        if MouseRightButtonDown() {    
-            SDL_ShowCursor(0); // TODO: Should be SDL_ENABLE -> Can we fix this in SDL2 module of jai?
-            UpdateCameraOnMouse(refdef.camera, GetMouseDX(), GetMouseDY());
-        }
-        if MouseRightButtonUp() {
-            SDL_ShowCursor(1);
-        }
-    } else if refdef.camera.type == FollowCamera {
-        UpdateFollowCamera(cast(*FollowCamera)refdef.camera);        
-    }
+    // if refdef.camera.type == Camera {
+    //     UpdateOnKeys(refdef.camera, frameTime);
+    //     if MouseRightButtonDown() {    
+    //         SDL_ShowCursor(0); // TODO: Should be SDL_ENABLE -> Can we fix this in SDL2 module of jai?
+    //         UpdateCameraOnMouse(refdef.camera, GetMouseDX(), GetMouseDY());
+    //     }
+    //     if MouseRightButtonUp() {
+    //         SDL_ShowCursor(1);
+    //     }
+    // } else if refdef.camera.type == FollowCamera {
+    //     UpdateFollowCamera(cast(*FollowCamera)refdef.camera);        
+    // }
 
     // Draw players AABB as wireframe. TODO: Move this into a generic function.
     // aabb := world.player.currentAABB;
