@@ -26,7 +26,18 @@
 
 /* Engine globals */
 
+// Maybe this is a bad idea: Any part of the program could overwrite the frameTime variable!
+// Is it better to always pass frameTime through a function paramter?
+
+#scope_file
+
 frameTime : float;
+
+#scope_export
+
+getFrameTime :: () -> float {
+    return frameTime;
+}
 
 
 AllocString :: (count : u32) -> string {

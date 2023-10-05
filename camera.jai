@@ -77,6 +77,7 @@ CreateCamera :: (position : Vector3, camera : Camera) -> Entity(Camera) {
 }
 
 CameraInputHandler :: (camera : *BaseEntity) {
+    frameTime := getFrameTime();
     cam := cast(*Entity(Camera))camera;
     if KeyPressed(KeyboardButton.RIGHT)     RotateAroundUp(cam, -(2.0*PI)/128.0);
     if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cam,  (2.0*PI)/128.0);
