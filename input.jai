@@ -58,7 +58,6 @@ MouseState :: struct {
 
 #scope_file
 
-// TODO: Maybe they should not be modifyable by other files than input.jai
 keyState : [..] bool;
 keyStatePrevFrame : [..] bool;
 // Safe mouse state, so we can get a delta

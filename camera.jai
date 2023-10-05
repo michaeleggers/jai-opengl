@@ -4,6 +4,15 @@
 #import "Basic";
 #import "Math";
 
+#scope_file
+
+keyState : [..] bool;
+keyStatePrevFrame : [..] bool;
+// Safe mouse state, so we can get a delta
+mouseState : MouseState;
+
+#scope_export
+
 
 Camera :: struct {
     // #as using base := BaseEntity.{
@@ -69,20 +78,14 @@ CreateCamera :: (position : Vector3, camera : Camera) -> Entity(Camera) {
 
 CameraInputHandler :: (camera : *BaseEntity) {
     cam := cast(*Entity(Camera))camera;
-    if KeyPressed(KeyboardButton.RIGHT)     { 
-        print("Cam input handler: Right key pressed!\n");   
-        RotateAroundUp(cam, -(2.0*PI)/128.0);
-    }
+    if KeyPressed(KeyboardButton.RIGHT)     RotateAroundUp(cam, -(2.0*PI)/128.0);
     if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cam,  (2.0*PI)/128.0);
     if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cam,  (2.0*PI)/128.0);
     if KeyPressed(KeyboardButton.DOWN)      RotateAroundSide(cam, -(2.0*PI)/128.0);
-    if KeyPressed(KeyboardButton.D)         MoveSide(cam,  1000.0);
-    if KeyPressed(KeyboardButton.A)         {
-        print("Camera input handler: A key pressed\n");
-        MoveSide(cam, -1000.0);
-    }
-    if KeyPressed(KeyboardButton.W)         MoveForward(cam,  1000.0);
-    if KeyPressed(KeyboardButton.S)         MoveForward(cam, -1000.0);
+    if KeyPressed(KeyboardButton.D)         MoveSide(cam,  1000.0*frameTime);
+    if KeyPressed(KeyboardButton.A)         MoveSide(cam, -1000.0*frameTime);
+    if KeyPressed(KeyboardButton.W)         MoveForward(cam,  1000.0*frameTime);
+    if KeyPressed(KeyboardButton.S)         MoveForward(cam, -1000.0*frameTime);
 }
 
 SetOrientation :: (using camera : *Entity) {

@@ -23,6 +23,12 @@
 #load "quakemap_parser.jai";
 #load "utils.jai";
 
+
+/* Engine globals */
+
+frameTime : float;
+
+
 AllocString :: (count : u32) -> string {
     s : string;
     s.count = count;
@@ -120,8 +126,6 @@ main :: () {
     // followCamera2 := FollowCamera.{};
     // refdef.camera = *followCamera;
 
-
-    frameTime : float;
     running := true;
     while running {
 
