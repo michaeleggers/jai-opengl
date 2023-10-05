@@ -208,6 +208,8 @@ UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
     // } else if refdef.camera.type == FollowCamera {
     //     UpdateFollowCamera(cast(*FollowCamera)refdef.camera);        
     // }
+    refdef.camera.HandleInput(refdef.camera);
+
 
     // Draw players AABB as wireframe. TODO: Move this into a generic function.
     // aabb := world.player.currentAABB;

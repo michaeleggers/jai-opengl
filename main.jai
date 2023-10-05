@@ -113,6 +113,7 @@ main :: () {
 
 
     debugCamera := CreateCamera(Vector3.{10.0, -10.0, 1000.0}, Camera.{ fov = 50.0 });
+    debugCamera.HandleInput = CameraInputHandler;
     refdef.camera = *debugCamera;
     // followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z - 1}, fov = 50.0 }, *world.player, 10.0);
     // world.player.followCamera = *followCamera;
@@ -213,7 +214,7 @@ main :: () {
 
         perfDelta := perfCounterEndFrame - perfCounterBeginFrame;
         frameTime = cast(float)perfDelta / cast(float)perfFrequency;
-        print("frameTime: % seconds\n", frameTime);
+        // print("frameTime: % seconds\n", frameTime);
     }
 
     SDL_DestroyWindow(refdef.window);

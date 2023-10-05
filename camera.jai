@@ -67,6 +67,24 @@ CreateCamera :: (position : Vector3, camera : Camera) -> Entity(Camera) {
     return result;
 }
 
+CameraInputHandler :: (camera : *BaseEntity) {
+    cam := cast(*Entity(Camera))camera;
+    if KeyPressed(KeyboardButton.RIGHT)     { 
+        print("Cam input handler: Right key pressed!\n");   
+        RotateAroundUp(cam, -(2.0*PI)/128.0);
+    }
+    if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cam,  (2.0*PI)/128.0);
+    if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cam,  (2.0*PI)/128.0);
+    if KeyPressed(KeyboardButton.DOWN)      RotateAroundSide(cam, -(2.0*PI)/128.0);
+    if KeyPressed(KeyboardButton.D)         MoveSide(cam,  1000.0);
+    if KeyPressed(KeyboardButton.A)         {
+        print("Camera input handler: A key pressed\n");
+        MoveSide(cam, -1000.0);
+    }
+    if KeyPressed(KeyboardButton.W)         MoveForward(cam,  1000.0);
+    if KeyPressed(KeyboardButton.S)         MoveForward(cam, -1000.0);
+}
+
 SetOrientation :: (using camera : *Entity) {
     qUp : Quaternion;
     qRight : Quaternion;
@@ -83,18 +101,19 @@ CreateView :: (using camera : Entity(Camera)) -> Matrix4 {
     return result;
 }
 
-MoveSide :: (using camera : *Entity, distance : float) {
-    right := normalize(cross(forward, up));
+MoveSide :: (using camera : *Entity(Camera), distance : float) {
+    right := normalize(cross(instance.forward, instance.up));
     position += distance * right;
-    center = position + forward;
+    instance.center = position + instance.forward;
 }
 
 MoveForward :: (using camera : *Entity, distance : float) {
-    position += distance * forward;
-    center = position + forward;
+    position += distance * instance.forward;
+    instance.center = position + instance.forward;
 }
 
 RotateAroundUp :: (using camera : *Entity(Camera), angle : float) {
+
     refUpQ : Quaternion;
     set_from_axis_and_angle(*refUpQ, .{0.0, 0.0, 1.0}, angle);
 
