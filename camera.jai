@@ -4,15 +4,6 @@
 #import "Basic";
 #import "Math";
 
-#scope_file
-
-keyState : [..] bool;
-keyStatePrevFrame : [..] bool;
-// Safe mouse state, so we can get a delta
-mouseState : MouseState;
-
-#scope_export
-
 
 Camera :: struct {
     // #as using base := BaseEntity.{
@@ -79,6 +70,9 @@ CreateCamera :: (position : Vector3, camera : Camera) -> Entity(Camera) {
 CameraInputHandler :: (camera : *BaseEntity) {
     frameTime := getFrameTime();
     cam := cast(*Entity(Camera))camera;
+
+    // Keyboard
+
     if KeyPressed(KeyboardButton.RIGHT)     RotateAroundUp(cam, -(2.0*PI)/128.0);
     if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cam,  (2.0*PI)/128.0);
     if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cam,  (2.0*PI)/128.0);
@@ -87,6 +81,16 @@ CameraInputHandler :: (camera : *BaseEntity) {
     if KeyPressed(KeyboardButton.A)         MoveSide(cam, -1000.0*frameTime);
     if KeyPressed(KeyboardButton.W)         MoveForward(cam,  1000.0*frameTime);
     if KeyPressed(KeyboardButton.S)         MoveForward(cam, -1000.0*frameTime);
+
+    // Mouse
+
+    if MouseRightButtonDown() {    
+        SDL_ShowCursor(0); // TODO: Should be SDL_ENABLE -> Can we fix this in SDL2 module of jai?
+        UpdateCameraOnMouse(cam, GetMouseDX(), GetMouseDY());
+    }
+    if MouseRightButtonUp() {
+        SDL_ShowCursor(1);
+    }
 }
 
 SetOrientation :: (using camera : *Entity) {
