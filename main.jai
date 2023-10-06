@@ -32,6 +32,7 @@
 #scope_file
 
 frameTime : float;
+refdef    : RefDef;
 
 #scope_export
 
@@ -56,6 +57,10 @@ ToCString :: (s : string) -> *u8 {
     return result;
 }
 
+SetActiveCamera :: (camera : *BaseEntity) {
+    refdef.camera = cast(*Entity(Camera))camera;
+}
+
 main :: () {
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -64,8 +69,6 @@ main :: () {
     }
 
     RenderPrepare();
-
-    refdef : RefDef;
 
     refdef.window = SDL_CreateWindow("Jai SDL-OpenGL",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
@@ -131,8 +134,8 @@ main :: () {
 
     // debugCamera := CreateCamera(Vector3.{10.0, -10.0, 1000.0}, Camera.{ fov = 50.0 });
     // debugCamera.HandleInput = CameraInputHandler;
-    debugCamera := CreateEntity(Camera);
-    refdef.camera = cast(*Entity(Camera))debugCamera;
+    debugCamera := CreateEntity(Camera);    
+    SetActiveCamera(debugCamera);
     // followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z - 1}, fov = 50.0 }, *world.player, 10.0);
     // world.player.followCamera = *followCamera;
     // followCamera2 := FollowCamera.{};
@@ -148,7 +151,7 @@ main :: () {
         if KeyPressed(KeyboardButton.ESCAPE) running = false;    
 
         // Update stuff
-        if KeyPressed(KeyboardButton.NUM_1) refdef.camera = cast(*Entity(Camera))debugCamera;
+        if KeyPressed(KeyboardButton.NUM_1) SetActiveCamera(debugCamera);
         //if KeyPressed(KeyboardButton.NUM_2) refdef.camera = *followCamera;
                 
         UpdateWorld(*refdef, *world, frameTime);
