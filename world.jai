@@ -2,7 +2,7 @@
 World :: struct {
     models    : [..] Model;    // World geometry: This is the old way of representing world geometry. TODO: Delete later
     tris      : [..] WorldTri; // Polysoup of all the static geometry.
-    entities  : [..] BaseEntity;   // All entities: Those are moving enemies, boxes, buttons, lights, but also triggers (things that have no visual representation in the world).
+    // entities  : [..] BaseEntity;   // All entities: Those are moving enemies, boxes, buttons, lights, but also triggers (things that have no visual representation in the world).
     player    : BaseEntity;        // Not sure if the player should be a dedicated entity. In theory the player could be any entity!
     gravity   := Vector3.{0.0, 0.0, -10.0}; // Applied on entities every frame that are set to react to gravity.
 }
@@ -208,7 +208,8 @@ UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
     // } else if refdef.camera.type == FollowCamera {
     //     UpdateFollowCamera(cast(*FollowCamera)refdef.camera);        
     // }
-    refdef.camera.HandleInput(refdef.camera);
+    
+    // refdef.camera.HandleInput(refdef.camera);
 
 
     // Draw players AABB as wireframe. TODO: Move this into a generic function.

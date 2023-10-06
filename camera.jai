@@ -99,7 +99,7 @@ SetOrientation :: (using camera : *Entity) {
     instance.orientation = qUp*qRight;
 }
 
-CreateView :: (using camera : Entity(Camera)) -> Matrix4 {    
+CreateView :: (using camera : Entity(Camera)) -> Matrix4 {
     result := LookAt(position, instance.center, instance.up);
 
     return result;

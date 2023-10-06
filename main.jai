@@ -129,9 +129,10 @@ main :: () {
     // modelID := RegisterModel(*world);
 
 
-    debugCamera := CreateCamera(Vector3.{10.0, -10.0, 1000.0}, Camera.{ fov = 50.0 });
-    debugCamera.HandleInput = CameraInputHandler;
-    refdef.camera = *debugCamera;
+    // debugCamera := CreateCamera(Vector3.{10.0, -10.0, 1000.0}, Camera.{ fov = 50.0 });
+    // debugCamera.HandleInput = CameraInputHandler;
+    debugCamera := CreateEntity(Camera);
+    refdef.camera = cast(*Entity(Camera))debugCamera;
     // followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z - 1}, fov = 50.0 }, *world.player, 10.0);
     // world.player.followCamera = *followCamera;
     // followCamera2 := FollowCamera.{};
@@ -147,7 +148,7 @@ main :: () {
         if KeyPressed(KeyboardButton.ESCAPE) running = false;    
 
         // Update stuff
-        if KeyPressed(KeyboardButton.NUM_1) refdef.camera = *debugCamera;
+        if KeyPressed(KeyboardButton.NUM_1) refdef.camera = cast(*Entity(Camera))debugCamera;
         //if KeyPressed(KeyboardButton.NUM_2) refdef.camera = *followCamera;
                 
         UpdateWorld(*refdef, *world, frameTime);
@@ -218,6 +219,9 @@ main :: () {
             print("tab down once\n");
             refdef.wireframe = !refdef.wireframe;
         }
+
+        // Call entity callbacks
+        CallInputHandlers();
     
         // Rendition
         DrawFrame(refdef);
