@@ -35,6 +35,12 @@ FlipImageVert :: (data : *u8, width : s32, height : s32, channels : s32) {
 }
 
 FindTextureFileOnDisk :: (name : string) -> bool, string {
+    
+    if name[name.count-4] == #char "." {
+        file := tprint("assets/textures/%", name);
+        if file_exists(file) return true, file;
+    }    
+
     extensions := string.["tga", "png"];
     for extensions {
         file := tprint("assets/textures/%.%", name, it);
@@ -60,7 +66,8 @@ RegisterTexture :: (fileName : string) -> u32 {
         exit(-1);
     }
 
-    data := stbi_load(pathAndFileName.data, *texture.width, *texture.height, *texture.comp, 0);        
+    // TODO: ToCString allocs and is never freed! Can we make it operate on stack memory?
+    data := stbi_load(ToCString(pathAndFileName), *texture.width, *texture.height, *texture.comp, 0);        
     if !data {
         log("stbi_load failed to load texture: %\n", pathAndFileName, flags=.ERROR);
         exit(-1);
