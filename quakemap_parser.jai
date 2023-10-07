@@ -100,6 +100,13 @@ QuakeMap :: struct {
     entities : [..] QuakeEntity;
 }
 
+// TODO: It may look that some functions below could be used
+// in different places of the program, but really those
+// are only meant to be used for parseing quake maps, thus internal
+// to this file.
+// Either rewrite them to be general purpose or hide them with
+// #scope_file!
+
 AdvanceToNextNonWhitespace :: (mapData : string) {
     while mapData[g_Pos] == #char " " g_Pos += 1;
 }

@@ -37,26 +37,29 @@ InitWorldGeometry :: (brushes : [] QuakeBrush, world : *World) {
 
 InitWorldFromQuakeMap :: (map : QuakeMap, world : *World) {
     for map.entities {
-        value, propertyFound := table_find(*it.properties, "classname");
+        classname, propertyFound := table_find(*it.properties, "classname");
         if propertyFound {
-            if !compare("worldspawn", value) {
+            if !compare("worldspawn", classname) {
                 InitWorldGeometry(it.brushes, world);
             } 
 
             // How it should be done: 
             
             // else if {
-            //     createStruct, classNameFound := table_find(g_EntitySpawnTable, value);
+            //     createStruct, classNameFound := table_find(g_EntitySpawnTable, classname);
             //     CreateEntity(createStruct);                
             // } 
 
-            else if !compare("info_player_start", value) {
+            else if !compare("info_player_start", classname) {
                 createStruct : EntityCreateStruct;
-                createStruct.classname = "info_player_start";
+                createStruct.classname = classname;
+                position, positionFound := table_find(*it.properties, "origin");
+                assert(positionFound, "No position property for entity: %!\n", classname);
+                createStruct.position = OriginStringToVector3(position);
                 CreateEntity(BigEntity, createStruct);
-            } else if !compare("monster_soldier", value) {
+            } else if !compare("monster_soldier", classname) {
                 createStruct : EntityCreateStruct;
-                createStruct.classname = "monster_soldier";
+                createStruct.classname = classname;
                 CreateEntity(BigEntity, createStruct);
             }
         }

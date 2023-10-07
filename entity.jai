@@ -23,6 +23,7 @@ Entity :: struct ($X : Type) {
 
 EntityCreateStruct :: struct {
     classname : string;
+    position  : Vector3;
 }
 
 CallInputHandlers :: () {
@@ -44,7 +45,7 @@ CreateEntity :: ($X : Type, createStruct : EntityCreateStruct = .{}) -> *BaseEnt
     } else if X == BigEntity {
         modelname := GetModelNameByClassname(createStruct.classname);
         iqmModelPath := tprint("assets/models/%/%.iqm", modelname, modelname);
-        bigEntity := CreateBigEntity(iqmModelPath);
+        bigEntity := CreateBigEntity(iqmModelPath, createStruct.position);
         array_add(*bigEntities, bigEntity);
     }
 
