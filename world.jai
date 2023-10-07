@@ -41,6 +41,23 @@ InitWorldFromQuakeMap :: (map : QuakeMap, world : *World) {
         if propertyFound {
             if !compare("worldspawn", value) {
                 InitWorldGeometry(it.brushes, world);
+            } 
+
+            // How it should be done: 
+            
+            // else if {
+            //     createStruct, classNameFound := table_find(g_EntitySpawnTable, value);
+            //     CreateEntity(createStruct);                
+            // } 
+
+            else if !compare("info_player_start", value) {
+                createStruct : EntityCreateStruct;
+                createStruct.classname = "info_player_start";
+                CreateEntity(BigEntity, createStruct);
+            } else if !compare("monster_soldier", value) {
+                createStruct : EntityCreateStruct;
+                createStruct.classname = "monster_soldier";
+                CreateEntity(BigEntity, createStruct);
             }
         }
     }

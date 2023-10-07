@@ -69,6 +69,11 @@ Anim :: struct {
     framerate : float;
 }
 
+CreateBigEntity :: (iqmModelPath : string) -> Entity(BigEntity) {
+    iqmModel := LoadIQM(iqmModelPath);
+    return .{};
+}
+
 // TODO: THIS IS REALLY UGLY!!!
 UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespaces (if they exist or if there is something like it)
     // update transform matrix
@@ -200,7 +205,7 @@ GetModelNameByClassname :: (classname : string) -> string {
         }
     }
     assert(false, "No model found for classname: %\n", classname);
-    return "";
+    return ""; // Cannot happen
 }
 
 ENTITY_MODELS :: ClassnameToModel.[
