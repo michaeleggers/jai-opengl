@@ -45,25 +45,30 @@ InitWorldFromQuakeMap :: (map : QuakeMap, world : *World) {
 
             // How it MAYBE should be done: 
             
-            // else {
-            //     createStruct, classNameFound := CreateStructForClassName(classname);
-            //     CreateEntity(createStruct);                
-            // } 
+            else {
+                createStruct, found := GetEntityCreateStructByClassname(classname, it);
+                if found {
+                    entity := CreateEntity(createStruct);                
+                    array_add(*world.entities, entity);
+                } else {
+                    log("No create struct found for classname: %\n", classname, flags=.WARNING);
+                }
+            } 
 
-            else if !compare("info_player_start", classname) {
-                createStruct : EntityCreateStruct;
-                createStruct.classname = classname;
-                position, positionFound := table_find(*it.properties, "origin");
-                assert(positionFound, "No position property for entity: %!\n", classname);
-                createStruct.position = OriginStringToVector3(position);
-                createStruct.type = BigEntity;
-                entity := CreateEntity(createStruct);
-                array_add(*world.entities, entity);
-            } else if !compare("monster_soldier", classname) {
-                createStruct : EntityCreateStruct;
-                createStruct.classname = classname;
-                CreateEntity(createStruct);
-            }
+            // else if !compare("info_player_start", classname) {
+            //     createStruct : EntityCreateStruct;
+            //     createStruct.classname = classname;
+            //     position, positionFound := table_find(*it.properties, "origin");
+            //     assert(positionFound, "No position property for entity: %!\n", classname);
+            //     createStruct.position = OriginStringToVector3(position);
+            //     createStruct.type = BigEntity;
+            //     entity := CreateEntity(createStruct);
+            //     array_add(*world.entities, entity);
+            // } else if !compare("monster_soldier", classname) {
+            //     createStruct : EntityCreateStruct;
+            //     createStruct.classname = classname;
+            //     CreateEntity(createStruct);
+            // }
         }
     }
 
@@ -195,7 +200,7 @@ CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model 
 AABBlines : [12] Line;
 UpdateWorld :: (refdef : *RefDef, world : *World) {
 
-    print("%\n", getFrameTime());
+    // print("%\n", getFrameTime());
 
     // ApplyGravity(keyState, world, *world.player);
     // UpdateOnKeys(*world.player, frameTime);

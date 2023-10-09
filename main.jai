@@ -239,10 +239,10 @@ main :: () {
         // print("frameTime: % seconds\n", frameTime);
         
         // Manually cap to 60 FPS
-        
+
         if frameTime < 16.7 {
             waitTime := 16.7 - frameTime;
-            print("waitTime: %\n", waitTime);
+            // print("waitTime: %\n", waitTime);
             SDL_Delay(cast(u32)waitTime);
             frameTime = waitTime;
         }

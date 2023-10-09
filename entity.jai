@@ -3,7 +3,12 @@
 
 cameraEntities     : [..] Entity(Camera);
 bigEntities        : [..] Entity(BigEntity);
-g_EntitySpawnTable : Table(string, EntityCreateStruct);
+g_EntitySpawnTable :: #run -> Table(string, EntityCreateStruct) {
+    result : Table(string, EntityCreateStruct);
+    table_add(*result, "info_player_start", EntityCreateStruct.{type = BigEntity, classname = "info_player_start"});
+    
+    return result;
+}
 
 #scope_export
 
@@ -28,12 +33,18 @@ EntityCreateStruct :: struct {
     position  : Vector3;
 }
 
+GetEntityCreateStructByClassname :: (classname : string, quakeEntity : QuakeEntity) -> EntityCreateStruct, bool {
 
-// TODO: Good idea but maybe doesn't work and even more complicated than neccessary!
-#run {
-    table_add(*g_EntitySpawnTable, "info_player_start", EntityCreateStruct.{type = BigEntity, classname = "info_player_start"});
-    cs, found := table_find(*g_EntitySpawnTable, "info_player_start");
-    print("%\n", found);
+    // NOTE: return table_find(*g_EntitySpawnTable, classname);
+    //       does not work! Compilerbug?
+
+    cs, found := table_find(*g_EntitySpawnTable, classname);
+    if cs.type == BigEntity {
+        origin, foundOrigin := table_find(*quakeEntity.properties, "origin");
+        cs.position = OriginStringToVector3(origin);
+    }
+    
+    return cs, found;
 }
 
 CallInputHandlers :: () {
