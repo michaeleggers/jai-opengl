@@ -2,7 +2,7 @@
 World :: struct {
     models    : [..] Model;    // World geometry: This is the old way of representing world geometry. TODO: Delete later
     tris      : [..] WorldTri; // Polysoup of all the static geometry.
-    // entities  : [..] BaseEntity;   // All entities: Those are moving enemies, boxes, buttons, lights, but also triggers (things that have no visual representation in the world).
+    entities  : [..] *BaseEntity;   // All entities: Those are moving enemies, boxes, buttons, lights, but also triggers (things that have no visual representation in the world).
     player    : BaseEntity;        // Not sure if the player should be a dedicated entity. In theory the player could be any entity!
     gravity   := Vector3.{0.0, 0.0, -10.0}; // Applied on entities every frame that are set to react to gravity.
 }
@@ -56,7 +56,8 @@ InitWorldFromQuakeMap :: (map : QuakeMap, world : *World) {
                 position, positionFound := table_find(*it.properties, "origin");
                 assert(positionFound, "No position property for entity: %!\n", classname);
                 createStruct.position = OriginStringToVector3(position);
-                CreateEntity(BigEntity, createStruct);
+                entity := CreateEntity(BigEntity, createStruct);
+                array_add(*world.entities, entity);
             } else if !compare("monster_soldier", classname) {
                 createStruct : EntityCreateStruct;
                 createStruct.classname = classname;
@@ -193,6 +194,7 @@ CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model 
 AABBlines : [12] Line;
 UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
 
+
     // ApplyGravity(keyState, world, *world.player);
     // UpdateOnKeys(*world.player, frameTime);
 
@@ -209,7 +211,9 @@ UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
     // }
     // world.player.pos += movementVector;
     
-    // UpdateEntity(*world.player);
+    for world.entities {
+        UpdateEntity(it);
+    }
     
     // TODO: Make a polymorphic function that accepts entities and the camera.
     //       This function could be called something like 'ProcessKeyboardInput' and 'ProcessMouseInput'.
@@ -300,6 +304,9 @@ UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
     // free(AABBlines);
 
     // Add player entity to refresh definition
-    // RenderAddEntity(refdef, world.player);
+    for world.entities {
+        RenderAddEntity(refdef, it);
+    }
+
 }
 

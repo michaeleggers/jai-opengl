@@ -52,7 +52,7 @@ RefDef :: struct {
     wireframe           := false;
 
     HUDDrawList         : [MAX_HUD_DRAW_CMDS] HUDDrawCmd;
-    entities            : [MAX_ENTITIES] Entity(BigEntity);
+    entities            : [MAX_ENTITIES] *BaseEntity;
 };
 
 // Models for entities (Players, Monsters, Pickup Items...)
@@ -191,7 +191,7 @@ InitImmediateBuffers :: () {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-RenderAddEntity :: (refdef : *RefDef, entity : *Entity) {
+RenderAddEntity :: (refdef : *RefDef, entity : *BaseEntity) {
     if entityCount >= MAX_ENTITIES {
         print("RenderAddEntity: No more space left for more entities!\n");
         return;
@@ -724,7 +724,7 @@ DrawFrame :: (refdef : RefDef) {
     // glBindBuffer(GL_UNIFORM_BUFFER, perFrameSettingsUBO);
     // ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     for i : 0..entityCount-1 {
-        entity := refdef.entities[i];
+        entity := cast(*Entity(BigEntity))(refdef.entities[i]);
         glBindBuffer(GL_UNIFORM_BUFFER, poseMatrixUBO);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, MAX_SKELETON_JOINTS*size_of(Matrix4), *entity.instance.palette[0]);
         for entity.instance.models {             

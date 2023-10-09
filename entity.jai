@@ -32,6 +32,12 @@ CallInputHandlers :: () {
     }
 }
 
+UpdateEntity :: (baseEntity : *BaseEntity) {
+    if baseEntity.type == BigEntity {
+        UpdateBigEntity(cast(*Entity(BigEntity))baseEntity);
+    }
+}
+
 SetEntityInputHandler :: (self : *BaseEntity, InputHandlerProc : (self : *BaseEntity)) {
     self.HandleInput = InputHandlerProc;
 }
@@ -47,6 +53,7 @@ CreateEntity :: ($X : Type, createStruct : EntityCreateStruct = .{}) -> *BaseEnt
         iqmModelPath := tprint("assets/models/%/%.iqm", modelname, modelname);
         bigEntity := CreateBigEntity(iqmModelPath, createStruct.position);
         array_add(*bigEntities, bigEntity);
+        return *bigEntities[bigEntities.count - 1];
     }
 
     return null;

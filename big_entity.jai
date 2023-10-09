@@ -142,34 +142,38 @@ CreateBigEntity :: (iqmModelPath : string, position : Vector3) -> Entity(BigEnti
 }
 
 // TODO: THIS IS REALLY UGLY!!!
-UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespaces (if they exist or if there is something like it)
+UpdateBigEntity :: (bigEntity : *Entity(BigEntity)) { // TODO: Find out how to do namespaces (if they exist or if there is something like it)
+
+    //entity := cast(*Entity(BigEntity))baseEntity;
+    using bigEntity.instance;
+
     // update transform matrix
-    entity.transform = transpose(make_translation_matrix4(entity.position));    
+    transform = transpose(make_translation_matrix4(bigEntity.position));
 
     // apply that transform to AABB. We need it on CPU side for collision detection
-    minXYZ := Mat4XVec4(entity.transform, vec3toVec4(entity.aabb.minXYZ));
-    maxXYZ := Mat4XVec4(entity.transform, vec3toVec4(entity.aabb.maxXYZ));
+    minXYZ := Mat4XVec4(transform, vec3toVec4(aabb.minXYZ));
+    maxXYZ := Mat4XVec4(transform, vec3toVec4(aabb.maxXYZ));
 
     // NOTE: The extents *could* change. Account for that in the future...
-    width := entity.aabb.width;
-    height := entity.aabb.height;
-    depth := entity.aabb.depth;
+    width := aabb.width;
+    height := aabb.height;
+    depth := aabb.depth;
 
     X := Vector3.{1.0, 0.0, 0.0};
     Y := Vector3.{0.0, 1.0, 0.0};
     Z := Vector3.{0.0, 0.0, 1.0};
     minXYZ3 := Vector3.{minXYZ.x, minXYZ.y, minXYZ.z};
     maxXYZ3 := Vector3.{maxXYZ.x, maxXYZ.y, maxXYZ.z};
-    entity.currentAABB.minXYZ = minXYZ3;
-    entity.currentAABB.maxXYZ = maxXYZ3; 
-    entity.currentAABB.bottomA = minXYZ3;
-    entity.currentAABB.bottomB = minXYZ3 + Z*depth;
-    entity.currentAABB.bottomC = entity.currentAABB.bottomB + X*width;
-    entity.currentAABB.bottomD = entity.currentAABB.bottomA + X*width;
-    entity.currentAABB.topA = entity.currentAABB.bottomA + Y*height;
-    entity.currentAABB.topB = entity.currentAABB.bottomB + Y*height;
-    entity.currentAABB.topC = entity.currentAABB.bottomC + Y*height;
-    entity.currentAABB.topD = entity.currentAABB.bottomD + Y*height;
+    currentAABB.minXYZ = minXYZ3;
+    currentAABB.maxXYZ = maxXYZ3; 
+    currentAABB.bottomA = minXYZ3;
+    currentAABB.bottomB = minXYZ3 + Z*depth;
+    currentAABB.bottomC = currentAABB.bottomB + X*width;
+    currentAABB.bottomD = currentAABB.bottomA + X*width;
+    currentAABB.topA = currentAABB.bottomA + Y*height;
+    currentAABB.topB = currentAABB.bottomB + Y*height;
+    currentAABB.topC = currentAABB.bottomC + Y*height;
+    currentAABB.topD = currentAABB.bottomD + Y*height;
 
 
     // Animation stuff
@@ -248,7 +252,7 @@ UpdateEntity :: (using entity : *Entity) { // TODO: Find out how to do namespace
     array_free(currentPoses);
 
     // Reset wish movement vector  
-    entity.predict = .{0.0, 0.0, 0.0};
+    predict = .{0.0, 0.0, 0.0};
 }
 
 InterpolatePose :: (pose : Pose, nextPose : Pose, pctFrameCompletion: float) -> Matrix4 {
