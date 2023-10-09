@@ -43,10 +43,10 @@ InitWorldFromQuakeMap :: (map : QuakeMap, world : *World) {
                 InitWorldGeometry(it.brushes, world);
             } 
 
-            // How it should be done: 
+            // How it MAYBE should be done: 
             
-            // else if {
-            //     createStruct, classNameFound := table_find(g_EntitySpawnTable, classname);
+            // else {
+            //     createStruct, classNameFound := CreateStructForClassName(classname);
             //     CreateEntity(createStruct);                
             // } 
 

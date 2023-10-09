@@ -1,8 +1,9 @@
 
 #scope_file
 
-cameraEntities : [..] Entity(Camera);
-bigEntities    : [..] Entity(BigEntity);
+cameraEntities     : [..] Entity(Camera);
+bigEntities        : [..] Entity(BigEntity);
+g_EntitySpawnTable : Table(string, EntityCreateStruct);
 
 #scope_export
 
@@ -25,6 +26,14 @@ EntityCreateStruct :: struct {
     type      : Type;
     classname : string;
     position  : Vector3;
+}
+
+
+// TODO: Good idea but maybe doesn't work and even more complicated than neccessary!
+#run {
+    table_add(*g_EntitySpawnTable, "info_player_start", EntityCreateStruct.{type = BigEntity, classname = "info_player_start"});
+    cs, found := table_find(*g_EntitySpawnTable, "info_player_start");
+    print("%\n", found);
 }
 
 CallInputHandlers :: () {
