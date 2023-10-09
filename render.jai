@@ -484,7 +484,7 @@ RenderInit :: () {
     glBindBuffer(GL_UNIFORM_BUFFER, poseMatrixUBO);
     glBufferData(GL_UNIFORM_BUFFER, MAX_SKELETON_JOINTS*size_of(Matrix4), null, GL_DYNAMIC_DRAW);
 
-    SDL_GL_SetSwapInterval(1); // VSYNC on, please.
+    SDL_GL_SetSwapInterval(0); // VSYNC
 }
 
 CreateShader :: (shaderFile : string, shaderType : GLenum) -> GLuint {

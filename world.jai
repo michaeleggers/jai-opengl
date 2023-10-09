@@ -56,12 +56,13 @@ InitWorldFromQuakeMap :: (map : QuakeMap, world : *World) {
                 position, positionFound := table_find(*it.properties, "origin");
                 assert(positionFound, "No position property for entity: %!\n", classname);
                 createStruct.position = OriginStringToVector3(position);
-                entity := CreateEntity(BigEntity, createStruct);
+                createStruct.type = BigEntity;
+                entity := CreateEntity(createStruct);
                 array_add(*world.entities, entity);
             } else if !compare("monster_soldier", classname) {
                 createStruct : EntityCreateStruct;
                 createStruct.classname = classname;
-                CreateEntity(BigEntity, createStruct);
+                CreateEntity(createStruct);
             }
         }
     }
@@ -192,8 +193,9 @@ CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model 
 // TODO: This kinda does not belong here. Maybe put it somewhere in the renderer code
 //       and just set a flag in refdef if AABBs should be drawn or not.
 AABBlines : [12] Line;
-UpdateWorld :: (refdef : *RefDef, world : *World, frameTime : float) {
+UpdateWorld :: (refdef : *RefDef, world : *World) {
 
+    print("%\n", getFrameTime());
 
     // ApplyGravity(keyState, world, *world.player);
     // UpdateOnKeys(*world.player, frameTime);

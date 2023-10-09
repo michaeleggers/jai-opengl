@@ -134,7 +134,7 @@ main :: () {
 
     // debugCamera := CreateCamera(Vector3.{10.0, -10.0, 1000.0}, Camera.{ fov = 50.0 });
     // debugCamera.HandleInput = CameraInputHandler;
-    debugCamera := CreateEntity(Camera);    
+    debugCamera := CreateEntity(EntityCreateStruct.{type = Camera});    
     SetActiveCamera(debugCamera);
     // followCamera := CreateFollowCamera(.{ pos = .{world.player.pos.x, world.player.pos.y + 1, world.player.pos.z - 1}, fov = 50.0 }, *world.player, 10.0);
     // world.player.followCamera = *followCamera;
@@ -154,7 +154,7 @@ main :: () {
         if KeyPressed(KeyboardButton.NUM_1) SetActiveCamera(debugCamera);
         //if KeyPressed(KeyboardButton.NUM_2) refdef.camera = *followCamera;
                 
-        UpdateWorld(*refdef, *world, frameTime);
+        UpdateWorld(*refdef, *world);
 
         // Test triangle picking
         hitRecord := PickTri(refdef.camera, .{cast(float)GetMouseX(), cast(float)(cast(s32)refdef.clientHeight - GetMouseY())}, refdef.clientWidth, refdef.clientHeight, world.models);
@@ -237,6 +237,15 @@ main :: () {
         perfDelta := perfCounterEndFrame - perfCounterBeginFrame;
         frameTime = cast(float)perfDelta / cast(float)perfFrequency;
         // print("frameTime: % seconds\n", frameTime);
+        
+        // Manually cap to 60 FPS
+        
+        if frameTime < 16.7 {
+            waitTime := 16.7 - frameTime;
+            print("waitTime: %\n", waitTime);
+            SDL_Delay(cast(u32)waitTime);
+            frameTime = waitTime;
+        }
     }
 
     SDL_DestroyWindow(refdef.window);

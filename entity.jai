@@ -22,6 +22,7 @@ Entity :: struct ($X : Type) {
 }
 
 EntityCreateStruct :: struct {
+    type      : Type;
     classname : string;
     position  : Vector3;
 }
@@ -42,13 +43,14 @@ SetEntityInputHandler :: (self : *BaseEntity, InputHandlerProc : (self : *BaseEn
     self.HandleInput = InputHandlerProc;
 }
 
-CreateEntity :: ($X : Type, createStruct : EntityCreateStruct = .{}) -> *BaseEntity {
-    if X == Camera {
+CreateEntity :: (createStruct : EntityCreateStruct = .{}) -> *BaseEntity {
+    type := createStruct.type;
+    if type == Camera {
         camera := CreateCamera(Vector3.{10.0, -10.0, 1000.0}, Camera.{ fov = 50.0 });
         camera.HandleInput = CameraInputHandler;
         array_add(*cameraEntities, camera);
         return *cameraEntities[cameraEntities.count - 1];
-    } else if X == BigEntity {
+    } else if type == BigEntity {
         modelname := GetModelNameByClassname(createStruct.classname);
         iqmModelPath := tprint("assets/models/%/%.iqm", modelname, modelname);
         bigEntity := CreateBigEntity(iqmModelPath, createStruct.position);
