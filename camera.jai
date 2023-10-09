@@ -77,10 +77,10 @@ CameraInputHandler :: (camera : *BaseEntity) {
     if KeyPressed(KeyboardButton.LEFT)      RotateAroundUp(cam,  (2.0*PI)/128.0);
     if KeyPressed(KeyboardButton.UP)        RotateAroundSide(cam,  (2.0*PI)/128.0);
     if KeyPressed(KeyboardButton.DOWN)      RotateAroundSide(cam, -(2.0*PI)/128.0);
-    if KeyPressed(KeyboardButton.D)         MoveSide(cam,  2.0*frameTime);
-    if KeyPressed(KeyboardButton.A)         MoveSide(cam, -2.0*frameTime);
-    if KeyPressed(KeyboardButton.W)         MoveForward(cam,  2.0*frameTime);
-    if KeyPressed(KeyboardButton.S)         MoveForward(cam, -2.0*frameTime);
+    if KeyPressed(KeyboardButton.D)         MoveSide(cam,  2000.0*frameTime);
+    if KeyPressed(KeyboardButton.A)         MoveSide(cam, -2000.0*frameTime);
+    if KeyPressed(KeyboardButton.W)         MoveForward(cam,  2000.0*frameTime);
+    if KeyPressed(KeyboardButton.S)         MoveForward(cam, -2000.0*frameTime);
 
     // Mouse
 

@@ -31,13 +31,14 @@
 
 #scope_file
 
-frameTime : float;
-refdef    : RefDef;
+deltaTime    : float;
+refdef       : RefDef;
+prevFrameTime : u64;
 
 #scope_export
 
 getFrameTime :: () -> float {
-    return frameTime;
+    return deltaTime;
 }
 
 
@@ -141,10 +142,28 @@ main :: () {
     // followCamera2 := FollowCamera.{};
     // refdef.camera = *followCamera;
 
+    perfCounterEndFrame : u64;
     running := true;
     while running {
 
+        // Check if we run too fast.
+
         perfCounterBeginFrame := SDL_GetPerformanceCounter();
+        perfDelta := perfCounterBeginFrame - prevFrameTime;
+        frameTime := cast(float)perfDelta / cast(float)perfFrequency;
+        if frameTime >= 0.0 && frameTime <= 16.7 {
+            SDL_Delay(cast(u32)(16.7 - frameTime));
+        }
+
+        // Calculate delta time which is being used to update stuff
+
+        perfDelta = SDL_GetPerformanceCounter() - prevFrameTime;
+        deltaTime = cast(float)perfDelta / cast(float)perfFrequency;
+
+        print("%\n", deltaTime);
+
+        prevFrameTime = SDL_GetPerformanceCounter();
+
 
         HandleSystemEvents(*running, *refdef);
 
@@ -232,20 +251,6 @@ main :: () {
         // Clear per-frame allocations
         reset_temporary_storage();
 
-        perfCounterEndFrame := SDL_GetPerformanceCounter();
-
-        perfDelta := perfCounterEndFrame - perfCounterBeginFrame;
-        frameTime = cast(float)perfDelta / cast(float)perfFrequency;
-        // print("frameTime: % seconds\n", frameTime);
-        
-        // Manually cap to 60 FPS
-
-        if frameTime < 16.7 {
-            waitTime := 16.7 - frameTime;
-            // print("waitTime: %\n", waitTime);
-            SDL_Delay(cast(u32)waitTime);
-            frameTime = waitTime;
-        }
     }
 
     SDL_DestroyWindow(refdef.window);

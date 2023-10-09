@@ -151,8 +151,8 @@ SpawnEntities :: (entities : [] Entity, refdef : *RefDef, world : *World) {
 }
 
 UpdateCameraOnMouse :: (camera : *Entity(Camera), dX : s32, dY : s32) {
-    RotateAroundUp(camera, -dX * 0.01);
-    RotateAroundSide(camera, -dY * 0.01);
+    RotateAroundUp(camera, cast(float)-dX*getFrameTime());
+    RotateAroundSide(camera, cast(float)-dY*getFrameTime());
 }
 
 CreateModelFromAABB :: (aabb : AABB, color := Vector3.{0.5, 0.5, 0.5}) -> Model {
