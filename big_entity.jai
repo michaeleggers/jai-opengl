@@ -50,6 +50,7 @@ BigEntity :: struct {
     palette      : [..] Matrix4;
     jointCount   : u32;
     currentFrame : u32;
+    currentFrameFPS : float;
     totalFrameCount   : u32;
     pctFrameCompletion : float;
     animations   : [..] Anim;
@@ -182,11 +183,8 @@ UpdateBigEntity :: (bigEntity : *Entity(BigEntity)) { // TODO: Find out how to d
     // Set the currentFrame based on which animation we are in
 
     fps := animations[currentAnim].framerate;    
-    currentFrameFPS := 1.0 / getFrameTime();
-    print("fps: %\n", currentFrameFPS);
-    millisPerFrame := (fps / currentFrameFPS);
-    pctFrameCompletion += millisPerFrame;
-    print("pctFrameCompletion: %\n", pctFrameCompletion);
+    timePerFrame := 1.0 / fps;
+    pctFrameCompletion += (getFrameTime()/timePerFrame);
 
     setNewAnim := false;
     if KeyDown(KeyboardButton.COMMA) {
