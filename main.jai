@@ -151,16 +151,17 @@ main :: () {
         perfCounterBeginFrame := SDL_GetPerformanceCounter();
         perfDelta := perfCounterBeginFrame - prevFrameTime;
         frameTime := cast(float)perfDelta / cast(float)perfFrequency;
-        if frameTime >= 0.0 && frameTime <= 16.7 {
-            SDL_Delay(cast(u32)(16.7 - frameTime));
-        }
+        // if frameTime >= 0.0 && frameTime <= 16.7 {
+        //     SDL_Delay(cast(u32)(16.7 - frameTime));
+        // }
+        SDL_Delay(cast(u32)(33.3));
 
         // Calculate delta time which is being used to update stuff
 
         perfDelta = SDL_GetPerformanceCounter() - prevFrameTime;
         deltaTime = cast(float)perfDelta / cast(float)perfFrequency;
 
-        print("%\n", deltaTime);
+        //print("%\n", deltaTime);
 
         prevFrameTime = SDL_GetPerformanceCounter();
 

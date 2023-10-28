@@ -181,7 +181,12 @@ UpdateBigEntity :: (bigEntity : *Entity(BigEntity)) { // TODO: Find out how to d
 
     // Set the currentFrame based on which animation we are in
 
-    pctFrameCompletion += 0.2;
+    fps := animations[currentAnim].framerate;    
+    currentFrameFPS := 1.0 / getFrameTime();
+    print("fps: %\n", currentFrameFPS);
+    millisPerFrame := (fps / currentFrameFPS);
+    pctFrameCompletion += millisPerFrame;
+    print("pctFrameCompletion: %\n", pctFrameCompletion);
 
     setNewAnim := false;
     if KeyDown(KeyboardButton.COMMA) {
@@ -213,12 +218,12 @@ UpdateBigEntity :: (bigEntity : *Entity(BigEntity)) { // TODO: Find out how to d
         if currentFrame == animFirstFrame {
             currentFrame = (animFirstFrame+animFrameCount-1);
         } else {
-            currentFrame -= 1;
+            currentFrame -= cast(u32)pctFrameCompletion;
         }
         pctFrameCompletion = 1.0;
     }
     if pctFrameCompletion > 1.0 {
-        currentFrame += 1;
+        currentFrame += cast(u32)pctFrameCompletion;
         pctFrameCompletion = 0.0;
 
         if currentFrame >= (animFirstFrame+animFrameCount) {
@@ -280,5 +285,5 @@ GetModelNameByClassname :: (classname : string) -> string {
 }
 
 ENTITY_MODELS :: ClassnameToModel.[
-    .{"info_player_start", "mrfixit"}
+    .{"info_player_start", "hana"}
 ];
