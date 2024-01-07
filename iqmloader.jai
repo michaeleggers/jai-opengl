@@ -149,7 +149,7 @@ LoadIQM :: (file : string) -> IQMData {
     pExts := iqmFile.data + pHeader.ofsExt;
 
     print("pHeader:\n%\n", <<pHeader);
-    print("pHeader magic: %\n", to_string(pHeader.magic));
+    print("pHeader magic: %\n", cast(string)pHeader.magic);
     print("pHeader numText: %\n", pHeader.numText);
     nextTextOfs : s64 = 0;
 

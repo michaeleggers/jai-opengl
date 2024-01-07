@@ -526,7 +526,7 @@ CreateShaderProgram :: (vertShaderFile : string, fragShaderFile : string) -> GLu
     if !linkStatus {
         info_len : s32;
         glGetProgramiv (shaderProgram, GL_INFO_LOG_LENGTH, *info_len);
-        info_data := cast (*u8) alloc (info_len, temp);
+        info_data := cast (*u8) alloc (info_len);
         glGetProgramInfoLog (shaderProgram, xx info_len, xx *info_len, info_data);
         result : string;
         result.data = info_data;
