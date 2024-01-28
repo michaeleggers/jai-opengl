@@ -94,25 +94,25 @@ CreateBigEntity :: (iqmModelPath : string, position : Vector3) -> Entity(BigEnti
             b := it.vertices[i + 1];
             c := it.vertices[i + 2];
             tri.a.pos = Vector3.{a.pos[0], a.pos[1], a.pos[2]};
-            tri.c.pos = Vector3.{b.pos[0], b.pos[1], b.pos[2]};
-            tri.b.pos = Vector3.{c.pos[0], c.pos[1], c.pos[2]};
+            tri.b.pos = Vector3.{b.pos[0], b.pos[1], b.pos[2]};
+            tri.c.pos = Vector3.{c.pos[0], c.pos[1], c.pos[2]};
             // tri.a.pos = FixOrientation(tri.a.pos);
             // tri.b.pos = FixOrientation(tri.b.pos);
             // tri.c.pos = FixOrientation(tri.c.pos);
 
             tri.a.uv = Vector2.{a.texCoord[0], a.texCoord[1]};
-            tri.c.uv = Vector2.{b.texCoord[0], b.texCoord[1]};
-            tri.b.uv = Vector2.{c.texCoord[0], c.texCoord[1]};
+            tri.b.uv = Vector2.{b.texCoord[0], b.texCoord[1]};
+            tri.c.uv = Vector2.{c.texCoord[0], c.texCoord[1]};
             tri.a.bc = Vector3.{1.0, 0.0, 0.0};
             tri.b.bc = Vector3.{0.0, 1.0, 0.0};
             tri.c.bc = Vector3.{0.0, 0.0, 1.0};
             for j : 0..3 {
                 tri.a.blendindices[j] = a.blendindices[j];
-                tri.c.blendindices[j] = b.blendindices[j];
-                tri.b.blendindices[j] = c.blendindices[j];        
+                tri.b.blendindices[j] = b.blendindices[j];
+                tri.c.blendindices[j] = c.blendindices[j];        
                 tri.a.blendweights.component[j] = cast(float)a.blendweights[j] / 255.0;
-                tri.c.blendweights.component[j] = cast(float)b.blendweights[j] / 255.0;
-                tri.b.blendweights.component[j] = cast(float)c.blendweights[j] / 255.0;
+                tri.b.blendweights.component[j] = cast(float)b.blendweights[j] / 255.0;
+                tri.c.blendweights.component[j] = cast(float)c.blendweights[j] / 255.0;
             }                    
 
             array_add(*tris, tri);
@@ -283,5 +283,5 @@ GetModelNameByClassname :: (classname : string) -> string {
 }
 
 ENTITY_MODELS :: ClassnameToModel.[
-    .{"info_player_start", "hana"}
+    .{"info_player_start", "cylinder_two_anims"}
 ];
